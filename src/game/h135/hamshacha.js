@@ -26,7 +26,7 @@ import { fingers } from '../h113/acts.js';
 
 const S12 = BOOK.s12, F = S12.floor, Fd = S12.field, B = S12.basin, P = S12.pit, CAM = S12.cam.geshem;
 export const HA = Object.freeze({ FOV: 50, PX: 8, REDRAW: 0.08, FILL_T: 4.5 });
-const C = { earth: '#8A6B4A', old: '#5A4130', dug: '#3E2C1E', stone: '#9E968A', trough: '#7A5A36', water: [62, 142, 160], mud: [120, 86, 52], strip: 'rgba(240,220,170,0.75)', packed: '#2E2016', crack: '#1A120A', breach: 'rgba(110,78,46,0.85)' };
+const C = { earth: '#A07E56', old: '#5A4130', dug: '#352418', stone: '#9E968A', trough: '#7A5A36', water: [62, 142, 160], mud: [120, 86, 52], strip: 'rgba(240,220,170,0.75)', packed: '#2E2016', crack: '#C8F4FF', breach: 'rgba(110,78,46,0.85)' };
 
 function make(m, X) {
   const T = X.THREE, Mo = X.M, lv = m.lv | 0 || 1, V = voices12(X), Mt = mats12(X);
@@ -52,7 +52,8 @@ function make(m, X) {
   // the hard stones (raised) and the trough (a wooden box), in 3D over the earth
   for (const b of S12.stones[lv] || []) box(X, Mt.y12stoneHard, b[0] + 0.05, F, b[1] + 0.05, b[2] - 0.05, F + 0.35, b[3] - 0.05, root);
   const tb = S12.trough[lv]; let trX = null;
-  if (tb) { box(X, Mt.y12woodD, tb[0], F, tb[1], tb[2], F + 0.45, tb[3], root); trX = new T.Group(); trX.visible = false; root.add(trX); const L = Math.hypot(tb[2] - tb[0], tb[3] - tb[1]); for (const s of [-1, 1]) { const b = new T.Mesh(new T.BoxGeometry(L * 0.9, 0.1, 0.14), Mt.y12x); b.rotation.y = s * Math.atan2(tb[3] - tb[1], tb[2] - tb[0]); trX.add(b); } trX.position.set((tb[0] + tb[2]) / 2, F + 0.52, (tb[1] + tb[3]) / 2); }
+  if (tb) { box(X, Mt.y12woodD, tb[0], F, tb[1], tb[2], F + 0.45, tb[3], root); trX = new T.Group(); trX.visible = true; root.add(trX);   // (review: the wooden X stands on the trough from the start — a vessel, keep out)
+    const L = Math.hypot(tb[2] - tb[0], tb[3] - tb[1]); for (const s of [-1, 1]) { const b = new T.Mesh(new T.BoxGeometry(L * 0.9, 0.1, 0.14), Mt.y12x); b.rotation.y = s * Math.atan2(tb[3] - tb[1], tb[2] - tb[0]); trX.add(b); } trX.position.set((tb[0] + tb[2]) / 2, F + 0.52, (tb[1] + tb[3]) / 2); }
   // the torches (the night's light) and one warm light over the strip
   const torch = new T.PointLight('#FFB060', 2.2, 46, 1.2); torch.position.set((Fd.x0 + Fd.x1) / 2 + 4, F + 9, (Fd.z0 + Fd.z1) / 2); root.add(torch);
   for (const [x, z] of [[Fd.x1 + 1, Fd.z1 - 2], [Fd.x1 + 1, (Fd.z0 + Fd.z1) / 2], [Fd.x1 + 1, Fd.z0 + 2], [Fd.x0 - 1, (Fd.z0 + Fd.z1) / 2]]) {
@@ -108,7 +109,7 @@ function make(m, X) {
   function onStep(evs) {
     for (const e of evs) {
       if (e.k === 'wet') A.dirty = true;
-      else if (e.k === 'crack') { V.creakEarth(); ev('crack'); }
+      else if (e.k === 'crack') { V.creakEarth(); ev('crack'); if (lv > 1 && !A.crackHint) { A.crackHint = 1; const b = S.bends.find((q) => q.crack > 0 && q.state === 'ok') || S.bends[S.bends.length - 1]; if (b) { try { X.hand({ x: b.x + b.out[0] * 0.75, y: F, z: b.z + b.out[1] * 0.75 }, 0, 40); setTimeout(() => { try { if (!A.ended) X.hand(null); } catch (er) { /* */ } }, 2600); } catch (er) { /* */ } } } }   // (the first crack: the hand on the bank to press, once — Gemini/ChatGPT review)
       else if (e.k === 'packed') { V.knock && V.knock(2); ev('packed'); }
       else if (e.k === 'breach') { V.breach(); ev('breach'); A.dirty = true; hurt(X, Mo, 'hamshacha.breach', V3(X, e.x, F + 0.3, e.z), { lv, at: [+e.x.toFixed(1), +e.z.toFixed(1)] }); }
       else if (e.k === 'repaired') { V.knock && V.knock(2); ev('repaired'); }
@@ -117,7 +118,7 @@ function make(m, X) {
         const g = S.segs[e.n], k = g && g.cells.length ? g.cells[g.cells.length - 1] : null, c = k != null ? H.centre(S, k % NX, (k / NX) | 0) : [(Fd.x0 + Fd.x1) / 2, (Fd.z0 + Fd.z1) / 2];
         if (A.firstSeg) { A.firstSeg = false; if (e.grade !== 'gold') { g.grade = 'gold'; try { X.line('ניסוי חינם: המקטע הראשון לא נספר', 1600); } catch (er) { /* */ } continue; } }
         award(X, V3(X, c[0], F + 0.3, c[1]), e.grade, lv, 'עפר'); ev('seg:' + e.grade);
-      } else if (e.k === 'meet') { V.meet(); ev('meet'); try { X.sparks(e.x, F + 0.4, e.z, 10); } catch (er) { /* */ } }
+      } else if (e.k === 'meet') { V.meet(); ev('meet'); try { X.sparks(e.x, F + 0.4, e.z, 30); X.dust(e.x, F + 0.3, e.z, 4, 2); X.line('הזרמים נפגשו', 1800); } catch (er) { /* */ } }   // (review: the meeting of the streams is the work's big moment)
       else if (e.k === 'reach') { V.splash(1.2); ev('reach:' + e.n); }
       else if (e.k === 'line') { ev('line'); if (e.mud >= H.HK.CLEAR) { try { X.line('המים עכורים בקו: נשפכים דרך המגלש עד שיהיו צלולים', 2400); } catch (er) { /* */ } } }
       else if (e.k === 'clear') { ev('clear'); }
@@ -143,7 +144,8 @@ function make(m, X) {
       cg.save(); cg.translate(cx, cy); cg.rotate(ang);
       if (b.state === 'ok' && lv > 1) { cg.fillStyle = C.strip; cg.globalAlpha = b.crack > 0 ? 0.6 + 0.4 * Math.abs(Math.sin(A.t * 8)) : 0.75; cg.fillRect(-px * 0.5, -px * 1.6, px, px * 3.2); cg.globalAlpha = 1; }
       if (b.state === 'packed' || b.state === 'repaired' || b.packed > 0) { cg.fillStyle = C.packed; cg.globalAlpha = Math.max(0.3, b.packed); cg.fillRect(-px * 0.5, -px * 1.6, px, px * 3.2); cg.globalAlpha = 1; }
-      if (b.crack > 0 && b.state === 'ok') { cg.strokeStyle = C.crack; cg.lineWidth = 2; cg.beginPath(); const L = px * 3 * b.crack; cg.moveTo(0, -L / 2); for (let s = 1; s <= 5; s++) cg.lineTo((s % 2 ? 3 : -3), -L / 2 + (L * s) / 5); cg.stroke(); }
+      // (rule-67 review, Gemini: the crack must catch a child's eye in the dark — bright seeping water, thick, glowing, pulsing)
+      if (b.crack > 0 && b.state === 'ok') { cg.shadowColor = '#7FE0FF'; cg.shadowBlur = 8; cg.globalAlpha = 0.7 + 0.3 * Math.abs(Math.sin(A.t * 6)); cg.strokeStyle = C.crack; cg.lineWidth = 3.5; cg.beginPath(); const L = px * 3 * b.crack; cg.moveTo(0, -L / 2); for (let s = 1; s <= 5; s++) cg.lineTo((s % 2 ? 3 : -3), -L / 2 + (L * s) / 5); cg.stroke(); cg.shadowBlur = 0; cg.globalAlpha = 1; }
       if (b.state === 'breach') { cg.fillStyle = C.breach; cg.beginPath(); cg.moveTo(0, -px); cg.lineTo(px * 4, -px * 3); cg.lineTo(px * 4.5, px * 3); cg.lineTo(0, px); cg.fill(); }
       cg.restore();
     }
@@ -161,7 +163,7 @@ function make(m, X) {
     if (res.bonus) extra(X, 40, lv, 'work', 'בלי פריצה');
     Mo.st.trace = H.trace(S); Mo.st.water = 1; X.save();
     Mo.keep(m.k, null);
-    await finish(X, A, res, WORDS.hamshacha, at, { eye: [P.box[2] + 8.5, F + 14, (P.box[1] + P.box[3]) / 2 + 1], aim: [(P.box[0] + P.box[2]) / 2, P.floor + 4, (P.box[1] + P.box[3]) / 2], secs: 1.2, kohen: true, after: () => { try { Mo.filmOver(); } catch (er) { /* */ } } });
+    await finish(X, A, res, WORDS.hamshacha, at, { eye: [P.box[2] + 8, F + 14, P.box[1] - 3], aim: [(P.box[0] + P.box[2]) / 2, P.floor + 4, (P.box[1] + P.box[3]) / 2], secs: 1.2, kohen: true, after: () => { try { Mo.filmOver(); } catch (er) { /* */ } } });
   }
   function hint() { if (A.hintOn) return; A.hintOn = 1; const [x, z] = S12.golah.mouth1; X.hand({ x, y: F, z: z - 1.2 }, 0, 40); }
   let pt = null;
@@ -193,7 +195,7 @@ function make(m, X) {
         bwM.color.setRGB(...[0.24, 0.55, 0.63].map((v, i) => v + ([0.47, 0.34, 0.2][i] - v) * Math.min(1, S.mud * 1.3)));
         drainW.visible = S.mud > 0.02 && S.mouths.some((q) => q.reached);
         if (A.fill) { A.fill.t += dt; const k = Math.min(1, A.fill.t / HA.FILL_T); pw.position.y = P.floor + (P.sink - P.floor) * k; }
-        if (trX && trX.visible) { A.trT += dt; if (A.trT > 2.4) trX.visible = false; }
+        if (trX) { A.trT = (A.trT == null ? 9 : A.trT) + dt; trX.scale.setScalar(A.trT < 0.6 ? 1 + 0.25 * Math.sin(A.trT * 20) : 1); }   // (a touch makes it jump)
         A.redraw -= dt; if (A.redraw <= 0) { A.redraw = HA.REDRAW; paint(); }
       } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h135] hamshacha', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
     },

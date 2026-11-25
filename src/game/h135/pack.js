@@ -3,7 +3,7 @@
  * (world.js); the opening (rule 3: where am I — the court between the porch and the altar, the kiyor on its place; a tap skips it); the
  * finale "הלילה הראשון" (once, no points): the evening's check as a show (the water down to the moon ring, the upper streams fade, the
  * lower ones go on to the stations — what work 1 left is what is seen); the sinking: he touches the wheel and turns it (the shoe works by
- * itself), the full kiyor goes down with the screw, click after click, under the sink line; the sound to Jericho: the camera rises over
+ * itself), the full kiyor goes down on its two chains, click after click, under the sink line; the sound to Jericho: the camera rises over
  * the whole altar chapter (stages 08–12) and the wood's sound fades eastward (Tamid 3:8, as a sound); the morning: dark, then the first
  * light, wooden clicks and far voices — "הגיע עת" (Tamid 1:4), fireworks. The kiyor does NOT rise here: it stays under the water (the
  * morning's raising is Phase B's). Then the result card with "שוב, לשיפור".
@@ -17,6 +17,7 @@ import * as D from './dadim-model.js';
 import { voices12, px360 } from './kit12.js';
 import { fingers } from '../h113/acts.js';
 import { BOOK } from '../world/grid.js';
+import { filmFigs } from '../h128/figgate.js';
 
 const S12 = BOOK.s12, CAM = S12.cam, END = CAM.end, F = S12.floor, K = S12.kiyor, MK = S12.mukhni;
 const near = (X, on) => { try { if (X.view && X.view.closeCam) X.view.closeCam(!!on, 'h135-film'); } catch (e) { /* */ } };
@@ -72,7 +73,9 @@ async function evening(X, M) {
 /** the sinking: his finger on the wheel turns it (the shoe by itself, no points); idle, it turns by itself */
 async function sinking(X, M) {
   const V = voices12(X); SH12.hold = true; SH12.own.kiyorFull = true;
-  X.shot(CAM.mukhni[0].slice(), CAM.mukhni[1].slice(), 1.4);
+  // (wider than the work's: the wheel at the upper left, the chains, the kiyor and the pit's water below — no window at night)
+  X.shot([MK.x + 11, MK.axle.y + 5, MK.wheel.z + 10], [MK.x, 19, MK.z + 1.5], 1.4);
+  try { X.stages.hero.place({ x: MK.stand[0], z: MK.stand[1], face: [MK.x, MK.wheel.z] }); } catch (e) { /* (the kohen on the platform, at the wheel) */ }
   try { X.line('הלילה: החזיקו את שפת הגלגל וסובבו. הכיור המלא שוקע לבור', 4200); } catch (e) { /* */ }
   const C = { d: 0, w: 0, idle: 0, a: null, acc: 0, hist: [], t: 0, tick: 0 };
   const wheel = () => { const c = X.scr(MK.x, MK.axle.y, MK.wheel.z), e = X.scr(MK.x + MK.wheel.r, MK.axle.y, MK.wheel.z), n = X.scr(MK.x, MK.axle.y + MK.wheel.r, MK.wheel.z); return { c, ax: Math.max(10, Math.hypot(e.x - c.x, e.y - c.y)), ay: Math.max(10, Math.hypot(n.x - c.x, n.y - c.y)) }; };
@@ -88,8 +91,8 @@ async function sinking(X, M) {
     const want = C.a ? Math.min(0.45, fw) : C.idle > 6 || globalThis.__H135_AUTO_FINALE ? 0.4 : 0;
     C.w += (want - C.w) * Math.min(1, dt * 3); C.d = Math.min(K.travel, C.d + C.w * dt);
     const d0 = SH12.d; SH12.d = C.d; SH12.ang = C.d * Math.PI * 2; SH12.brake = 0.5;
-    if (Math.floor(C.d * 8) > Math.floor(d0 * 8)) { V.click(); const tg = SH12.refs && SH12.refs.tongue; if (tg) tg.rotation.y = -0.35; }
-    else { const tg = SH12.refs && SH12.refs.tongue; if (tg) tg.rotation.y *= 0.8; }
+    if (Math.floor(C.d * 8) > Math.floor(d0 * 8)) { V.click(); const tg = SH12.refs && SH12.refs.tongue; if (tg) tg.rotation.z = 0.35; }
+    else { const tg = SH12.refs && SH12.refs.tongue; if (tg) tg.rotation.z *= 0.8; }
     if (d0 < K.y0 - S12.pit.sink && C.d >= K.y0 - S12.pit.sink) V.splash(1.4);
     return C.d >= K.travel - 1e-6;
   });
@@ -122,7 +125,7 @@ export function againOf(M) { const c = KINDS.map((k) => [k, starsOf(M.st, k)]); 
 function resultCard(M) {
   return new Promise((res) => {
     if (typeof document === 'undefined') { res(null); return; }
-    const st = M.st, best = st.bestOf || {}, row = (w) => { const b = best[w]; const s = b ? b.stars | 0 : 0; return `<li><b>${TITLES[w]}</b> <i>${'★'.repeat(s)}${'☆'.repeat(3 - s)}</i></li>`; };
+    const st = M.st, best = st.bestOf || {}, row = (w) => { const b = best[w]; const s = b ? b.stars | 0 : Math.max(0, ...Object.keys(st.res || {}).filter((id) => id.startsWith(w)).map((id) => st.res[id].stars | 0)); return `<li><b>${TITLES[w]}</b> <i>${'★'.repeat(s)}${'☆'.repeat(3 - s)}</i></li>`; };
     const fl = {}; for (const x of st.flaws || []) { fl[x.f] = (fl[x.f] || 0) + 1; }
     const fls = Object.entries(fl).map(([f, n]) => `<li>${LOSS[f] ? LOSS[f][0] : f}${n > 1 ? ` ×${n}` : ''}</li>`).join('') || '<li>אין נזקים למראה</li>';
     const low = againOf(M);
@@ -184,6 +187,7 @@ export function makePack12(env = {}) {
       const M = X.M, st = M.st; finalWorld(X);
       if (!st.spigots || Object.keys(st.spigots).length < 12) { st.spigots = { ...crewSpigots(), ...(st.spigots || {}) }; X.save(); SH12.key = ''; finalWorld(X); }
       near(X, true);
+      let figsBack = null; try { figsBack = filmFigs({}); } catch (e) { figsBack = null; }   // (no idle figures in the night: only the kohen)
       if (!st.finale) {
         const E = (() => { try { return X.pack && X.pack.time; } catch (e) { return null; } })();
         try { if (E && E.setTime) E.setTime('dusk'); } catch (e) { /* */ }
@@ -199,6 +203,7 @@ export function makePack12(env = {}) {
       const low = await resultCard(M);
       if (low) { P.again = low; try { X.line(`שוב, לשיפור: ${TITLES[low]}. הולכים אל העבודה`, 4000); } catch (e) { /* */ } }
       h131Card(true);
+      if (figsBack) SH12.figsBack = figsBack;
     },
     rest(X, M) { restWorld(X, M); },
     dispose() {},

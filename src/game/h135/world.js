@@ -313,6 +313,7 @@ export function initWorld(X) {
   modelHide(X); floorSet(X); wallsSet(X);
   if (!SH12.g) build(X);
   if (X.M && X.M.st && X.M.st.sunk) SH12.d = K.travel;
+  if (SH12.figsBack) { const f = SH12.figsBack; SH12.figsBack = null; try { f(); } catch (e) { /* */ } }   // (the night's figures, held off until the visits open: pack.js finale)
   SH12.key = ''; sync(X, X.M);
 }
 let jT = 0;

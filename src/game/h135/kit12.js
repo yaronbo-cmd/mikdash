@@ -3,7 +3,7 @@
  *     run), the level's multiplier on top, the work's perfect word on the full screen;
  *   · hurt(X, Mo, f, at, o) — real damage kept in the world (Mo.flaw) and its points off (X.loss), this stage's labels;
  *   · voices12(X) — stage 11's voices (stone, wood, rope) and this stage's own: water on stone, a stream's hiss, the wooden tongue's
- *     click, the screw's creak, wet earth's creak, the earth giving way. Every sound wood, water and stone (no metal by the altar).
+ *     click, the axle's creak, wet earth's creak, the earth giving way. Every sound wood, water and stone (no metal by the altar).
  */
 import { award, extra, finish, lens, V3, voices, px360, MIN_GRIP } from '../h134/kit11.js';
 import { LOSS } from './model.js';
@@ -42,7 +42,7 @@ export function voices12(X) {
     plug() { V.knock(2.8); tone(520, 380, 0.08, 0.04, 'triangle'); },                                                        // the plug's wood
     seat() { V.knock(2); tone(260, 180, 0.1, 0.05, 'triangle'); },
     click() { tone(1300, 1000, 0.035, 0.06, 'triangle'); V.knock(3); },                                                     // the tongue
-    creak() { tone(180, 120, 0.5, 0.05, 'sawtooth'); tone(240, 150, 0.4, 0.02, 'sawtooth', 0.1); },                        // the screw
+    creak() { tone(180, 120, 0.5, 0.05, 'sawtooth'); tone(240, 150, 0.4, 0.02, 'sawtooth', 0.1); },                        // the axle
     stuck() { tone(150, 90, 0.7, 0.06, 'sawtooth'); V.thud(); },
     dent() { V.thud(); tone(140, 60, 0.6, 0.08, 'triangle'); noise(0.3, 600, 0.8, 0.05); },                                  // copper on stone, dull
     earth() { noise(0.18, 400, 0.6, 0.03); },

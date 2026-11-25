@@ -19,7 +19,7 @@
  *   fresh(lv) · step(S, dt, inp) → events · result(S) · bottom(S) · sub(S) · save(S, id) / load(b)
  */
 export const MK = Object.freeze({
-  A_G: 0.9, F_S: 1.6, F_K: 0.25, BR: 1.7, K: 6, T: 0.6,
+  A_G: 0.9, F_S: 1.6, F_K: 0.25, BR: 1.7, K: 6, T: 0.6, T_PUSH: 0.85,   // (T_PUSH: b135 probe — a finger on the rim pushes harder than it holds back; at 0.6 the floating lv-2 kiyor (load −0.36) crawled: −0.36 + 0.6 − F_K < 0)
   W_SAFE: 0.5, W_HIT: 0.62, W_MAX: 1.4, STUCK: 0.6, JERK: 0.32, JERK_WIN: 0.25, SPLASH_GAP: 1.5,
   Y0: 19, H: 4, RIM: 16, SINK: 15, STOP: 10, AUTO_W: 0.34,
 });
@@ -57,7 +57,7 @@ export function step(S, dt, inp = {}) {
     // at rest, nobody on the rim: the thread holds it (static), unless the load is past it
     if (g <= MK.F_S) { S.w = 0; a = 0; } else a = g - MK.F_K - MK.BR * b;
   } else {
-    const tf = hold ? clamp(MK.K * (fw - S.w), -MK.T, MK.T) : 0;
+    const tf = hold ? clamp(MK.K * (fw - S.w), -MK.T, MK.T_PUSH) : 0;
     a = g + tf - MK.F_K * (moving ? 1 : 0.5) - MK.BR * b * (moving ? 1 : 0.6);
   }
   const w0 = S.w;
@@ -101,7 +101,7 @@ function hit(S, ev, where) {
 }
 /** level 1's shoe: it keeps the wheel at AUTO_W (a gentle descent the finger leads) */
 function autoBrake(S, g, hold, fw) {
-  const tf = hold ? clamp(MK.K * (fw - S.w), -MK.T, MK.T) : 0;
+  const tf = hold ? clamp(MK.K * (fw - S.w), -MK.T, MK.T_PUSH) : 0;
   const want = (g + tf - MK.F_K) + (S.w - MK.AUTO_W) * 4;
   return clamp(want / MK.BR, 0, 1);
 }

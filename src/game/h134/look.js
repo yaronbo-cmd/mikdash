@@ -3,7 +3,6 @@
  * low-poly and big, as in the whole game. Shared by the world (world.js) and the acts.
  *   mats11(X) · CELL · LAYER_H · cellXZ(horn, x, z) · pebbleGeo(T, cells, seed, h) · cupMesh(X, kind) · tone(corner)
  */
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { BOOK } from '../world/grid.js';
 import { mats10 } from '../h133/world.js';
 
@@ -43,22 +42,39 @@ export function mats11(X) {
 }
 /** a cell's middle in the world: the horn's box and its grid (x east, z south) */
 export function cellXZ(h, x, z) { return [h.box[0] + (x + 0.5) * CELL, h.box[1] + (z + 0.5) * CELL]; }
-/** a pebble: the polyomino's cells as one rounded-looking stone of constant thickness — every cell a block, the outer cells set in a
- *  little and lower, the tops jittered by a fixed seed (no draw at play time) — centred on its cells' middle, local x/z in cells × CELL */
-export function pebbleGeo(T, cells, seed = 1, h = LAYER_H) {
-  const S = new Set(cells.map(([x, z]) => x * 64 + z)), parts = [];
-  let cx = 0, cz = 0; for (const [x, z] of cells) { cx += x + 0.5; cz += z + 0.5; } cx /= cells.length; cz /= cells.length;
-  let s = (seed * 9301 + 49297) % 233280; const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-  for (const [x, z] of cells) {
-    const nE = S.has((x + 1) * 64 + z), nW = S.has((x - 1) * 64 + z), nS = S.has(x * 64 + z + 1), nN = S.has(x * 64 + z - 1);
-    const edge = 4 - (nE + nW + nS + nN), ins = 0.09 * CELL;
-    const x0 = x + (nW ? 0 : 0.09), x1 = x + 1 - (nE ? 0 : 0.09), z0 = z + (nN ? 0 : 0.09), z1 = z + 1 - (nS ? 0 : 0.09);
-    const top = h * (0.9 - edge * 0.04 + rnd() * 0.08);
-    const g = new T.BoxGeometry((x1 - x0) * CELL, top, (z1 - z0) * CELL);
-    g.translate(((x0 + x1) / 2 - cx) * CELL, top / 2, ((z0 + z1) / 2 - cz) * CELL); parts.push(g);
-    void ins;
+/** a pebble: the polyomino's outline extruded as one stone of constant thickness, its edges rounded by a bevel set inward (so it stays
+ *  inside its cells and its neighbours' joints show), the top a little domed by a fixed seed's tilt (no draw at play time) — centred on
+ *  its cells' middle, local x/z in cells × CELL, y from 0 to h (build 134 review of the first still: the block-per-cell pebble read as a
+ *  pile of cubes) */
+export function outlineOf(cells) {
+  const E = new Map(), k = (x, z) => x * 1024 + z, add = (a, b) => { const r = k(...b) + ':' + k(...a); if (E.has(r)) E.delete(r); else E.set(k(...a) + ':' + k(...b), [a, b]); };
+  for (const [x, z] of cells) { add([x, z], [x + 1, z]); add([x + 1, z], [x + 1, z + 1]); add([x + 1, z + 1], [x, z + 1]); add([x, z + 1], [x, z]); }
+  const from = new Map(); for (const [a, b] of E.values()) { const q = k(...a); if (!from.has(q)) from.set(q, []); from.get(q).push(b); }
+  const loops = [];
+  while (from.size) {
+    const [q0, l0] = from.entries().next().value; let cur = [Math.floor(q0 / 1024), q0 % 1024], loop = [cur];
+    for (let g = 0; g < 4096; g++) { const q = k(...cur), L = from.get(q); if (!L || !L.length) break; const nx = L.pop(); if (!L.length) from.delete(q); if (nx[0] === loop[0][0] && nx[1] === loop[0][1]) break; loop.push(nx); cur = nx; }
+    void l0;
+    // (drop the points in the middle of a straight run)
+    const out = loop.filter((p, i) => { const a = loop[(i + loop.length - 1) % loop.length], b = loop[(i + 1) % loop.length]; return (p[0] - a[0]) * (b[1] - p[1]) - (p[1] - a[1]) * (b[0] - p[0]) !== 0; });
+    loops.push(out);
   }
-  const g = mergeGeometries(parts); for (const p of parts) p.dispose(); g.computeVertexNormals();
+  loops.sort((a, b) => b.length - a.length);
+  return loops;
+}
+export function pebbleGeo(T, cells, seed = 1, h = LAYER_H) {
+  let cx = 0, cz = 0; for (const [x, z] of cells) { cx += x + 0.5; cz += z + 0.5; } cx /= cells.length; cz /= cells.length;
+  const loops = outlineOf(cells), toS = (L) => L.map(([x, z]) => new T.Vector2((x - cx) * CELL, -(z - cz) * CELL));
+  const shape = new T.Shape(toS(loops[0]));
+  for (const L of loops.slice(1)) shape.holes.push(new T.Path(toS(L)));
+  const bs = 0.16 * CELL, bt = Math.min(h * 0.22, 0.2 * CELL);
+  const g = new T.ExtrudeGeometry(shape, { depth: Math.max(0.01, h * 0.9 - 2 * bt), bevelEnabled: true, bevelThickness: bt, bevelSize: bs, bevelOffset: -bs - 0.07 * CELL, bevelSegments: 2, curveSegments: 1, steps: 1 });
+  g.rotateX(-Math.PI / 2); g.translate(0, bt, 0);
+  // (the top a little tilted, its own way: a fixed seed's)
+  let s = (seed * 9301 + 49297) % 233280; const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+  const tx = (rnd() - 0.5) * 0.08 * h / CELL, tz = (rnd() - 0.5) * 0.08 * h / CELL, P = g.attributes.position;
+  for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y > h * 0.5) P.setY(i, y + (P.getX(i) * tx + P.getZ(i) * tz)); }
+  g.computeVertexNormals();
   g.userData = { cx, cz };
   return g;
 }

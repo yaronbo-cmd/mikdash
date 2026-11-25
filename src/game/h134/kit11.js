@@ -10,11 +10,22 @@
  *   · roleFingers — the two hands by ROLE, not by side: the first finger on a work thing is the work hand, a second while it holds is
  *     the helping hand (always on the held thing), a finger on nothing with nothing held is the camera's (the director's look).
  */
-import { award, extra, finish, lens, V3 } from '../h133/kit10.js';
+import { extra, finish, lens, V3 } from '../h133/kit10.js';
+import { mulOf } from '../h133/model.js';
 import { createVoices } from '../h129/sound129.js';
 import { LOSS } from './model.js';
 
-export { award, extra, finish, lens, V3 };
+export { extra, finish, lens, V3 };
+/** stage 10's award (the one old system: X.hit 40 / 20 / 10, the run; the level's multiplier as a bonus), at the close-up's scale: the
+ *  dust a tenth of the world's, the word just over the point (build 134, the first stills: the 2.4-amah puffs filled the screen) */
+export const DUST11 = 0.08;
+export function award(X, at, grade, lv, craft, text) {
+  if (!grade) return 0;
+  const base = grade === 'gold' ? 40 : grade === 'good' ? 20 : 10, mul = mulOf(lv);
+  try { X.hit(at, grade, { craft: craft || 'בונים', text: text != null ? text : mul > 1 ? `+${base * mul}` : '', dust: DUST11, lift: 0.12 }); } catch (e) { /* */ }
+  if (mul > 1) { try { if (X.bonus) X.bonus(base * (mul - 1), 'lvmul', `×${mul}`); } catch (e) { /* */ } }
+  return base * mul;
+}
 export function hurt(X, Mo, f, at, o = {}) {
   const p = Mo.flaw(f, o);
   try { X.loss(p, at, LOSS[f] ? LOSS[f][0] : ''); } catch (e) { /* */ }

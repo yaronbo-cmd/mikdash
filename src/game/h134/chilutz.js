@@ -130,7 +130,7 @@ export function makeExtract(X, o) {
     // the rope creaks in the full range and while pulling fast
     const cr = k > CK.WORK ? (k - CK.WORK) / (CK.STOP - CK.WORK) : 0, pv = S.speed / CK.SPEED;
     V.creak(Math.max(cr, pv > CK.CREAK ? Math.min(1, pv) : 0));
-    if (pv > CK.CREAK && A.t % 0.25 < dt) { try { X.dust(h.core[0], Y + HH, h.core[1], 3, 0.3); } catch (e) { /* */ } }
+    if (pv > CK.CREAK && A.t % 0.25 < dt) { try { X.dust(h.core[0], Y + HH, h.core[1], 3, 0.05); } catch (e) { /* */ } }
     if (A.dive) { A.dive.t += dt; dust.children.forEach((p, i) => { p.position.y += Math.sin(A.t * 0.7 + i) * 0.0008; }); }
   }
   function hint() { if (resumed || A.hintOn || o.chained && lv > 1) return; A.hintOn = 1; const d = DIRS[S.pts[0].d]; const B = basis(X); const sx = -(d[0] * B.r[0] + d[1] * B.r[1]), sy = (d[0] * B.f[0] + d[1] * B.f[1]); X.hand({ x: h.core[0], y: Y + CH, z: h.core[1] }, Math.round(sx * 50), Math.round(sy * 50)); }

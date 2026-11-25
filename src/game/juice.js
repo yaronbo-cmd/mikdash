@@ -185,10 +185,12 @@ export function createJuice18(o = {}) {
     const at = d.at, P = !!d.perfect, soft = d.grade === 'soft' || (!P && d.quality != null && d.quality < 0.7), text = d.text != null ? String(d.text) : '+1';
     const S = call(o.stages);
     // 1 · the world: dust (sparks on the gold) — the stages' pooled bursts
-    if (at && S) { call(S.dustBurst, at.x, at.y, at.z, P ? 12 : soft ? 4 : 7, 2.4, 2, 1.2); if (P) call(S.sparkBurst, at.x, at.y + 0.6, at.z, 18, 4, 6); }
+    // ── h134 ── (d.dust: the burst's scale — stage 11's close-ups over a horn an amah wide, where 2.4-amah puffs filled the screen; d.lift: the word's height over `at`) ── /h134 ──
+    const dsc = d.dust != null ? +d.dust : 1;
+    if (at && S && dsc > 0) { call(S.dustBurst, at.x, at.y, at.z, P ? 12 : soft ? 4 : 7, 2.4 * dsc, 2 * dsc, 1.2); if (P) call(S.sparkBurst, at.x, at.y + 0.6 * dsc, at.z, 18, 4 * dsc, 6 * dsc); }
     // 2 · the screen point
     let x = W() / 2, y = H() * 0.45;
-    if (scr(at, 1.6)) { x = pt.x; y = pt.y - 24; }
+    if (scr(at, d.lift != null ? +d.lift : 1.6)) { x = pt.x; y = pt.y - 24; }
     x = Math.max(40, Math.min(W() - 40, x)); y = Math.max(70, Math.min(H() - 60, y));
     // 3 · the impact flash (1-f attack, 6-f fade; gold and bigger on the perfect) + the perfect's gold vignette
     const f = st.f[st.fi++ % FLASH]; f.ab ^= 1; sv(f.el, '--x', x); sv(f.el, '--y', y + 18); cls(f.el, P ? 'jx-f g' : 'jx-f', f.ab); f.t1 = t0 + 320;

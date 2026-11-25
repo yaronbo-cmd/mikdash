@@ -597,7 +597,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
   function hit(at, grade, o2 = {}) {
     const J = o.juice && o.juice();
     const P = grade === 'gold';
-    if (J) J.hit(o2.kind || 'craft', { at, text: o2.text != null ? o2.text : '', perfect: P, act: grade, grade: P ? 'perfect' : grade === 'good' ? 'good' : 'soft', quality: P ? 1 : grade === 'good' ? 0.8 : 0.5, craft: o2.craft || 'חוצבים' });
+    if (J) J.hit(o2.kind || 'craft', { at, text: o2.text != null ? o2.text : '', perfect: P, act: grade, grade: P ? 'perfect' : grade === 'good' ? 'good' : 'soft', quality: P ? 1 : grade === 'good' ? 0.8 : 0.5, craft: o2.craft || 'חוצבים', dust: o2.dust, lift: o2.lift });   // ── h134 ── (dust, lift: an act's close-up scale) ── /h134 ──
     else if (SCo) { SCo.add(SCo.grade(grade), 'act'); }
     chipSync(true);
   }

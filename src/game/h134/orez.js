@@ -17,6 +17,7 @@ import { BOOK } from '../world/grid.js';
 import { WORDS, CORNER_OF } from './model.js';
 import { fresh, load, save, lift, drop, step, canClose, full, close, result, ghost, fits, cellsOf, covered, anyLoose, tarShine, secondOnly, OK } from './orez-model.js';
 import { orient, N, setOf } from './sets.js';
+import { RING } from './sets.js';
 import { mats11, CELL, LAYER_H, cellXZ, pebbleGeo, viewOf } from './look.js';
 export { viewOf };
 import { hornGroup, own, SH11 } from './world.js';
@@ -28,7 +29,7 @@ import { fingers } from '../h113/acts.js';
 import { createGang, createBeat, onPlane } from '../h109/kit.js';
 
 const S11 = BOOK.s11, Y = S11.top;
-export const OA = Object.freeze({ FOV: 16, DIST: 4.6, TILT: 30, LIFT_SHOW: 0.25, HOVER: 0.14, TRAY_U: [-1.28, -0.64], TRAY_V: [-0.62, 0.62], POT: [0.86, 0.42], PAN: 0.45, TAP_T: 0.25, TAP_D: 12 });
+export const OA = Object.freeze({ FOV: 16, DIST: 4.6, TILT: 18, LIFT_SHOW: 0.25, HOVER: 0.14, TRAY_U: [-1.34, -0.62], TRAY_V: [-0.6, 0.34], POT: [0.86, 0.42], PAN: 0.45, TAP_T: 0.25, TAP_D: 12 });
 const MOUSE = typeof matchMedia === 'function' && matchMedia('(pointer: fine)').matches;
 
 function stand(m) { const c = m.corner || CORNER_OF(m.k), h = S11.horns[c]; return { x: h.stand[0], z: h.stand[1], face: h.core.slice() }; }
@@ -87,7 +88,13 @@ function makeOrez(m, X, mode) {
     }
     TRAY = S.P.map((p, i) => ({ u: u0 + 0.1 + (i % 3) * 0.2, v: v1 - 0.1 - Math.floor(i / 3) * 0.2, s: 0.4 }));
   }
+  // ── the bed (build 134, the first still: white pebbles on the white top did not read): each free ring cell a warm sand-pitch square,
+  //    the joints between them white — the grid the pebbles fill shows, and a seated pebble stands out against it
+  const bed = new T.Group(); bed.name = 'h134-bed'; root.add(bed);
+  const bedMat = new T.MeshStandardMaterial({ color: '#A8916B', roughness: 0.95, flatShading: true });
+  function drawBed() { while (bed.children.length) bed.remove(bed.children[0]); for (const [x, z] of RING) { const [wx, wz] = cellXZ(h, x, z); const q = box(X, bedMat, wx - CELL * 0.44, base() + 0.002, wz - CELL * 0.44, wx + CELL * 0.44, base() + 0.008, wz + CELL * 0.44, bed); q.castShadow = false; } }
   function rebuild() {
+    drawBed();
     for (const q of MESH) if (q) ring.remove(q);
     MESH = S.P.map((p) => { const mm = new T.Mesh(geoOf(p, p.at ? p.at.o : 0), Mt['y11stone' + c]); mm.castShadow = true; mm.receiveShadow = true; mm.name = 'h134-pebble'; ring.add(mm); return mm; });
     layoutTray(); drawFixed();
@@ -197,7 +204,7 @@ function makeOrez(m, X, mode) {
   function after(r, i, q) {
     if (!r) return; const p = S.P[i], at = MESH[i] ? MESH[i].position.clone() : V3(X, h.core[0], Y, h.core[1]);
     ev(r.k + ':' + p.id);
-    if (r.k === 'seat') { A.seat.push({ i, t: 0 }); V.click(); try { X.dust(at.x, base() + 0.1, at.z, 3, 0.4); } catch (e) { /* */ } }
+    if (r.k === 'seat') { A.seat.push({ i, t: 0 }); V.click(); try { X.dust(at.x, base() + 0.1, at.z, 3, 0.06); } catch (e) { /* */ } }
     else if (r.k === 'loose') { V.bump(); X.shake(0.05, 0.12); }
     else if (r.k === 'fall') {
       A.fallAnim = { i, t: 0, from: at, to: V3(X, h.core[0] - h.in[0] * 1.3, S11.top - 3 + 0.05, h.core[1] - h.in[1] * 1.3) };
@@ -289,7 +296,7 @@ function makeOrez(m, X, mode) {
   }
   // ── each frame
   function draw(dt) {
-    const b = base();
+    const b = base(); bed.visible = !S.done && !A.chain && !A.finished;
     S.P.forEach((p, i) => {
       const mm = MESH[i]; if (!mm) return;
       const held = A.w && A.w.i === i;

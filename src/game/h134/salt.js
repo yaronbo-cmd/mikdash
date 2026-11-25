@@ -29,7 +29,7 @@ export function createSalt(X, o) {
   const nscr = () => { const r = X.scr(at.x, at.y, at.z); return { x: r.x, y: r.y }; };
   const aligned = () => Math.abs((((S.a % 360) + 540) % 360) - 180) <= SALT.OK;
   try { X.line('בול של מלח: אחזו בגוש, סובבו ביד השנייה עד שהוא מתאים לשקע, ודחפו פנימה', 3600); } catch (e) { /* */ }
-  function finish() { S.pushed = true; S.push = 0; try { X.dust(at.x, at.y, at.z, 8, 1); X.play && X.play('stone'); } catch (e) { /* */ } }
+  function finish() { S.pushed = true; S.push = 0; try { X.dust(at.x, at.y, at.z, 8, 0.1); X.play && X.play('stone'); } catch (e) { /* */ } }
   const A = {
     get on() { return S.on; },
     grip(f) { const p = scr(); return Math.hypot(f.x - p.x, f.y - p.y) < Math.max(48, 60 * (innerHeight / 360) * 0.5); },

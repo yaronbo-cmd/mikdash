@@ -34,9 +34,9 @@ test('the pack: id guf, key h133, the four acts with stands from the book', () =
 });
 test('index.js: the stage-10 page and links; stage 09\'s end leads into stage 10; the frontier is after it', () => {
   const idx = readFileSync(new URL('../src/game/index.js', import.meta.url), 'utf8');
-  assert.match(idx, /const H9_WORK = workFlag\(\[\.\.\.PLAN08, \.\.\.PLAN09, \.\.\.PLAN10\]/);
+  assert.match(idx, /const H9_WORK = workFlag\(\[\.\.\.PLAN08, \.\.\.PLAN09, \.\.\.PLAN10[,\]]/);   // (build 134: stage 11's ids after them)
   assert.match(idx, /const H133_ONLY = \['nail', 'malben', 'kevesh', 'nima'\]\.includes\(H9_ONLY\)/);
   assert.match(idx, /stage=10/); assert.match(idx, /if \(H109_ON && H133_ON\) \{ h33Only\(\); return; \}/);
   assert.match(idx, /S\.beginDirected\(G, 'guf'\)/); assert.match(idx, /h33Begin\(\), 600/);
-  assert.equal(PACKED[PACKED.length - 1], 'guf'); assert.equal(NEXT_NAMED.guf, NEXT_STAGE); assert.equal(NEXT_STAGE, 'הקרנות');
+  assert.ok(PACKED.includes('guf'));   /* (build 134: stage 11 after it) */ assert.equal(NEXT_NAMED.guf, NEXT_STAGE); assert.equal(NEXT_STAGE, 'הקרנות');
 });

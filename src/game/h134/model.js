@@ -170,7 +170,16 @@ export function createH134(save) {
     championDue() { return !st.champion && [...OREZ, 'chotem'].every((k) => d(k + 3)); },
     /** the links: the first station `want` takes; what it needs before it as the crews' (2 stars) */
     autoTo(want) {
-      const off = PLAN.find((m) => m.work !== 'fix' && !d(m.id) && want(m)) || PLAN.find((m) => m.work !== 'fix' && want(m)) || null;
+      // (a repair's link, #fixSE2: the corner packed and cored by the crews up to that level, a crack at that level under its salt patch)
+      const fx = PLAN.find((m) => m.work === 'fix' && want(m));
+      if (fx && !PLAN.some((m) => m.work !== 'fix' && want(m))) {
+        const c = fx.corner;
+        for (let lv = 1; lv <= fx.lv; lv++) for (const id of ['orez' + c + lv, 'chilutz' + c + lv]) if (!d(id)) { st.done.push(id); st.res[id] = { stars: 2, q: 0.7, pts: 20, flags: { crews: 1 } }; }
+        Object.assign(st.horns[c], { packed: 1, cored: 1, lv1: 'crews', salt: 2 });
+        if (!M.flawed(c)) st.flaws.push({ f: 'orez.fall', work: 'orez' + c + fx.lv, lv: fx.lv, corner: c, layer: 1, side: null, at: null });
+        M.shown = null; st.cur = null; return M.pick(fx.id);
+      }
+      const off =PLAN.find((m) => m.work !== 'fix' && !d(m.id) && want(m)) || PLAN.find((m) => m.work !== 'fix' && want(m)) || null;
       if (!off) return null;
       const need = [];
       if (off.work === 'chilutz') for (const c of CORNERS) need.push('orez' + c + 1);

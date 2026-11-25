@@ -39,7 +39,7 @@ test('the pack: id, key, links, the acts of the four kinds, a stand for each in 
 
 test('index.js: the stage-09 page, kind pages and links; stage 08\'s end card names stage 09 and leads into it', () => {
   const idx = readFileSync(new URL('../src/game/index.js', import.meta.url), 'utf8');
-  assert.match(idx, /const H9_WORK = workFlag\(\[\.\.\.PLAN08, \.\.\.PLAN09\]/);
+  assert.match(idx, /const H9_WORK = workFlag\(\[\.\.\.PLAN08, \.\.\.PLAN09[,\]]/);   // (build 133: stage 10's works follow)
   assert.match(idx, /const H132_ONLY = \['form', 'fill', 'strip', 'sikra'\]\.includes\(H9_ONLY\)/);
   assert.match(idx, /__H132_FULL/); assert.match(idx, /stage=9/);
   assert.match(idx, /if \(H109_ON && H132_ON\) \{ h32Only\(\); return; \}/);

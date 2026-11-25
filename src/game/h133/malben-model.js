@@ -20,7 +20,7 @@ export const MK = Object.freeze({
   GREEN: 1 / 6,         // (a side "green" while its margin is within a tefach of one amah)
   GREEN_DEG: 0.5,
   HOLD: 0.5,            // (s: the hold on the middle that lowers it)
-  LIMIT: 1.0,           // (the most it may shift from the middle before a crew stops it: past the sovev's edge)
+  LIMIT: 1.5,           // (the most it may shift from the middle before a crew stops it; build 133: 1.5 — level 3 comes 1.2 off)
 });
 /** the start of each level (spec "רמות": the frame shifted, level 3 turned too) — fixed */
 export const START = Object.freeze({ 1: Object.freeze({ dx: 1.4, dz: 0, a: 0 }), 2: Object.freeze({ dx: -1.1, dz: 0.9, a: 0 }), 3: Object.freeze({ dx: 0.9, dz: -1.2, a: 3 }) });

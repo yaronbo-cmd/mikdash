@@ -23,7 +23,7 @@ import { fingers } from '../h113/acts.js';
 import { createGang, createBeat } from '../h109/kit.js';
 
 const S10 = BOOK.s10, U = S10.upper, B9 = S10.block9, F = S10.floor, Y0 = S10.base, Y1 = S10.top, MID = S10.mid;
-export const MA = Object.freeze({ FOV: 50, HANG: 2.6, PICK: 0.5, TAP: 14, MIDR: 80, FILL: 4.2 });
+export const MA = Object.freeze({ FOV: 62, HANG: 2.6, PICK: 0.5, TAP: 14, MIDR: 80, FILL: 4.2 });
 const SIDES = ['N', 'S', 'E', 'W'];
 /** a side's middle on the frame (frame space: x east, z south from its centre) and its outward direction */
 const SM = { N: [0, -14], S: [0, 14], E: [14, 0], W: [-14, 0] };
@@ -83,7 +83,7 @@ export const MALBEN_ACT = {
     // ── the thumb: a drag from a crew outward pulls; along its side turns (level 3); a hold on the middle lowers
     const FG = fingers(X, {
       down(f) {
-        if (A.finished || A.busy || S.landed || f.x > innerWidth * 0.6 && !nearMid(f)) return;
+        if (A.finished || A.busy || S.landed) return;
         const c = midScr(), dm = Math.hypot(f.x - c.x, f.y - c.y);
         let side = null, best = 1e9; for (const k of SIDES) { const p = sideScr(k), d = Math.hypot(f.x - p.x, f.y - p.y); if (d < best) { best = d; side = k; } }
         A.f = { id: f.id, x0: f.x, y0: f.y, t0: A.t, mid: dm < MA.MIDR * (innerHeight / 420) && dm < best, side };
@@ -187,7 +187,7 @@ export const MALBEN_ACT = {
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
       cancel() { A.f = null; keep(); },
-      wants(p) { if (!p) return true; if (p.x < innerWidth * 0.6) return true; const c = midScr(); return Math.hypot(p.x - c.x, p.y - c.y) < MA.MIDR; },
+      wants(p) { if (!p) return true; if (p.x < innerWidth * 0.6) return true; const c = midScr(); if (Math.hypot(p.x - c.x, p.y - c.y) < MA.MIDR) return true; return SIDES.some((k) => { const q = sideScr(k); return Math.hypot(p.x - q.x, p.y - q.y) < MA.MIDR * 1.2; }); },   // (a crew's side on the right of the screen is still the left thumb's: the frame fills the middle)
       holds() { return !!A.f; },
       lensFov: MA.FOV,
       end() { A.ended = true; FG.detach(); V.stop(); X.hand(null); lens(X, fov0); try { gang.clear(); } catch (e) { /* */ } X.props.remove(root); own('upper', false); },

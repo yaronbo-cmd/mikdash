@@ -23,7 +23,7 @@ import { fingers } from '../h113/acts.js';
 import { createGang, createBeat } from '../h109/kit.js';
 
 const S10 = BOOK.s10, S8 = BOOK.s08;
-export const NA1 = Object.freeze({ FOV: 50, W: 1.4, H: 0.8, D: 0.9, NEAR: 46, STILL: 0.22, STILLPX: 5, SORT: 50, FLY: 0.8 });
+export const NA1 = Object.freeze({ FOV: 30, W: 1.4, H: 0.8, D: 0.9, NEAR: 46, STILL: 0.22, STILLPX: 5, SORT: 50, FLY: 0.8 });
 
 export const NAIL_ACT = {
   icon: '💅',
@@ -59,7 +59,10 @@ export const NAIL_ACT = {
     void cradle;
     // the basket and the heap
     const bk = P(bkL[0], 0, bkL[1]), hp = P(hpL[0], 0, hpL[1]);
-    const basket = new T.Mesh(new T.CylinderGeometry(0.75, 0.55, 0.6, 14, 1, true), Mt.y10wood); basket.position.set(bk[0], bk[1] + 0.3, bk[2]); root.add(basket);
+    const basket = new T.Mesh(new T.CylinderGeometry(0.75, 0.55, 0.6, 14, 1, true), Mt.y10wood); basket.material = Mt.y10wood.clone(); basket.material.side = T.DoubleSide; basket.position.set(bk[0], bk[1] + 0.3, bk[2]); root.add(basket);
+    // (seen from above: its floor and a thick rim, so the basket reads as a basket and not a thin arc)
+    { const fl = new T.Mesh(new T.CircleGeometry(0.55, 14), Mt.y10woodD); fl.rotation.x = -Math.PI / 2; fl.position.set(bk[0], bk[1] + 0.02, bk[2]); root.add(fl);
+      const rim = new T.Mesh(new T.TorusGeometry(0.75, 0.06, 6, 18), Mt.y10woodD); rim.rotation.x = Math.PI / 2; rim.position.set(bk[0], bk[1] + 0.6, bk[2]); root.add(rim); }
     const inB = new T.Group(); root.add(inB); const inH = new T.Group(); root.add(inH);
     const heapN = () => inH.children.length, bN = () => inB.children.length;
     function pileUp(g, at, n, mat) { const i = n, a = i * 2.3, r = 0.15 + (i % 4) * 0.12; box(X, mat, at[0] + Math.cos(a) * r - 0.22, at[1] + 0.05 + Math.floor(i / 5) * 0.2, at[2] + Math.sin(a) * r - 0.16, at[0] + Math.cos(a) * r + 0.22, at[1] + 0.25 + Math.floor(i / 5) * 0.2, at[2] + Math.sin(a) * r + 0.16, g); }
@@ -84,11 +87,14 @@ export const NAIL_ACT = {
     function castMen() {
       gang.clear(); const k = P(st[0], 0, st[1]);
       const w = gang.add(k[0], k[2], { role: 'kneel', variant: 'kohen', fx: base[0], fz: base[2] }); if (w && w.a) w.a.fixedY = k[1];
-      for (const [o, f] of [[3.4, 1], [4.6, 1]]) { const q = P(sL[0] - rt[0] * o + dx * 2.5, 0, sL[1] - rt[1] * o + dz * 2.5); const h = gang.add(q[0], q[2], { role: 'pull', item: 'rope', crew: 2, fx: P(hole[0], 0, hole[1])[0], fz: P(hole[0], 0, hole[1])[2] }); if (h && h.a) h.a.fixedY = q[1]; void f; }
+      // (beside the row, left of the stone, raising the next on ropes: out of the narrow lens's line)
+      for (const [o, f] of [[4.6, 1], [5.8, 1]]) { const q = P(sL[0] - rt[0] * o + dx * 0.6, 0, sL[1] - rt[1] * o + dz * 0.6); const h = gang.add(q[0], q[2], { role: 'pull', item: 'rope', crew: 2, fx: P(hole[0], 0, hole[1])[0], fz: P(hole[0], 0, hole[1])[2] }); if (h && h.a) h.a.fixedY = q[1]; void f; }
     }
     // ── the camera: low over his shoulder, the stone a third of the screen
     const cam0 = X.camera, fov0 = cam0.fov;
-    const eye = () => { const k = P(st[0] - dx * 0.9 + rt[0] * 0.45, 0, st[1] - dz * 0.9 + rt[1] * 0.45); return [k[0], base[1] + 1.95, k[2]]; };
+    // (the camera's floor is 7 over the valley everywhere off the Mount — the director's camFloor: so the eye stands high over his shoulder and the
+    //  lens is narrow, the stone a third of the screen as the spec's low shot would give it)
+    const eye = () => { const k = P(st[0] - dx * 2.6 + rt[0] * 0.8, 0, st[1] - dz * 2.6 + rt[1] * 0.8); return [k[0], base[1] + 10.5, k[2]]; };
     const aim = () => [base[0], base[1] + 0.55, base[2]];
     const home = (d = 0) => { lens(X, NA1.FOV); X.shot(eye(), aim(), d); };
     // the edge on the screen: its two ends (world), u of a screen point
@@ -124,6 +130,9 @@ export const NAIL_ACT = {
         if (A.r && A.r.id === f.id) { const R0 = A.r; A.r = null; if (Math.hypot(f.x - R0.x0, f.y - R0.y0) > 18 && rotate(S)) spin(); return; }
         const F0 = A.f; A.f = null; if (!F0 || F0.id !== f.id) return;
         const dy = (f.y - F0.y0) * kpx(), dxp = (f.x - F0.x0) * kpx();
+        // (a sideways drag on the stone's body, off the edge: its turn to the next edge — the right thumb's, which can reach the stone in the
+        //  screen's middle only from its own side; decision build 133)
+        if (!F0.edge && Math.abs(dxp) > 40 && Math.abs(dxp) > Math.abs(dy) * 1.3 && onStone(F0.x0, F0.y0)) { if (rotate(S)) spin(); return; }
         if (Math.abs(dy) > NA1.SORT && Math.abs(dy) > Math.abs(dxp) * 1.3 && !(F0.edge && Math.abs(dxp) > 30)) {
           if (!canSort(S)) { A.shake = 0.5; V.bump(); X.line(lv >= 3 ? 'קודם בודקים את שתי השפות' : 'קודם בודקים את כל השפות', 1300); return; }
           sortTo(dy < 0 ? 'basket' : 'pile');
@@ -136,7 +145,7 @@ export const NAIL_ACT = {
       if (e.k === 'break') { A.brk = 0.15; }
       else if (e.k === 'wipe') { V.dust(); drawMarks(); }
       else if (e.k === 'wiped') { V.dust(); drawMarks(); X.line('הטחב נוגב. עכשיו בודקים', 1200); }
-      else if (e.k === 'lit') { A.lit = 0.6; V.harp(523); drawMarks(); hintSort(); keep(); }
+      else if (e.k === 'lit') { A.lit = 0.6; V.harp(523); drawMarks(); hintSort(); autoTurn(); keep(); }
     }
     function doStop() {
       const F0 = A.f; if (!F0 || !F0.edge || A.stopped) return; A.stopped = true;
@@ -144,11 +153,13 @@ export const NAIL_ACT = {
       for (const e of stop(S, F0.u)) {
         ev(e.k);
         const w = wEdge(F0.u), at = V3(X, w.x, w.y + 0.1, w.z);
-        if (e.k === 'mark') { V.knock(1.2); try { if (X.haptic) X.haptic(25); } catch (er) { /* */ } award(X, at, e.grade, lv, 'בודקים'); if (e.grade === 'gold') { try { X.quick(at, WORDS.quick); } catch (er) { /* */ } X.sparks(w.x, w.y, w.z, 8); } drawMarks(); hintSort(); }
+        if (e.k === 'mark') { autoTurn(); V.knock(1.2); try { if (X.haptic) X.haptic(25); } catch (er) { /* */ } award(X, at, e.grade, lv, 'בודקים'); if (e.grade === 'gold') { try { X.quick(at, WORDS.quick); } catch (er) { /* */ } X.sparks(w.x, w.y, w.z, 8); } drawMarks(); hintSort(); }
         else if (e.k === 'wrong') { V.knock(0.8); X.loss(0, at, e.mud ? 'בוץ, לא פגם' : 'סימון שגוי'); }
       }
       keep();
     }
+    /** (decision build 133: an edge checked, the stone turns by itself to the one not checked yet — the right thumb on it may still turn it) */
+    function autoTurn() { const s = cur(S); if (s && s.edges > 1 && s.ck.some((c) => !c)) A.autoRot = 0.7; }
     function spin() { V.knock(0.6); A.spin = { t: 0, r0: stone.rotation.y }; X.hand(null); ev('rotate:' + cur(S).e); }
     function sortTo(to) {
       const s = cur(S), es = sort(S, to); ev('sort:' + to);
@@ -185,6 +196,7 @@ export const NAIL_ACT = {
       if (A.f && A.f.edge) { A.stillT += dt; if (A.stillT >= NA1.STILL && A.t - A.f.t > 0.15) doStop(); }
       const G = A.glint; if (G) { G.t -= dt; const w = Ex(G.u); glint.visible = G.k !== 'off' && G.t > 0 && A.brk <= 0 && !A.fly; glint.position.set(w, NA1.H, NA1.D / 2); glint.scale.set(G.k === 'smear' ? 5 : 1, 1, 1); glint.material.opacity = G.k === 'smear' ? 0.35 : 0.95; if (G.t <= 0) A.glint = null; } else glint.visible = false;
       if (A.brk > 0) A.brk -= dt;
+      if (A.autoRot > 0) { A.autoRot -= dt; if (A.autoRot <= 0 && !A.f && !A.spin) { const s = cur(S); if (s && s.ck.some((c) => !c)) { while (s.ck[s.e]) rotate(S); spin(); } } }
       if (A.lit > 0) { A.lit -= dt; litBar.visible = true; litBar.material.opacity = 0.35 + A.lit; }
       if (A.shake > 0) { A.shake -= dt; stone.rotation.z = Math.sin(A.t * 60) * 0.02 * A.shake; } else if (!A.fly) stone.rotation.z = 0;
       if (A.spin) { const Sp = A.spin; Sp.t += dt; const u = Math.min(1, Sp.t / 0.5), e = u * u * (3 - 2 * u); stone.rotation.y = Sp.r0 + Math.PI * e; if (u >= 1) { A.spin = null; stone.rotation.y = yaw; drawMarks(); } }
@@ -224,7 +236,7 @@ export const NAIL_ACT = {
       at() { return V3(X, base[0], base[1] + 0.8, base[2]); },
       dbg() {
         const E = edgeOf(S), a = sEdge(0), b = sEdge(1), c = X.scr(base[0], base[1] + 0.4, base[2]);
-        return { id: m.id, lv, t: +A.t.toFixed(2), ev: A.ev.slice(-10), i: S.i, n: S.stones.length, edge: E, edges: cur(S) ? cur(S).edges : 0, can: canSort(S), e0: [Math.round(a.x), Math.round(a.y)], e1: [Math.round(b.x), Math.round(b.y)], stone: [Math.round(c.x), Math.round(c.y)], pts: S.pts, dmg: S.dmg, wrong: S.wrong, missed: S.missed, exact: S.exact, free: S.free, busy: A.busy, finished: A.finished, fly: !!A.fly };
+        return { id: m.id, lv, t: +A.t.toFixed(2), ev: A.ev.slice(-10), i: S.i, n: S.stones.length, edge: E, edges: cur(S) ? cur(S).edges : 0, can: canSort(S), e0: [Math.round(a.x), Math.round(a.y)], e1: [Math.round(b.x), Math.round(b.y)], stone: [Math.round(c.x), Math.round(c.y)], pts: S.pts, dmg: S.dmg, wrong: S.wrong, missed: S.missed, exact: S.exact, free: S.free, busy: A.busy, finished: A.finished, fly: !!A.fly, cam: [cam0.position.x, cam0.position.y, cam0.position.z].map((v) => +v.toFixed(1)), eye: eye().map((v) => +v.toFixed(1)), base: base.map((v) => +v.toFixed(1)) };
       },
     };
   },

@@ -27,11 +27,11 @@ export const NA = Object.freeze({ FOV: 50, CLOSE_FOV: 7, SLOW: 3, LIFT: 0.3 });
 const SPUR = BOOK.s09.spur && BOOK.s09.spur.S ? BOOK.s09.spur.S : [-53, 12.5, -52, 14.5];
 const WAY = {
   1: { at: (s) => ({ x: -38, z: 15 - s, y: S10.rampY(15 - s) }), size: [16, 2], dir: [0, -1], face: U[1] === undefined ? 10.5 : 10.5,
-    cam: [[-20, 31, 24], [-38, 24, 12]], close: [[-27.2, 25.25, 10.5], [-31, 24.85, 10.5]], top: true },
+    cam: [[-20, 31, 24], [-38, 24, 12]], close: [[-31, 27.4, 12.9], [-31, 24.95, 10.5]], top: true },
   2: { at: (s) => ({ x: -29, z: 20 - s, y: S10.ksY(20 - s) }), size: [2, 1.2], dir: [0, -1], face: 11.5,
-    cam: [[-14, 24, 26], [-30, 20, 14]], close: [[-26.6, 21.75, 11.5], [-29.6, 21.6, 11.5]] },
+    cam: [[-14, 24, 26], [-30, 20, 14]], close: [[-29, 23.9, 13.9], [-29, 21.95, 11.5]] },
   3: { at: (s) => (s < 6 ? { x: -46.5 - s, z: 14.5, y: F + 1 } : { x: -52.5, z: 14.5 - (s - 6), y: F + 1 }), size: [1, 1], dir: [-1, 0], face: 12.5,
-    cam: [[-36, 24, 26], [-50, 17, 14]], close: [[-50.3, 17.1, 12.5], [-52.5, 16.95, 12.5]] },
+    cam: [[-36, 24, 26], [-50, 17, 14]], close: [[-52.5, 18.9, 14.9], [-52.5, 16.95, 12.5]] },
 };
 void SPUR; void B9;
 
@@ -60,6 +60,8 @@ export const NIMA_ACT = {
     const rollers = []; for (let k = 0; k < 3; k++) { const c = new T.Mesh(new T.CylinderGeometry(0.14, 0.14, (lv === 1 ? 16.4 : 1.4), 8), Mt.y10wood); c.castShadow = true; root.add(c); rollers.push(c); }
     const bar = box(X, Mt.y10woodD, -0.08, -0.08, -0.9, 0.08, 0.08, 0.9, root); bar.visible = false;
     const shadow = box(X, Mt.y10charcoal, -0.5, -0.5, -0.004, 0.5, 0.5, 0.004, root); shadow.visible = false;   // (the gap's thin shadow line, true size)
+    // the gap itself, dark between the two faces (the shadow down in it): as wide as the gap, the close-up shows it large
+    const slit = box(X, Mt.y10hole, -0.5, -0.6, -0.5, 0.5, 0, 0.5, root); slit.visible = false;
     const feather = new T.Mesh(new T.PlaneGeometry(0.06, 0.32), Mt.y10salt); feather.visible = false; root.add(feather);
     // ── the crew: the helper with the last roller, the kohen with the feather beside the stone
     const Bt = createBeat(X), gang = createGang(X), men = [];
@@ -90,6 +92,7 @@ export const NIMA_ACT = {
       else { stone.position.set(a.x - d[0] * 0 , a.y + (S.seated ? 0 : NA.LIFT), a.z); stone.rotation.y = d[0] ? Math.PI / 2 * (d[0] < 0 ? 1 : -1) : 0; }
       rollers.forEach((c, k) => { c.visible = !S.seated; const o = 0.4 + k * (lv === 1 ? 0.6 : 0.35); const x = a.x - d[0] * o, z = a.z - d[1] * o; c.position.set(x, (lv === 1 ? S10.rampY(z) : a.y) + 0.12, z); c.rotation.set(0, 0, 0); if (d[1]) c.rotation.z = Math.PI / 2; else c.rotation.x = Math.PI / 2; });
       bar.visible = !S.seated && Mm.brake > 0.05; if (bar.visible) { const x = a.x - d[0] * (W.size[1] + 0.5), z = a.z - d[1] * (W.size[1] + 0.5); bar.position.set(x, a.y + 0.2, z); bar.rotation.set(d[1] ? -0.9 * Mm.brake : 0, d[0] ? Math.PI / 2 : 0, d[0] ? 0.9 * Mm.brake : 0); }
+      { const g0 = gapOf(S); slit.visible = g0 > 1e-4 && g0 < 0.6; if (slit.visible) { slit.scale.set(lv === 1 ? 16 : W.size[0], 1, g0); slit.position.set(a.x, a.y - 0.012 + (S.seated ? 0 : NA.LIFT), W.face + g0 / 2); } }
       // the true gap's thin shadow line (seen once the picture leaves the close-up)
       const g = gapOf(S); shadow.visible = !!S.seated && g > 0;
       if (shadow.visible) { const wd = lv === 1 ? 16 : 1.6; shadow.scale.set(wd, lv === 1 ? 1.1 : 0.9, 1); shadow.position.set(a.x, a.y - 0.45, W.face + (d[1] < 0 ? 0.004 : 0)); }
@@ -182,7 +185,7 @@ export const NIMA_ACT = {
       at() { return faceAt(); },
       dbg() {
         const a = pos(), sc = X.scr(a.x, a.y, a.z), Mm = S.mo;
-        return { id: m.id, lv, t: +A.t.toFixed(2), ev: A.ev.slice(-10), s: +Mm.s.toFixed(4), len: S.way.len, v: +Mm.v.toFixed(3), brake: +Mm.brake.toFixed(2), gap: +gapOf(S).toFixed(4), close: A.close, seated: S.seated, turn: S.turn, free: S.free, touched: S.touched, at: [Math.round(sc.x), Math.round(sc.y)], thumb: TH.dbg(), busy: A.busy, finished: A.finished };
+        return { id: m.id, lv, t: +A.t.toFixed(2), ev: A.ev.slice(-10), s: +Mm.s.toFixed(4), len: S.way.len, v: +Mm.v.toFixed(3), brake: +Mm.brake.toFixed(2), gap: +gapOf(S).toFixed(4), close: A.close, seated: S.seated, turn: S.turn, free: S.free, touched: S.touched, at: [Math.round(sc.x), Math.round(sc.y)], thumb: TH.dbg(), dir: (() => { try { const d = TH && dirAt(), a2 = pos(), p = X.scr(a2.x, a2.y, a2.z), q = X.scr(a2.x + d[0] * 2, a2.y + (lv === 1 ? 2 * 9 / 32 : 0), a2.z + d[1] * 2), L = Math.hypot(q.x - p.x, q.y - p.y) || 1; return [+((q.x - p.x) / L).toFixed(3), +((q.y - p.y) / L).toFixed(3)]; } catch (e) { return null; } })(), busy: A.busy, finished: A.finished };
       },
     };
   },

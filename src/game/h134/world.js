@@ -51,7 +51,7 @@ export function hornGroup(X, c, st, o = {}) {
   const L = H.layers || (H.packed ? crewLayers(c) : null);
   if (L) {
     // the pitch: a dark bed under the pebbles of each layer (it fills every hole to the layer's top)
-    box(X, H.ridgeDull ? Mt.y11pitchDull : Mt.y11pitch, x0 + 0.01, Y, z0 + 0.01, x1 - 0.01, Y + LAYER_H * (skip.l2 ? 1 : 2) - 0.012, z1 - 0.01, g).name = 'h134-pitch';
+    box(X, H.ridgeDull ? Mt.y11pitchDull : Mt.y11pitch, x0 + 0.01, Y, z0 + 0.01, x1 - 0.01, Y + LAYER_H * ((skip.l2 ? 0 : 1) + 0.78), z1 - 0.01, g).name = 'h134-pitch';
     // the core's square left hollow inside the pitch bed is drawn by the core or the hollow below
     const a = layerMesh(X, h, L.l1, Y, Mt['y11stone' + c]); if (a) { a.name = 'h134-l1'; g.add(a); }
     if (!skip.l2) { const b = layerMesh(X, h, L.l2, Y + LAYER_H, Mt['y11stone' + c]); if (b) { b.name = 'h134-l2'; g.add(b); } }

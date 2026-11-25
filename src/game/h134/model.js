@@ -152,6 +152,10 @@ export function createH134(save) {
       st.stash = null;
       st.plays[m.id] = (st.plays[m.id] | 0) + 1;
       if (m.work !== 'fix' && !d(m.id)) st.done.push(m.id);
+      // (the horn's state follows the record: a packing done packs it, an extraction cores it — the act sets these itself; a work's
+      //  link, the tests' __H109_DONE and the crews come here without it)
+      if (m.work === 'orez' || m.work === 'fix') st.horns[m.corner].packed = 1;
+      if (m.work === 'chilutz') st.horns[m.corner].cored = 1;
       delete st.works[m.k];
       st.cur = null; M.shown = m.k;
       return null;

@@ -23,7 +23,7 @@ import { fingers } from '../h113/acts.js';
 import { createGang, createBeat } from '../h109/kit.js';
 
 const S11 = BOOK.s11, TZ = S11.tz, NY = TZ.y, TOP = NY + 1.2;
-export const DA = Object.freeze({ FOV: 13, CUP_R: 0.12, GAP: 0.36, RING: 0.11, ANIM: 4.5, HANDLE: [0.62, 0.1], PULL: 0.08, SPACE: [0.25, 0.6] });
+export const DA = Object.freeze({ FOV: 21, CUP_R: 0.12, GAP: 0.36, RING: 0.11, ANIM: 4.5, HANDLE: [0.46, 0.1], PULL: 0.08, SPACE: [0.25, 0.6] });
 const CX = { water: TZ.stand[0] - DA.GAP / 2, wine: TZ.stand[0] + DA.GAP / 2 };
 
 function make(m, X) {
@@ -67,7 +67,7 @@ function make(m, X) {
   }
   // ── the camera: the bench from the south, the cups big (each about a quarter of the screen's width)
   const cam0 = X.camera, fov0 = cam0.fov;
-  const home = (d = 0) => { lens(X, DA.FOV); X.shot(S11.cam.tz[0].slice(), [TZ.stand[0], TOP + 0.12, TZ.stand[1]], d); };
+  const home = (d = 0) => { lens(X, DA.FOV); X.shot(S11.cam.tz[0].slice(), [TZ.stand[0] + 0.1, TOP + 0.34, TZ.stand[1]], d); };   // (build 134, the 640 × 360 still: the drill's head and the handle were off the screen at 13°)
   const scrOf = (v) => { const r = X.scr(v.x, v.y, v.z); return { x: r.x, y: r.y }; };
   const g2 = () => Math.max(MIN_GRIP * px360(), 26);
   const headScr = () => scrOf(head.getWorldPosition(new T.Vector3()));

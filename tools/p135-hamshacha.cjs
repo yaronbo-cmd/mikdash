@@ -1,4 +1,4 @@
-// probe135 script: work 3 at its level, driven through the act's own fingers: each path (world points, the same as the model test's)
+// probe135 script (fast: the act's update(1/60) called in-page between moves): work 3 at its level, driven through the act's own fingers: each path (world points, the same as the model test's)
 // dug with one finger in small steps; then every bend packed by a held finger on it while the water runs. ENV: NOPACK=1 leaves them.
 const P = {
   1: [[[-69, 56.8], [-69, 40.5], [-61.5, 40.5], [-61.5, 32.5], [-60.5, 32.5], [-60.5, 28.1]]],
@@ -14,12 +14,12 @@ module.exports = async ({ pg, st, shot, log, wait }) => {
   for (const path of paths) {
     const r = await pg.evaluate(async ([path]) => {
       const sl = (ms) => new Promise((r) => setTimeout(r, ms)), A = () => window.__T.game.h109.act();
-      let p0 = A()._scr(...path[0]); A().down({ id: 51, x: p0[0], y: p0[1] }); await sl(40);
+      let p0 = A()._scr(...path[0]); A().down({ id: 51, x: p0[0], y: p0[1] }); A().update(1 / 60);
       for (let k = 1; k < path.length; k++) {
         const [ax, az] = path[k - 1], [bx, bz] = path[k], n = Math.ceil(Math.hypot(bx - ax, bz - az) / 0.3);
-        for (let s = 1; s <= n; s++) { const q = A()._scr(ax + ((bx - ax) * s) / n, az + ((bz - az) * s) / n); A().move({ id: 51, x: q[0], y: q[1] }); await sl(25); }
+        for (let s = 1; s <= n; s++) { const q = A()._scr(ax + ((bx - ax) * s) / n, az + ((bz - az) * s) / n); A().move({ id: 51, x: q[0], y: q[1] }); A().update(1 / 60); }
       }
-      const pe = A()._scr(...path[path.length - 1]); A().up({ id: 51, x: pe[0], y: pe[1] }); await sl(100);
+      const pe = A()._scr(...path[path.length - 1]); A().up({ id: 51, x: pe[0], y: pe[1] }); A().update(1 / 60);
       return A().dbg();
     }, [path]);
     log('path', JSON.stringify({ segs: r.segs, bends: r.bends.map((b) => b.state + ':' + b.crack), breaches: r.breaches, ev: r.ev.slice(-5) }));
@@ -29,11 +29,11 @@ module.exports = async ({ pg, st, shot, log, wait }) => {
     d = await act(); if (!d) break;
     if (!process.env.NOPACK) {
       const b = d.bends.find((x) => (x.state === 'ok' || x.state === 'breach') && x.packed < 1);
-      if (b) { await pg.evaluate(async ([s]) => { const A = () => window.__T.game.h109.act(); A().down({ id: 52, x: s[0], y: s[1] }); await new Promise((r) => setTimeout(r, 1200)); A().up({ id: 52, x: s[0], y: s[1] }); }, [b.scr]); }
+      if (b) { await pg.evaluate(async ([s]) => { const A = () => window.__T.game.h109.act(); A().down({ id: 52, x: s[0], y: s[1] }); for (let i = 0; i < 90; i++) A().update(1 / 60); A().up({ id: 52, x: s[0], y: s[1] }); }, [b.scr]); }
     }
     d = await act(); if (!d) break; log('flow', JSON.stringify({ t: d.t, fill: d.fill, met: d.met, segs: d.segs, bends: d.bends.map((b) => b.state + ':' + b.packed), breaches: d.breaches, done: d.done, ev: d.ev.slice(-3) }));
     if (i === 3) await shot('hamshacha-flow');
-    if (d.done || d.finished) break; await wait(800);
+    if (d.done || d.finished) break; await pg.evaluate(() => { const A = window.__T.game.h109.act(); for (let i = 0; i < 60; i++) A.update(1 / 60); });
   }
   await shot('hamshacha-full');
   for (let i = 0; i < 20; i++) { const s = await st(); log('after', s.phase, s.mission); if (s.phase !== 'act') break; await wait(1500); if (i === 2) await shot('hamshacha-end'); }

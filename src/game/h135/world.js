@@ -142,18 +142,23 @@ function mukhni(X, Mt, D) {
   // radius stays, every turn pays out one amah of each chain, the kiyor never tilts. Eleven coils a groove: nine turns and two spare.
   // As it pays out, the coils get fewer: a progress gauge without numbers.)
   R.wound = [];
-  for (const side of [-1, 1]) {
-    const gz = MK.chains.z[side < 0 ? 0 : 1], grp = new T.Group(); grp.position.z = gz; axle.add(grp);
-    for (const e of [-0.3, 0.3]) { const f = new T.Mesh(new T.CylinderGeometry(0.36, 0.36, 0.05, 16), Mt.y12wood); f.rotation.x = Math.PI / 2; f.position.z = e; grp.add(f); }
-    for (let i = 0; i < 11; i++) { const r = new T.Mesh(new T.TorusGeometry(MK.drum.rDraw + 0.02, 0.035, 5, 16), Mt.y12copper); r.position.z = 0.24 - i * 0.048; grp.add(r); R.wound.push(r); r.userData.i = i; }
-  }
+  // (§14: the groove's pitch 0.12, eleven coils over 1.32 of z; the chain leaves the drum at the last coil still wound, so its exit
+  // walks along the groove as it pays out — up to 0.66 to a side; both grooves the same hand, so both chains move together)
+  MK.chains.grooves.forEach(([g0, g1]) => {
+    for (const e of [g0 - 0.03, g1 + 0.03]) { const f = new T.Mesh(new T.CylinderGeometry(0.36, 0.36, 0.05, 16), Mt.y12wood); f.rotation.x = Math.PI / 2; f.position.z = e; axle.add(f); }
+    for (let i = 0; i < MK.chains.coils; i++) { const r = new T.Mesh(new T.TorusGeometry(MK.drum.rDraw + 0.02, 0.04, 5, 16), Mt.y12copper); r.position.z = g0 + MK.chains.pitch * (i + 0.5); axle.add(r); R.wound.push(r); r.userData.i = i; }
+  });
   for (const dz of [-MK.drum.L / 2, MK.drum.L / 2]) { const f = new T.Mesh(new T.CylinderGeometry(0.42, 0.42, 0.08, 16), Mt.y12wood); f.rotation.x = Math.PI / 2; f.position.z = MK.drum.z + dz; axle.add(f); }
   const wheel = new T.Group(); wheel.position.z = WZ; axle.add(wheel); R.wheel = wheel;
   const wm = wheelMesh(X, MK.wheel.r, MK.wheel.spokes); wm.rotation.x = Math.PI / 2; wheel.add(wm);
   // (the handles on its rim, as in the picture)
   for (let i = 0; i < MK.wheel.handles; i++) { const a = (i / MK.wheel.handles) * Math.PI * 2 + 0.2, hm = new T.Mesh(new T.CylinderGeometry(0.07, 0.07, 0.6, 6), Mt.y12woodD); hm.rotation.x = Math.PI / 2; hm.position.set(Math.cos(a) * (MK.wheel.r + 0.02), Math.sin(a) * (MK.wheel.r + 0.02), 0.32); wheel.add(hm); }
   // the two copper chains (their length and lean set each frame: pose())
-  R.chains = MK.chains.z.map((cz, i) => { const seg = () => { const m = new T.Mesh(new T.CylinderGeometry(0.045, 0.045, 1, 6), Mt.y12copper); m.castShadow = true; D.add(m); return m; }; return { userData: { cz, side: i ? 1 : -1 }, a: seg(), b: seg() }; });
+  R.chains = MK.chains.z.map((cz, i) => { const seg = () => { const m = new T.Mesh(new T.CylinderGeometry(0.045, 0.045, 1, 6), Mt.y12copper); m.castShadow = true; D.add(m); return m; }; return { userData: { cz, side: i ? 1 : -1 }, a: seg(), b: seg(), c: seg() }; });
+  // (§15a: under each groove a wooden guide ring fixed to the arm, at y 27.8 right over its lug: above it the chain walks with the coil,
+  // under it it hangs plumb all the way)
+  for (const cz of MK.chains.z) { const gr = new T.Mesh(new T.TorusGeometry(0.17, 0.07, 8, 14), Mt.y12woodD);   // (§16: a wide, rounded guide ring — the chain enters it without rubbing or catching)
+    gr.rotation.x = Math.PI / 2; gr.position.set(MK.x, MK.chains.guideY, cz); D.add(gr); box(X, Mt.y12woodD, MK.x - 0.05, MK.chains.guideY - 0.04, cz - 0.05, MK.x + 0.95, MK.chains.guideY + 0.04, cz + 0.05, D); }
   // the brake: its post, the lever on its pivot, the shoe on the wheel's rim from outside (east), the handle out of the rim
   const z = MK.brake.z, [pvx, pvy] = MK.brake.pivot, [shx, shy] = MK.brake.shoe, [hx, hy] = MK.brake.handle;
   box(X, Mt.y12wood, pvx - 0.15, F, z - 0.15, pvx + 0.15, pvy, z + 0.15, D).name = 'h135-brake-post';
@@ -252,16 +257,18 @@ function pose() {
   const d = SH12.d;
   if (R.kiyor) { R.kiyor.position.y = K.y0 - d; R.kiyor.rotation.z = SH12.sway || 0; }
   if (R.axle) R.axle.rotation.z = -SH12.ang;
-  if (R.wound) { const n = 2 + Math.round(9 * Math.max(0, 1 - d / K.travel)); for (const r of R.wound) r.visible = r.userData.i < n; }
+  const nW = 2 + 9 * Math.max(0, 1 - d / K.travel);   // (the coils still wound, continuous)
+  if (R.wound) { const n = Math.round(nW); for (const r of R.wound) r.visible = r.userData.i < n; }
   if (R.shoe) R.shoe.position.x = R.shoe.userData.x0 - 0.12 * SH12.brake;
   // (the chain: from its groove's side of the drum down to its lug; two links of the drawing so that a slack chain bows out — spec v8:
   // the chains go taut and slack and the kiyor trembles a little as the load changes)
   if (R.chains && R.kiyor) for (const c of R.chains) {
-    const T = SH12.X.THREE, sd = c.userData.side, top = new T.Vector3(MK.x, MK.axle.y - MK.drum.rDraw, c.userData.cz);
+    const T = SH12.X.THREE, sd = c.userData.side, top = new T.Vector3(MK.x, MK.axle.y - MK.drum.rDraw, MK.chains.grooves[sd < 0 ? 0 : 1][0] + MK.chains.pitch * (nW - 0.5));
     const sw = SH12.sway || 0, hl = K.h + 0.16, bot = new T.Vector3(MK.x - hl * Math.sin(sw), K.y0 - d + hl * Math.cos(sw), c.userData.cz);
-    const sl = Math.max(0, Math.min(1, SH12.slack || 0)), mid = top.clone().lerp(bot, 0.5); mid.x += sd * sl * 0.45; mid.z += sd * sl * 0.2; mid.y -= sl * 0.25;
-    const put = (m, p, q) => { m.position.copy(p).lerp(q, 0.5); m.scale.set(1, p.distanceTo(q), 1); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), p.clone().sub(q).normalize()); };
-    put(c.a, top, mid); put(c.b, mid, bot);
+    const gd = new T.Vector3(MK.x, MK.chains.guideY, c.userData.cz);
+    const sl = Math.max(0, Math.min(1, SH12.slack || 0)), mid = gd.clone().lerp(bot, 0.5); mid.x += sd * sl * 0.45; mid.z += sd * sl * 0.2; mid.y -= sl * 0.25;
+    const put = (m, p, q) => { m.position.copy(p).lerp(q, 0.5); m.scale.set(1, Math.max(0.01, p.distanceTo(q)), 1); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), p.clone().sub(q).normalize()); };
+    put(c.a, top, gd); put(c.b, gd, mid); put(c.c, mid, bot);
   }
   if (R.kiyor && R.kiyor.userData.water) R.kiyor.userData.water.visible = !SH12.own.kiyorWater && (SH12.d < 0.05 || SH12.own.kiyorFull);
 }

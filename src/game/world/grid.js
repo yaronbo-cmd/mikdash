@@ -1571,16 +1571,17 @@ function s12(S10, S7) {
   const AX = KM.axleY, WZ = KM.wheel.z, WR = KM.wheel.r;
   const M = {
     x: KM.x, z: KM.z, posts: KM.posts.slice(), postW: 0.6, axle: { y: AX, z0: r4(KM.posts[0] - 0.4), z1: r4(WZ + 0.5), r: 0.22 },
-    drum: { z: KM.z, r: 0.16, rDraw: 0.25, L: 4.4 }, wheel: { z: WZ, r: WR, y: AX, spokes: 8, handles: 8 },
+    // (spec v8 §14–15: the chain's centre radius √(1−0.12²)/(2π) ≈ 0.158 — one amah a turn exactly along the helix; 0.25 is only the drawn shell; L to hold both grooves)
+    drum: { z: KM.z, r: r4(Math.sqrt(1 - 0.12 * 0.12) / (2 * Math.PI)), rDraw: 0.25, L: 5.4 }, wheel: { z: WZ, r: WR, y: AX, spokes: 8, handles: 8 },
     // (spec v8 §13a: two grooves on the drum, north at z 18.1 and south at z 21.9; each chain hangs PLUMB from its groove to a lug on the
     // kiyor's rim right under it, at x −63.5: no slant, no tilting moment)
-    arm: { y0: 26, y1: AX }, chains: { z: [18.1, 21.9], len: r4(AX - (y0 + H) + travel + 1) },
+    arm: { y0: 26, y1: AX }, chains: { z: [18.1, 21.9], grooves: [[17.4, 18.8], [21.2, 22.6]], pitch: 0.12, coils: 11, guideY: 27.8, len: r4(AX - (y0 + H) + travel + 1) },
     // (spec v8 §13b: the wooden platform by the wheel (no iron), its top at y 25 — the handles on the rim at his hands — and the wooden
     // stairs up to it from the west; המחשה)
     platform: { box: [-67, 25.3, -62, 27.8], y: 25 }, stairs: { box: [-72, 25.3, -67, 27.8] },
     // (spec v8 §12d: the handle at the upper right of the wheel's rim as seen from the south, out of the rim, far from the pit's lip and the
     // screen's bottom; the shoe on the rim from outside, a little over the axle)
-    brake: { pivot: [r4(KM.x + WR + 0.7), r4(AX - 1.4)], shoe: [r4(KM.x + 2.34), r4(AX + 0.6)], handle: [r4(KM.x + 1.7), r4(AX + 2.6)], z: r4(WZ + 0.35) },
+    brake: { pivot: [r4(KM.x + 3.0), r4(AX - 1.4)], shoe: [r4(KM.x + 2.38), r4(AX + 0.4)], handle: [r4(KM.x + 2.9), r4(AX + 1.7)], z: r4(WZ - 0.35) },   // (handle at ~30° up the rim's right, 1.06 out of it: under the HUD's row; the lever behind the wheel, not over it — b135 probe)
     tongue: [r4(KM.x - 0.6), r4(AX + 0.55), r4(WZ - 0.3)],
     stand: [-66.2, 26.1],   // (on the platform's west end: the camera from the south-east sees him by the wheel's left rim, not over it)
   };
@@ -1608,7 +1609,7 @@ function s12(S10, S7) {
     cam: {
       open: [[-38, 40, 52], [K.x + 1, F + 3, K.z + 6]],
       dadim: [[-55.6, 25.8, 33.2], [-61.2, 19.4, 20]],
-      mukhni: [[-57, 30.5, 33], [-63.5, 26, 21]],   // (spec v8: from the south-east, ~20° up: the wheel at the left, the chains, the kiyor and the pit at the right)
+      mukhni: [[-56.3, 31.3, 38.5], [-63.2, 27.4, 21.5]],   // (spec v8: from the south-east, ~20° up: the wheel at the left, the chains, the kiyor and the pit at the right)
       pip: [[-57.2, 24.5, 21.5], [K.x - 0.5, 13, K.z]],   // (from over the pit's east lip, down into it: the water, the kiyor's rim; the kohen out of it)
       geshem: [[-42, 46, 42.5], [-64.5, F, 42.5]],
       end: { c: [K.x, F, K.z + 8], R: 44, y: 46 },

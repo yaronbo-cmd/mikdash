@@ -44,7 +44,7 @@ function make(m, X) {
   let pipEl = null;
   try { pipEl = document.createElement('div'); pipEl.className = 'h109-ui h135-pip'; pipEl.style.cssText = 'position:fixed;z-index:4;border:3px solid #E9D8B4;border-radius:10px;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.4)'; document.body.appendChild(pipEl); } catch (e) { pipEl = null; }
   const pipDraw = (renderer, scene) => {
-    if (A.ended) return;
+    if (A.ended || A.finished) { if (pipEl) pipEl.style.display = 'none'; return; }
     const b = pipBox(); if (pipEl) { pipEl.style.right = MA.PIP.m - 3 + 'px'; pipEl.style.bottom = MA.PIP.m - 3 + 'px'; pipEl.style.width = b.w + 'px'; pipEl.style.height = b.h + 'px'; }
     pipCam.aspect = b.w / b.h; pipCam.position.set(...PIP[0]); pipCam.lookAt(PIP[1][0], PIP[1][1] - 0 * SH12.d, PIP[1][2]); pipCam.updateProjectionMatrix(); pipCam.updateMatrixWorld();
     const ac = renderer.autoClear, vp = new T.Vector4(), sc = new T.Vector4(), st = renderer.getScissorTest(); renderer.getViewport(vp); renderer.getScissor(sc);
@@ -118,7 +118,7 @@ function make(m, X) {
     const res = K.result(S), at = kiyorAt();
     Mo.keep(m.k, null); X.save();
     await X.wait(0.6);
-    await finish(X, A, res, WORDS.mukhni, at, { eye: [MK.x + 12, 26, MK.z + 14], aim: [MK.x, 20, MK.z], secs: 1.4, kohen: true, after: () => { try { Mo.filmOver(); } catch (er) { /* */ } } });
+    await finish(X, A, res, WORDS.mukhni, at, { eye: [MK.x + 9, 31, MK.z + 17], aim: [MK.x, 19, MK.z], secs: 1.4, kohen: true, after: () => { try { Mo.filmOver(); } catch (er) { /* */ } } });
   }
   function hint() { if (resumed || A.hintOn) return; A.hintOn = 1; X.hand({ x: MK.x + MK.wheel.r, y: MK.axle.y, z: MK.wheel.z }, 0, 40); }
   return {
@@ -128,7 +128,7 @@ function make(m, X) {
       try { globalThis.__H135_PIP = pipDraw; } catch (e) { /* */ }
       X.line(resumed ? '' : lv === 1 ? 'גררו את שפת הגלגל במעגל: הבורג יורד והכיור איתו. הקשיבו לנקישות' : 'יד אחת מסובבת את הגלגל, השנייה לוחצת על ידית הבלם. כשהכיור נכנס למים הוא נעשה קל', resumed ? 0 : 5200);
       try { addEventListener('keydown', onKey); addEventListener('keyup', onKey); } catch (e) { /* */ }
-      try { X.stages.hero.place({ x: MK.stand[0], z: MK.stand[1], face: [MK.x, MK.z] }); } catch (e) { /* */ }
+      try { X.stages.hero.place({ x: MK.stand[0], z: MK.stand[1], face: [MK.x, MK.wheel.z] }); } catch (e) { /* */ }
       // (level 1: one beat of the tongue shows the pace, no more)
       if (lv === 1 && !resumed) X.wait(1.2).then(() => { if (!A.ended) { A.tongue = 1; V.click(); setTimeout(() => { try { V.click(); } catch (e) { /* */ } }, 700); } });
       X.wait(0.9).then(() => { if (!A.ended) hint(); });
@@ -169,4 +169,4 @@ function make(m, X) {
     },
   };
 }
-export const MUKHNI_ACT = { icon: '☸️', title: 'המוכני', walkLine: () => 'המוכני: אל הגלגל שעל הקורה', stand() { return { x: MK.stand[0], z: MK.stand[1], face: [MK.x, MK.z] }; }, prepare() {}, make };
+export const MUKHNI_ACT = { icon: '☸️', title: 'המוכני', walkLine: () => 'המוכני: במדרגות אל הבמה שליד הגלגל', stand() { return { x: MK.stand[0], z: MK.stand[1], face: [MK.x, MK.wheel.z] }; }, prepare() {}, make };

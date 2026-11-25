@@ -161,7 +161,7 @@ function make(m, X) {
     if (res.bonus) extra(X, 40, lv, 'work', 'בלי פריצה');
     Mo.st.trace = H.trace(S); Mo.st.water = 1; X.save();
     Mo.keep(m.k, null);
-    await finish(X, A, res, WORDS.hamshacha, at, { eye: [P.box[2] + 9, F + 9, P.box[3] + 8], aim: [(P.box[0] + P.box[2]) / 2, P.floor + 4, (P.box[1] + P.box[3]) / 2], secs: 1.2, kohen: true, after: () => { try { Mo.filmOver(); } catch (er) { /* */ } } });
+    await finish(X, A, res, WORDS.hamshacha, at, { eye: [P.box[2] + 8.5, F + 14, (P.box[1] + P.box[3]) / 2 + 1], aim: [(P.box[0] + P.box[2]) / 2, P.floor + 4, (P.box[1] + P.box[3]) / 2], secs: 1.2, kohen: true, after: () => { try { Mo.filmOver(); } catch (er) { /* */ } } });
   }
   function hint() { if (A.hintOn) return; A.hintOn = 1; const [x, z] = S12.golah.mouth1; X.hand({ x, y: F, z: z - 1.2 }, 0, 40); }
   let pt = null;

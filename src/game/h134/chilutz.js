@@ -47,6 +47,12 @@ export function makeExtract(X, o) {
     q.position.set(h.core[0] + d[0] * (hf + w / 2), Y + HH + 0.006, h.core[1] + d[1] * (hf + w / 2)); q.name = 'h134-strip'; root.add(q);
     return q;
   });
+  // (build 134, the review: at levels 2 and 3 the strip shows only from its side and a child searched the whole circle blind — a dark bead
+  // of the pitch that still holds sits on the lip at each caught point, seen from every side; it goes when the point lets go)
+  const beads = S.pts.map((p) => {
+    const d = DIRS[p.d], q = box(X, Mt.y11pitch, -0.035, 0, -0.035, 0.035, 0.03, 0.035, root);
+    q.position.set(h.core[0] + d[0] * (hf + 0.03), Y + HH - 0.005, h.core[1] + d[1] * (hf + 0.03)); q.name = 'h134-bead'; return q;
+  });
   const dust = new T.Group(); root.add(dust);
   // ── the camera: low over the lip, round the core (the helping hand turns it)
   const cam0 = X.camera, fov0 = cam0.fov;
@@ -121,6 +127,10 @@ export function makeExtract(X, o) {
   function draw(dt) {
     const k = S.k, d = S.dir, a = (k * CK.FULL * CA.TILT_VIS * Math.PI) / 180;
     core.rotation.set(d[1] * a, 0, -d[0] * a);
+    // (build 134, the review: a warning before the scrape — over 85 % of the full tilt the core trembles and the phone ticks)
+    const warn = A.w && A.w.k === 'tilt' && k > 0.85 * CK.OVER;
+    if (warn) { core.rotation.y = Math.sin(A.t * 60) * 0.03; if (A.t % 0.2 < dt) buzz(6); } else core.rotation.y = 0;
+    S.pts.forEach((p, i) => { if (beads[i]) beads[i].visible = !p.done; });
     if (!A.lift) core.position.set(h.core[0], Y + S.rise * CK.TEF, h.core[1]);
     else { A.lift.t += dt; core.position.y = Y + S.rise * CK.TEF + A.lift.t * 2.2; }
     // the strips: open by the tilt away from their point, shown only from their side (the view facing it)
@@ -139,7 +149,9 @@ export function makeExtract(X, o) {
     begin() {
       try { X.kohen(false); } catch (e) { /* (he kneels on the priests' walk, out of the picture) */ }
       FG.attach(); home(o.chained ? 0.8 : 0.01);
-      if (!o.chained) X.line('', 0); else X.line('חילוץ הגוף מהזפת החדשה', 1800);
+      // (build 134, the review: one short line at the start)
+      const L1 = 'הטו את הגוף הרחק מהנקודה השחורה עד שנפתח פס אור, ורק אחר כך משכו בחבל';
+      if (!o.chained) X.line(resumed ? '' : L1, resumed ? 0 : 5000); else X.line('חילוץ הגוף מהזפת החדשה. ' + L1, 4200);
       X.wait(0.9).then(() => { if (!A.ended) hint(); });
       ev(resumed ? 'resume' : 'begin'); keep();
     },

@@ -14,7 +14,7 @@
  */
 import { BOOK } from '../world/grid.js';
 import { WORDS } from './model.js';
-import { fresh, load, save, press, stroke, replace, test, result, right, empty, betterPair, DK, WINE, SIDES } from './chotem-model.js';
+import { fresh, load, save, press, stroke, replace, test, result, right, empty, betterPair, wouldTear, DK, WINE, SIDES } from './chotem-model.js';
 import { mats11, cupMesh } from './look.js';
 import { own, SH11 } from './world.js';
 import { award, extra, hurt, finish, V3, lens, voices, px360, MIN_GRIP } from './kit11.js';
@@ -54,6 +54,11 @@ function make(m, X) {
   const bow = new T.Group(); drill.add(bow); bow.position.y = 0.24;
   const bowArc = new T.Mesh(new T.TorusGeometry(0.22, 0.01, 6, 20, Math.PI * 0.7), Mt.y11woodD); bowArc.rotation.z = Math.PI * 0.15; bowArc.position.set(0, -0.12, 0.04); bow.add(bowArc);
   const string = box(X, Mt.y11rope, -0.2, -0.003, 0.035, 0.2, 0.003, 0.041, bow);
+  // (build 134, the review: the pressure had no picture — three beads up a little post beside the head light 1, 2, 3; a bead whose
+  // pressure would tear the cup now is red, and lit it burns red)
+  const redS = new T.MeshBasicMaterial({ color: '#E0402A' });
+  const gauge = [1, 2, 3].map((n) => { const q = new T.Mesh(new T.SphereGeometry(0.014, 8, 6), Mt.y11woodD); q.position.set(0.085, 0.405 + n * 0.03, 0); drill.add(q); return q; });
+  box(X, Mt.y11woodD, 0.08, 0.41, -0.005, 0.09, 0.53, 0.005, drill);
   // level 1: the gold ring of the right bore round the drill's foot, and the bore's own ring
   const rightRing = new T.Mesh(new T.TorusGeometry(1, 0.06, 6, 28), Mt.y11glow); rightRing.rotation.x = Math.PI / 2; rightRing.visible = lv === 1; root.add(rightRing);
   // ── the test handle (wood), the basin under the stand (the world's), the smith and the kohen, two pourers
@@ -85,6 +90,10 @@ function make(m, X) {
       if (onHead(f) && !A.pr) { A.pr = { id: f.id, y0: f.y, k: 0 }; X.hand(null); ev('press'); return; }
       if (onBow(f) && !A.bow) { A.bow = { id: f.id, x: f.x, run: 0, dir: 0, lastX: f.x, t0: A.t }; X.hand(null); ev('bow'); return; }
       if (onKnob(f) && !A.hd) { A.hd = { id: f.id, y0: f.y }; return; }
+      // (build 134, the review: two small thumbs on a phone miss their marks — once one thumb has its role, the other thumb anywhere takes the
+      // other role: the bow while the head is pressed, the pressure while the bow runs)
+      if (A.pr && !A.bow) { A.bow = { id: f.id, x: f.x, run: 0, dir: 0, lastX: f.x, t0: A.t }; ev('bow'); return; }
+      if (A.bow && !A.pr) { A.pr = { id: f.id, y0: f.y, k: 0 }; ev('press'); return; }
       const s = onCup(f); if (s) { A.tapCup = { id: f.id, s, x0: f.x, y0: f.y }; }
     },
     move(f) {
@@ -115,7 +124,7 @@ function make(m, X) {
     const at = V3(X, CX[side], TOP + 0.05, TZ.stand[1]);
     if (r.k === 'skid') { V.scrape(0.5); setTimeout(() => V.scrape(0), 200); hurt(X, Mo, 'chotem.scratch', at, { lv, side }); }
     else if (r.k === 'tear') { V.crack(); hurt(X, Mo, 'chotem.tear', at, { lv, side }); A.tear[side] = 1.2; }
-    else if (r.k === 'through') { V.harp(440); try { X.sparks(at.x, at.y, at.z, 6); } catch (e) { /* */ } }
+    else if (r.k === 'through') { V.harp(440); try { X.sparks(at.x, at.y, at.z, 14); X.line('פרץ! מעכשיו כל משיכה מרחיבה את הנקב', 1800); } catch (e) { /* */ } }
     else { V.rope(true); }
     keep();
   }
@@ -157,6 +166,7 @@ function make(m, X) {
     drill.position.y = TOP + DA.CUP_R * 0.32 + 0.02 - [0, 0.004, 0.009, 0.016][pr];
     if (A.bow) { spindle.rotation.y += dt * 30; bow.position.x = Math.sin(A.t * 9) * 0.04; }
     V.whistle(A.bow ? 0.25 + pr * 0.25 : 0);
+    gauge.forEach((q, j) => { const n = j + 1, bad = wouldTear(S, side, n), on = pr >= n; const mt = bad ? (on ? redS : Mt.y11bad) : on ? Mt.y11glow : Mt.y11woodD; if (q.material !== mt) q.material = mt; });
     for (const s of SIDES) {
       const Cs = S.c[s], g = cups[s]; if (!g) continue;
       const hr = g.userData.hole; hr.visible = Cs.open; if (Cs.open) { const r = Math.max(0.01, DA.RING * Cs.d * 0.5); hr.scale.set(r, r, r); }
@@ -184,7 +194,9 @@ function make(m, X) {
   return {
     close: true, kohenWorks: true,
     begin() {
-      castMen(); FG.attach(); home(0.01); X.line('', 0);
+      castMen(); FG.attach(); home(0.01);
+      // (build 134, the review: one short line at the start)
+      X.line(resumed ? '' : 'אגודל אחד לוחץ על ראש המקדח, השני מושך את הקשת. נקב היין רחב יותר: שני הספלים צריכים להתרוקן יחד', resumed ? 0 : 5500);
       drill.position.set(CX[S.sel], TOP + 0.06, TZ.stand[1]);
       try { addEventListener('keydown', onKey); addEventListener('keyup', onKey); } catch (e) { /* */ }
       try { X.stages.hero.place({ x: TZ.kohen[0], z: TZ.kohen[1], face: TZ.stand.slice() }); } catch (e) { /* (the kohen by the smith, in the picture) */ }

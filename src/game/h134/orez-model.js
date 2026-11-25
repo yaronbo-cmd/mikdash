@@ -20,7 +20,7 @@
  */
 import { setOf, orient, onRing, key, RINGSET, edgeOfFrame, solutionPose, N, RING_N } from './sets.js';
 
-export const OK = Object.freeze({ CLOSE: 92, LIFT_LAG: 0.15, SEAT: 0.3, BACK: 1, SPARE: 3, WINDOW: 60, STAIN: 3 });
+export const OK = Object.freeze({ CLOSE: 92, LIFT_LAG: 0.15, SEAT: 0.3, BACK: 1, SPARE: 3, WINDOW: 60, STAIN: 3, LIP: 2 });
 export const GRADE = (g) => (g === 'gold' ? 40 : g === 'good' ? 20 : g === 'ok' ? 10 : 0);
 
 /** a station's work (o.free: the stage's first act is a free try) */
@@ -48,7 +48,11 @@ export function sideOf(S, mx, mz, inward) {
   // (inward: the two sides toward the altar's middle; inward = [sx, sz], −1 west/north … +1 east/south of the horn's middle)
   const ox = mx < -0.5 ? -1 : mx > N + 0.5 ? 1 : 0, oz = mz < -0.5 ? -1 : mz > N + 0.5 ? 1 : 0;
   const outX = ox !== 0 && ox !== inward[0], outZ = oz !== 0 && oz !== inward[1];
-  return outX || outZ ? 'fall' : 'walk';
+  if (!(outX || outZ)) return 'walk';
+  // (build 134, the rule-67 review: a finger that slid just over the outer lip is not a throw — up to LIP cells past the edge the pebble
+  // goes back to the basket with a warning; only a pebble let go farther out falls)
+  const past = Math.max(outX ? (ox > 0 ? mx - (N - 0.5) : -0.5 - mx) : 0, outZ ? (oz > 0 ? mz - (N - 0.5) : -0.5 - mz) : 0);
+  return past <= OK.LIP ? 'lip' : 'fall';
 }
 export function lift(S, i) { const p = S.P[i]; if (!p || p.back > 0 || p.spare > 0 || S.held >= 0) return false; S.held = i; return true; }
 /** let go of the held pebble at pose (o, x, z) with its middle at (mx, mz) in cells → { k: 'seat' | 'loose' | 'walk' | 'fall', free } */
@@ -56,13 +60,14 @@ export function drop(S, o, x, z, mx, mz, inward) {
   const i = S.held; if (i < 0) return null; S.held = -1; const p = S.P[i]; S.tries++; S.n++;
   const side = sideOf(S, mx, mz, inward);
   if (side === 'walk') { p.at = null; p.loose = false; return { k: 'walk', i }; }
+  if (side === 'lip') { p.at = null; p.loose = false; return { k: 'lip', i }; }
   if (side === 'fall') {
     const free = S.free; S.free = false; p.at = null; p.loose = false;
     if (!free) { S.fell++; if (S.lv >= 3) p.spare = OK.SPARE; else p.back = OK.BACK; } else p.back = OK.BACK;
     return { k: 'fall', i, free };
   }
   S.free = false;
-  if (fits(S, i, o, x, z)) { p.at = { o, x, z }; p.loose = false; return { k: 'seat', i }; }
+  if (fits(S, i, o, x, z)) { p.at = { o, x, z }; p.loose = false; if (S.tarArm && S.layer === 2 && S.tarT == null) { S.tarT = 0; S.tarArm = false; } return { k: 'seat', i }; }
   p.at = { o, x, z }; p.loose = true; return { k: 'loose', i };
 }
 /** the clock: a fallen pebble back in the basket, a spare brought; the level-3 pitch window */
@@ -109,7 +114,7 @@ export function close(S) {
     const own = new Map(); S.P.forEach((p, i) => { if (p.at && !p.loose) for (const [x, z] of cellsOf(p, p.at.o, p.at.x, p.at.z)) own.set(key(x, z), i); });
     S.below = [...own.entries()]; S.pitchBelow = pitch.map(([x, z]) => key(x, z));
     S.closed.push(R); S.seats1 = S.P.filter((p) => p.at && !p.loose).map((p) => ({ i: p.i, at: { ...p.at } }));
-    if (S.lv >= 3) S.tarT = 0;
+    if (S.lv >= 3) S.tarArm = true;   // (build 134, the review: the window opens at the first pebble seated in layer 2, not while he looks)
     deal(S, 2);
   } else {
     const own = new Map(S.below || []);
@@ -130,11 +135,11 @@ export function result(S, o = {}) {
 }
 /** level 1's shadow: where the held pebble belongs (its solution's cells) */
 export function ghost(S, i) { const p = S.P[i]; if (!p || !p.sol) return null; return cellsOf(p, p.sol.o, p.sol.x, p.sol.z); }
-export function save(S, id) { return { id, v: 1, corner: S.corner, lv: S.lv, layer: S.layer, free: S.free, fell: S.fell, closed: S.closed, below: S.below, pitchBelow: S.pitchBelow, tarT: S.tarT, seats1: S.seats1 || null, at: S.P.map((p) => (p.at && !p.loose ? { ...p.at } : null)) }; }
+export function save(S, id) { return { id, v: 1, corner: S.corner, lv: S.lv, layer: S.layer, free: S.free, fell: S.fell, closed: S.closed, below: S.below, pitchBelow: S.pitchBelow, tarT: S.tarT, tarArm: !!S.tarArm, seats1: S.seats1 || null, at: S.P.map((p) => (p.at && !p.loose ? { ...p.at } : null)) }; }
 export function load(b) {
   if (!b || b.v !== 1 || !b.corner) return null;
   const S = fresh(b.corner, b.lv, { free: b.free });
-  if (b.layer >= 2) { S.closed = b.closed || []; S.below = b.below || null; S.pitchBelow = b.pitchBelow || []; S.seats1 = b.seats1 || null; S.tarT = b.tarT; deal(S, 2); }
+  if (b.layer >= 2) { S.closed = b.closed || []; S.below = b.below || null; S.pitchBelow = b.pitchBelow || []; S.seats1 = b.seats1 || null; S.tarT = b.tarT; S.tarArm = !!b.tarArm; deal(S, 2); }
   S.fell = b.fell | 0;
   (b.at || []).forEach((a, i) => { const p = S.P[i]; if (p && a && fits(S, i, a.o, a.x, a.z)) p.at = { o: a.o, x: a.x, z: a.z }; });
   return S;

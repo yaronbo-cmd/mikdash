@@ -7,7 +7,7 @@
  */
 import { mats11 } from './look.js';
 
-const TURN0 = { SE: 70, NE: -60, NW: 50, SW: -80 };   // (the lump comes turned this far from the notch: fixed, rule 56)
+const TURN0 = { SE: -45, NE: -30, NW: -30, SW: -45 };   // (the lump comes turned this far from the notch: fixed, rule 56; build 134, the review: shorter — two or three taps of +15°, never twenty)
 export const SALT = Object.freeze({ OK: 12, PUSH: 26, STEP: 15, R: 0.16 });
 export function createSalt(X, o) {
   const T = X.THREE, Mt = mats11(X), root = new T.Group(); root.name = 'h134-salt'; X.props.root.add(root);
@@ -28,7 +28,7 @@ export function createSalt(X, o) {
   const scr = () => { const r = X.scr(lump.position.x, lump.position.y, lump.position.z); return { x: r.x, y: r.y }; };
   const nscr = () => { const r = X.scr(at.x, at.y, at.z); return { x: r.x, y: r.y }; };
   const aligned = () => Math.abs((((S.a % 360) + 540) % 360) - 180) <= SALT.OK;
-  try { X.line('בול של מלח: אחזו בגוש, סובבו ביד השנייה עד שהוא מתאים לשקע, ודחפו פנימה', 3600); } catch (e) { /* */ }
+  try { X.line('הקרן נסדקה! אחזו בגוש המלח, סובבו אותו ביד השנייה עד שהוא מאיר, ודחפו לתוך השבר', 4200); } catch (e) { /* */ }
   function finish() { S.pushed = true; S.push = 0; try { X.dust(at.x, at.y, at.z, 8, 0.1); X.play && X.play('stone'); } catch (e) { /* */ } }
   const A = {
     get on() { return S.on; },

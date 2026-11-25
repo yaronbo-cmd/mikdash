@@ -30,6 +30,8 @@ export function fresh(lv) {
 }
 export const right = (S, side) => (side === 'wine' ? WINE[S.lv] : 1);
 const tears = (S, C, pr) => (pr === 3 && (S.lv >= 2 || !C.open)) || (S.lv >= 3 && pr === 2 && !C.open);
+/** would a stroke at pressure pr tear the cup on that side now (build 134, the review: the pressure gauge's red bead) */
+export const wouldTear = (S, side, pr) => !!S.c[side] && tears(S, S.c[side], pr);
 /** one stroke of the bow on the selected cup at pressure pr → { k: 'skid' | 'cut' | 'through' | 'wider' | 'tear' } */
 export function stroke(S, side, pr) {
   const C = S.c[side]; if (!C || C.torn || C.wide || S.done) return null;

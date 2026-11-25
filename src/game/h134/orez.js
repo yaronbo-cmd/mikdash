@@ -15,7 +15,7 @@
  */
 import { BOOK } from '../world/grid.js';
 import { WORDS, CORNER_OF } from './model.js';
-import { fresh, load, save, lift, drop, step, canClose, full, close, result, ghost, fits, cellsOf, covered, anyLoose, tarShine, secondOnly, OK } from './orez-model.js';
+import { fresh, load, save, lift, drop, step, canClose, full, close, result, ghost, fits, cellsOf, covered, anyLoose, tarShine, secondOnly, sideOf, OK } from './orez-model.js';
 import { orient, N, setOf } from './sets.js';
 import { RING } from './sets.js';
 import { mats11, CELL, LAYER_H, cellXZ, pebbleGeo, viewOf } from './look.js';
@@ -105,6 +105,7 @@ function makeOrez(m, X, mode) {
   // ── the shadow and the ghost (level 1): flat quads on the cells
   const shade = new T.Group(); root.add(shade);
   const ghostG = new T.Group(); root.add(ghostG);
+  const looseG = new T.Group(); root.add(looseG); let looseK = '';   // (build 134, the review: the cells under a loose pebble glow red)
   function cellsQuads(G, cells, mat, y) { while (G.children.length) G.remove(G.children[0]); for (const [x, z] of cells || []) { const [wx, wz] = cellXZ(h, x, z); const q = box(X, mat, wx - CELL * 0.46, y, wz - CELL * 0.46, wx + CELL * 0.46, y + 0.004, wz + CELL * 0.46, G); q.castShadow = false; q.receiveShadow = false; } }
   // ── the crew: two men by the pot (they pour, lift the frame); the kohen out of the picture
   const Bt = createBeat(X), gang = createGang(X), crew = [];
@@ -206,6 +207,7 @@ function makeOrez(m, X, mode) {
     ev(r.k + ':' + p.id);
     if (r.k === 'seat') { A.seat.push({ i, t: 0 }); V.click(); try { X.dust(at.x, base() + 0.1, at.z, 3, 0.06); } catch (e) { /* */ } }
     else if (r.k === 'loose') { V.bump(); X.shake(0.05, 0.12); }
+    else if (r.k === 'lip') { V.bump(); X.shake(0.04, 0.1); try { X.line('כמעט נפל! החלוק חזר לסל', 1600); } catch (e) { /* */ } }
     else if (r.k === 'fall') {
       A.fallAnim = { i, t: 0, from: at, to: V3(X, h.core[0] - h.in[0] * 1.3, S11.top - 3 + 0.05, h.core[1] - h.in[1] * 1.3) };
       if (!r.free) {
@@ -220,7 +222,14 @@ function makeOrez(m, X, mode) {
     A.salt = createSalt(X, { at: [hit.x, hit.y, hit.z], corner: c, onDone: () => { Mo.salted(c); keep(); X.save(); V.knock(1.2); A.salt = null; }, onLater: () => { A.salt = null; } });
   }
   async function tryClose() {
-    if (A.busy || !canClose(S)) { if (!A.busy) { V.bump(); pot.position.x += 0.01; setTimeout(() => { pot.position.copy(potAt); }, 120); } return; }
+    if (A.busy || !canClose(S)) {
+      if (!A.busy) {
+        V.bump(); pot.position.x += 0.01; setTimeout(() => { pot.position.copy(potAt); }, 120);
+        // (build 134, the review: a tap that does nothing reads as a stuck game — the loose pebbles jump, and one line says why)
+        try { if (anyLoose(S)) { A.looseJump = 0.5; X.line('חלוק רופף (באדום): הזיזו אותו עד שיישב במקום', 2000); } else X.line(`עוד לא: לכסות עוד ${OK.CLOSE - covered(S)} משבצות`, 1800); } catch (e) { /* */ }
+      }
+      return;
+    }
     A.busy = 1; X.hand(null);
     const layer = S.layer, snap = S.P.filter((p) => p.at && !p.loose).map((p) => ({ c: cellsOf(p, p.at.o, p.at.x, p.at.z), s: p.i + 1 })), keepP = S.P;
     const R = close(S); if (!R) { A.busy = 0; return; }
@@ -252,7 +261,7 @@ function makeOrez(m, X, mode) {
     A.pour = null;
     if (layer === 1) {
       // the second layer: its own set, on the flat top of the first
-      X.line('השכבה השנייה', 1600); rebuild(); A.busy = 0; keep(); return;
+      X.line('השכבה השנייה: כל חלוק על שני חלוקים שמתחתיו', 2600); rebuild(); A.busy = 0; keep(); return;
     }
     // the horn stands round the core: the frame comes off; the whole ring settles at once
     V.thud(); X.shake(0.1, 0.2);
@@ -284,6 +293,8 @@ function makeOrez(m, X, mode) {
     Mo.doneChain(c, lv, rc);
     try { if (rc.stars > 0) X.bonus([0, 50, 100, 200][rc.stars], 'job' + rc.stars, `${'★'.repeat(rc.stars)} חילוץ הגוף`); } catch (e) { /* */ }
     HC.cored = 1; X.save(); home(0.6);
+    // (build 134, the review: the repair shows — the salt's white patch gone, the horn whole, said in words)
+    if (fix && !Mo.flawed(c)) { try { const p = V3(X, h.core[0], Y + 0.6, h.core[1]); X.sparks(p.x, p.y, p.z, 24); X.line('הקרן שלמה שוב: הטלאי של המלח הוסר', 2400); } catch (e) { /* */ } await X.wait(0.8); if (A.ended) return; }
     A.busy = 2;
     await finish(X, A, { ...resOrez, perfect: resOrez.perfect && rc.perfect }, fix ? WORDS.fix : WORDS.orez, V3(X, h.core[0], Y + 0.7, h.core[1]), film());
   }
@@ -307,7 +318,10 @@ function makeOrez(m, X, mode) {
         if (mm.geometry !== geoOf(p, A.w.o)) mm.geometry = geoOf(p, A.w.o);
         mm.scale.setScalar(1); mm.rotation.set(0, 0, 0);
         if (q) { const [mx, mz] = midOf(p, q.o, q.x, q.z); const sx = q.wx, sz = q.wz; mm.position.set(sx + (mx - sx) * 0.0, b + LAYER_H + OA.HOVER * up, sz); A.w.q = q;
-          const cells = cellsOf(p, q.o, q.x, q.z); cellsQuads(shade, cells, fits(S, i, q.o, q.x, q.z) ? Mt.y11shadow : Mt.y11bad, b + 0.005); shade.visible = true; }
+          const out = sideOf(S, q.mx, q.mz, h.in), edge = out === 'lip' || out === 'fall';
+          const cells = cellsOf(p, q.o, q.x, q.z); cellsQuads(shade, cells, fits(S, i, q.o, q.x, q.z) && !edge ? Mt.y11shadow : Mt.y11bad, b + 0.005); shade.visible = true;
+          // (build 134, the review: over the outer lip the shadow turns red and a word warns, once a hold, before the finger lets go)
+          if (edge && !A.w.warned) { A.w.warned = true; try { X.line(out === 'fall' ? 'זהירות! כאן החלוק נופל מהמזבח ונשבר' : 'זהירות: עוד קצת החוצה והחלוק נופל', 1600); } catch (e) { /* */ } } }
         if (lv === 1) { cellsQuads(ghostG, ghost(S, i), Mt.y11ghost, b + 0.003); ghostG.visible = true; } else ghostG.visible = false;
         return;
       }
@@ -315,13 +329,16 @@ function makeOrez(m, X, mode) {
         if (mm.geometry !== geoOf(p, p.at.o)) mm.geometry = geoOf(p, p.at.o);
         const [mx, mz] = midOf(p, p.at.o, p.at.x, p.at.z); const sk = A.seat.find((s) => s.i === i);
         const sink = sk ? Math.max(0, 1 - sk.t / OK.SEAT) : 0;
-        mm.scale.setScalar(1); mm.position.set(mx, b + (p.loose ? 0.04 : 0) + 0.08 * sink, mz); mm.rotation.set(p.loose ? 0.2 : 0, 0, p.loose ? -0.14 : 0);
+        const wob = p.loose ? Math.sin(A.t * 7 + i) * 0.05 : 0, jump = p.loose && A.looseJump > 0 ? Math.abs(Math.sin(A.looseJump * 18)) * 0.08 : 0;
+        mm.scale.setScalar(1); mm.position.set(mx, b + (p.loose ? 0.04 : 0) + 0.08 * sink + jump, mz); mm.rotation.set(p.loose ? 0.2 + wob : 0, 0, p.loose ? -0.14 - wob : 0);
       } else {
         const tr = TRAY[i] || { u: -1, v: 0, s: 0.5 }; if (mm.geometry !== geoOf(p, 0)) mm.geometry = geoOf(p, 0);
         const w = V3c(tr.u, tr.v, Y + 0.01); mm.scale.setScalar(tr.s); mm.position.copy(w); mm.rotation.set(0, 0, 0);
       }
     });
     if (!A.w) { shade.visible = false; ghostG.visible = false; }
+    { const L = S.P.filter((p) => p.at && p.loose), k = L.map((p) => p.i + ':' + p.at.o + ':' + p.at.x + ':' + p.at.z).join('|'); if (k !== looseK) { looseK = k; cellsQuads(looseG, L.flatMap((p) => cellsOf(p, p.at.o, p.at.x, p.at.z)), Mt.y11bad, b + 0.006); } looseG.visible = !!L.length && !A.chain; }
+    if (A.looseJump > 0) A.looseJump = Math.max(0, A.looseJump - dt);
     for (const s of A.seat) s.t += dt; A.seat = A.seat.filter((s) => s.t < OK.SEAT);
     // the pot glows once the layer may close; the pitch dulls in the level-3 window
     const cc = canClose(S) && !A.busy; pot.userData.glow.visible = cc; if (cc) pot.userData.glow.scale.setScalar(1 + 0.08 * Math.sin(A.t * 6));
@@ -341,6 +358,8 @@ function makeOrez(m, X, mode) {
     begin() {
       try { X.kohen(false); } catch (e) { /* (the kohen kneels by the corner, out of the picture: his hands) */ }
       castMen(); rebuild(); FG.attach(); home(0.01); X.line('', 0);
+      // (build 134, the review: one short line at the start, gone at the first touch)
+      if (!resumed && !(HC.salt === 1 && Mo.flawed(c))) { A.first = true; try { X.line(fix ? 'תיקון: אורזים את הקרן מחדש, ואחר כך מחלצים את הגוף' : S.layer >= 2 ? 'כל חלוק על שני חלוקים שמתחתיו: שכבה קשורה' : 'גררו חלוקים מהסל ומלאו את המסגרת. אצבע שנייה: טאפ מסובב, גרירה הופכת', 5000); } catch (e) { /* */ } }
       try { addEventListener('wheel', onWheel, { passive: false }); addEventListener('keydown', onKey); } catch (e) { /* */ }
       X.wait(0.8).then(() => { if (!A.ended) hint(); });
       if (HC.salt === 1 && Mo.flawed(c)) { const hit = V3(X, h.core[0] - h.in[0] * 0.5, Y + 0.4, h.core[1] - h.in[1] * 0.5); X.wait(0.6).then(() => { if (!A.ended && !A.salt) saltNow(hit); }); }

@@ -40,10 +40,13 @@ test('orez: a loose pebble blocks the close; a second fall is counted; the inwar
   assert.ok(r.k === 'loose' || r.k === 'seat');
   if (r.k === 'loose') assert.equal(O.canClose(S), false);
   O.lift(S, 1); assert.equal(O.drop(S, 0, 0, 0, -3, 6, [-1, 1]).k, 'walk');
+  O.lift(S, 1); assert.equal(O.drop(S, 0, 0, 0, 13, 6, [-1, 1]).k, 'lip'); assert.equal(S.fell, 0);   // (just over the outer lip: back, no cost)
   O.lift(S, 2); const f = O.drop(S, 0, 0, 0, 15, 6, [-1, 1]); assert.equal(f.k, 'fall'); assert.equal(S.fell, 1);
 });
 test('orez level 3: the pitch window — the second layer after 60 s leaves the ridge, and no clean bonus', () => {
-  const S = O.fresh('NW', 3); packLayer(S); O.close(S); assert.equal(S.tarT, 0);
+  const S = O.fresh('NW', 3); packLayer(S); O.close(S); assert.equal(S.tarT, null);
+  assert.equal(O.step(S, 61).length, 0);   // (no clock before the first pebble of layer 2)
+  const p0 = S.P[0]; O.lift(S, 0); assert.equal(O.drop(S, p0.sol.o, p0.sol.x, p0.sol.z, 6, 6, [-1, -1]).k, 'seat'); assert.equal(S.tarT, 0);
   const ev = O.step(S, 61); assert.ok(ev.some((e) => e.k === 'thick'));
   packLayer(S); const b = O.close(S); assert.equal(b.ridge, true); assert.equal(b.clean, false);
 });

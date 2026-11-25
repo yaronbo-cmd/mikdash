@@ -12,6 +12,7 @@
  *          entries [{ id, kind, x, z, y?, cell, label, src }] (cell = nameOf(cellOf(x, z)); src: the source, or "המחשה"), and the
  *          stage's own tables the code reads its places from (stage 05: h120/layout.js, routes.js and model.js read BOOK.s05)
  */
+import { KIYOR, KIYOR_MECHANISM, GAZIT } from '../../places.js';   // ── h135 ── (stage 12's places are derived from the shared map) ── /h135 ──
 export const CELL = 25;
 export const EAST = 277;          // mount.js PLAT.X1: the east wall's face
 export const NORTH = -183.5;      // mount.js SQUARE.z0: the 500-amah square's north edge
@@ -112,6 +113,7 @@ function makeBook() {
   stages.s09 = s09();   // ── h132 ── (build 132: stage 09's section, derived from stage 08's) ── /h132 ──
   stages.s10 = s10(stages.s09);   // ── h133 ── (build 133: stage 10's section, derived from stage 09's block) ── /h133 ──
   stages.s11 = s11(stages.s10, stages.s07);   // ── h134 ── (build 134: stage 11's section, derived from stage 10's upper block) ── /h134 ──
+  stages.s12 = s12(stages.s10, stages.s07);   // ── h135 ── (build 135: stage 12's section, derived from places.js KIYOR, KIYOR_MECHANISM, GAZIT) ── /h135 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -1528,5 +1530,102 @@ function s11(S10, S7) {
   return { ...S11, entries: E };
 }
 // ── /h134 ──
+/* ───────── ── h135 ── stage 12 "הכיור" (build 135; spec docs/specs/shlav-12-he.md v7, "המקום בעולם: טבלת הכתובות (BOOK.s12)").
+ * Every place is DERIVED from places.js (KIYOR, KIYOR_MECHANISM, GAZIT) and the earlier sections (BOOK.s07's Golah well, BOOK.s10's
+ * floor and kevesh), never typed twice. The kiyor at (−63.5, 20), its bottom at y 19 and rim 4 amot above it (the old model's 22.95);
+ * the posts at z 16.2 and 23.8 on x −63.5, the beam at y 28.6, the wheel's radius 2.3 (KIYOR_MECHANISM; the old vertical wheel at z 25
+ * is Phase B's — the known mismatch, left for the notes round after stage 16).
+ * TWO CHANGES FROM THE SPEC'S TABLE, found in step 0's kinematic drawing (docs/specs/shlav-12-kinematika-he.md):
+ *   1. the pit is 6 × 8.6 (z 15.7 … 24.3), not 6 × 6: the two posts (z 16.2, 23.8) and the hangers that run in their grooves go down
+ *      with the cradle to y 9.5, so the posts stand inside the pit, on its floor, and the yoke (7.6 long, at y 15 at the stop) is in it;
+ *   2. the Golah's water: stage 07 plays its well 10 / 20 / 30 amot down (its levels' depths); for the flow by gravity the cistern is
+ *      full on this night — its level 15.9, over the mouths (15.7), over the channel's bed at the basin (15.2) and the sink line (15)
+ *      (המחשה; the anchor Yoma 31a: Ein Eitam 23 amot above the court's floor).
+ * Units: amot (x east, z south, y up). Nothing random (rule 56). */
+function s12(S10, S7) {
+  const F = S10.floor, K = KIYOR, KM = KIYOR_MECHANISM, G = GAZIT, W7 = S7.golah, r4 = (v) => Math.round(v * 10000) / 10000;
+  const H = 4, R1 = 2.3, R0 = 2.0;   // (the kiyor: 4 amot high, its rim's radius 2.3, its foot's 2.0 — המחשה)
+  const y0 = K.y, travel = 9, stop = y0 - travel;   // (the bottom from 19 down to 10: nine amot, one a turn)
+  const kiyor = { x: K.x, z: K.z, y0, h: H, rim: r4(y0 + H), r0: R0, r1: R1, stop, travel, dry: 3 };
+  const pit = { box: [K.x - 3, KM.posts[0] - 0.5, K.x + 3, KM.posts[1] + 0.5], floor: 8, sink: 15, rimH: 0.35, rimT: 0.45 };
+  // the twelve seats on the kiyor's east half: six upper (morning), six lower (evening), each pair on one bearing (deg from east, toward south)
+  const BEAR = [-62.5, -37.5, -12.5, 12.5, 37.5, 62.5];
+  const seats = [];
+  for (const [row, y] of [['up', 21.9], ['down', 20.2]]) BEAR.forEach((b, i) => { const a = (b * Math.PI) / 180, k = (y - y0) / H, r = R0 + (R1 - R0) * k + 0.08; seats.push({ id: `seat:${row}${i + 1}`, row, i, n: seats.length, bear: b, x: r4(K.x + Math.cos(a) * r), z: r4(K.z + Math.sin(a) * r), y }); });
+  const rings = { sun: 22.6, moon: 21.2 };   // (the morning's full level over the upper row, the evening's between the rows — המחשה)
+  // the six stone stations east of the kiyor (spec v6): their places; each faces the kiyor; its low step's height by level
+  const ST = [[-59.5, 15], [-58.5, 17], [-58, 19], [-58, 21], [-58.5, 23], [-59.5, 25]];
+  const HT = { 1: [0, 0.25, 0, 0.25, 0, 0.25], 2: [0, 0.25, 0, 0.25, 0, 0.25], 3: [0.1, 0.5, 0.15, 0.6, 0.3, 0.1] };
+  const stations = ST.map(([x, z], i) => ({ id: `station:${i + 1}`, i, x, z, yaw: r4(Math.atan2(K.x - x, K.z - z)), h: { 1: HT[1][i], 2: HT[2][i], 3: HT[3][i] } }));
+  const slab = { w: 1.5, d: 1.3, hands: { r: 0.24, rL1: 0.32, side: 0.27, fwd: 0.3 }, feet: { w: 0.26, l: 0.7, side: 0.27, fwd: -0.05 } };
+  const rack = { at: [K.x - 4, K.z], r: 0.95, y: F + 1.1 };   // (west of the kiyor, out of the pit's rim: twelve knobs on a half circle — המחשה)
+  const basket = [-55.5, 26];
+  // the mukhni (spec "המכונה", v2): the posts, the beam, the screw (16 long, 15 threaded), the nut-wheel caged in the beam, the yoke, the
+  // two hangers (5.5) to the cradle under the kiyor; the brake's lever east of the wheel, out of its rim; the stops
+  const M = {
+    x: KM.x, z: KM.z, posts: KM.posts.slice(), postW: 0.6, beam: { y0: r4(KM.axleY - 0.7), y1: KM.axleY },
+    nut: { y0: KM.axleY, y1: r4(KM.axleY + 1) }, wheel: { r: KM.wheel.r, y: r4(KM.axleY + 0.5), spokes: 8 },
+    screw: { L: 16, thread: 15, r: 0.32, low0: 24, top0: 40, low1: 15, top1: 31 }, hangers: { L: 5.5 }, cradle: { y0: 18.5, y1: 9.5 },
+    brake: { pivot: [r4(KM.x + KM.wheel.r + 0.35), r4(KM.z + 1.6)], handle: [r4(KM.x + KM.wheel.r + 1.6), r4(KM.z + 2.2)], y: r4(KM.axleY + 0.5) },
+    stand: [r4(KM.x + 4.2), r4(KM.z + 4.5)],
+  };
+  // work 3 (spec v7): the covered stone conduit from the Golah's east wall along z 57.5, the two mouths with their wooden sluices, the strip
+  // of earth before the paving, the basin of forty se'ah (1 × 1 × 3, hewn in the rock), the spill to the pit, the drain's chute
+  const golah = { well: W7.well.slice(), level: 15.9, conduit: { z: 57.5, x0: W7.room[2], x1: -60, w: 0.8 }, mouth1: [-69, 57.5], mouth2: [-60, 57.5], mouthY: 15.7 };
+  const field = { x0: -72, x1: -57, z0: 28, z1: 57, y: F, cell: 0.5, bed0: 15.7, bed1: 15.2, depth: 0.3 };
+  const basin = { at: [-60.5, 27.5], box: [-61, 27, -60, 28], depth: 3, line: F - 0.12 };
+  const spill = { from: [-60.5, 27], to: [-60.5, pit.box[3]] };
+  const drain = { at: [-58.5, 27.5], to: [-57.2, 27.5] };
+  // the strip's hard stones and the old trough, per level (rectangles [x0, z0, x1, z1]: amot; המחשה). Level 1 asks for two turns; levels
+  // 2–3 two streams that must meet before the basin; level 3 a hairpin round the last ridge
+  const STONES = {
+    1: [[-66, 44, -57, 46], [-72, 36, -63, 38], [-70.5, 51, -69.5, 52], [-59, 40, -58, 41.5]],
+    2: [[-64.5, 47, -57, 49], [-72, 40, -65.5, 42], [-60.5, 34, -57, 36], [-69, 32, -66, 33], [-71, 52, -70, 53.5], [-58.5, 52, -57.5, 53]],
+    3: [[-64.5, 47, -57, 49], [-72, 40, -65.5, 42], [-64, 33.5, -57, 35.5], [-72, 30.5, -64.5, 32], [-62.5, 41, -61.5, 43], [-71, 52, -70, 53.5], [-58.5, 52, -57.5, 53]],
+  };
+  const TROUGH = { 1: [-66.5, 30.5, -64.5, 31.5], 2: [-63.5, 30, -61.5, 31], 3: [-61.5, 38, -59.5, 39] };
+  const paversAt = [-74.5, 34];   // (the lifted slabs stacked west of the strip, out of the dig and out of the view)
+  const S12 = {
+    stage: 12, name: 'הכיור', floor: F, kiyor, pit, seats, rings, stations, slab, rack, basket, mukhni: M, golah, field, basin, spill, drain,
+    stones: STONES, trough: TROUGH, paversAt,
+    champion: [-59, 11], start: [-52, 40],
+    finale: { start: M.stand.slice(), jericho: [-20, 60, 20] },
+    cam: {
+      open: [[-38, 40, 52], [K.x + 1, F + 3, K.z + 6]],
+      dadim: [[-55.6, 25.8, 33.2], [-61.2, 19.4, 20]],
+      mukhni: [[-63.5, 39.6, 30.4], [-61.2, 26.4, 20.4]],
+      pip: [[-52.5, 19.5, 33], [K.x, 14, K.z]],
+      geshem: [[-42, 46, 42.5], [-64.5, F, 42.5]],
+      end: { c: [K.x, F, K.z + 8], R: 44, y: 46 },
+    },
+  };
+  const E = [];
+  const e3 = (id, kind, p, y, label, src, extra) => E.push(ent(id, kind, p[0], p[1], label, src, { y, extra }));
+  e3('kiyor', 'kiyor', [K.x, K.z], y0, `הכיור: תחתית y ${y0}, שפה y ${kiyor.rim}`, 'מדות ג, ו');
+  e3('kiyor:pit', 'pit', [K.x, K.z], pit.floor, `הבור שמתחת לכיור: x ${pit.box[0]} עד ${pit.box[2]}, z ${pit.box[1]} עד ${pit.box[3]}; רצפה y ${pit.floor}, קו השקיעה y ${pit.sink}; עצירת הבורג: תחתית הכיור ב-y ${stop}`, 'רמב"ם ביאת מקדש ה, יד (המידות המחשה)', { box: [...pit.box] });
+  for (const s of seats) e3(s.id, 'seat', [s.x, s.z], s.y, `מושב ${s.row === 'up' ? 'עליון' : 'תחתון'} ${s.i + 1}`, 'יומא ג, י; לז ע"א (הפריסה המחשה)');
+  e3('kiyor:rack', 'rack', rack.at, rack.y, 'מתלה הפקקים, שנים עשר כפתורים', ILL);
+  for (const s of stations) e3(s.id, 'station', [s.x, s.z], F, `עמדת קידוש באבן ${s.i + 1}`, 'רמב"ם ביאת מקדש ה, טז (העמדות המחשה)');
+  e3('kiyor:basket', 'basket', basket, F, 'סל הדדים', ILL);
+  e3('mukhni:postN', 'post', [M.x, M.posts[0]], pit.floor, 'עמוד צפוני, עומד על רצפת הבור', ILL);
+  e3('mukhni:postS', 'post', [M.x, M.posts[1]], pit.floor, 'עמוד דרומי, עומד על רצפת הבור', ILL);
+  e3('mukhni:beam', 'beam', [M.x, M.z], M.beam.y1, 'הקורה', ILL);
+  e3('mukhni:wheel', 'wheel', [M.x, M.z], M.wheel.y, `הגלגל האופקי (האום), רדיוס ${M.wheel.r}`, 'יומא לז ע"א (צורתו המחשה)');
+  e3('mukhni:screw', 'screw', [M.x, M.z], M.screw.low0, 'הבורג: אורך 16, תבריג 15; העול מ-y 24 עד y 15', ILL);
+  e3('mukhni:brake', 'brake', M.brake.handle, M.brake.y, 'ידית הבלם, מחוץ להיקף הגלגל', ILL);
+  e3('mukhni:stand', 'stand', M.stand, F, 'עמדת הכהן ליד הגלגל', ILL);
+  e3('golah:bor', 'well', golah.well, golah.level, `בור הגולה: מפלס המים בלילה הזה y ${golah.level}`, 'מדות ה, ד; רש"י זבחים כ ע"א (המפלס המחשה)');
+  e3('golah:conduit', 'conduit', [(golah.conduit.x0 + golah.conduit.x1) / 2, golah.conduit.z], F, `תעלת האבן המכוסה, z ${golah.conduit.z}, x ${golah.conduit.x0} עד ${golah.conduit.x1}`, ILL);
+  e3('golah:mouth1', 'mouth', golah.mouth1, golah.mouthY, 'המוצא הראשון, עם סכר עץ', ILL);
+  e3('golah:mouth2', 'mouth', golah.mouth2, golah.mouthY, 'המוצא השני (רמות ב-ג)', ILL);
+  e3('rain:field', 'field', [(field.x0 + field.x1) / 2, (field.z0 + field.z1) / 2], F, `רצועת העפר: x ${field.x0} עד ${field.x1}, z ${field.z0} עד ${field.z1}`, ILL, { box: [field.x0, field.z0, field.x1, field.z1] });
+  e3('rain:basin', 'basin', basin.at, F - basin.depth, 'אגן הארבעים: אמה על אמה ברום שלוש', 'רמב"ם מקואות ד, א (המקום המחשה)', { box: [...basin.box] });
+  e3('rain:spill', 'spill', spill.from, F, 'השפך מהאגן לבור הכיור', ILL);
+  e3('rain:drain', 'drain', drain.at, F, 'מגלש הניקוז', ILL);
+  e3('champion', 'seal', S12.champion, F, 'חותם האלוף של שלב 12', ILL);
+  e3('stand:start', 'stand', S12.start, F, 'הכהן בתחילת השלב, ממערב לרגל הכבש', ILL);
+  return { ...S12, entries: E };
+}
+// ── /h135 ──
 
 export const BOOK = makeBook();

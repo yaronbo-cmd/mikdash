@@ -56,9 +56,10 @@ export async function circuit(X, opts = {}) {
   const C = { x: P.foot[0], z: P.foot[1], y: F, t: 0, idle: 0, held: null, leg: -1, i: 0, at: false, touched: [], shake: null, glint: [], done: false };
   try { globalThis.__H134_CIRCUIT = C; } catch (e) { /* (the probes' eyes) */ }
   const Bt = createBeat(X), gang = createGang(X);
-  const k = gang.add(C.x, C.z, { role: 'hold', variant: 'kohen', item: null, fx: C.x, fz: C.z - 5 });   // (the first stills: 'carry' gave him a stone on a barrow) if (k && k.a) k.a.fixedY = F;
+  const k = gang.add(C.x, C.z, { role: 'hold', variant: 'kohen', item: null, fx: C.x, fz: C.z - 5 }); if (opts.keep) opts.keep.push(k); if (k && k.a) k.a.fixedY = F;
+  // (the first stills: 'carry' gave him a stone on a barrow; build 134, r13 stills: the finale's figures gate hid him — he and the crews are the film's own)
   // the crews below the altar, on the court's floor, watching
-  const crew = []; for (let i = 0; i < 6; i++) { const z = 40 - i * 5, side = i % 2 ? R.x0 - 1.4 : R.x1 + 1.4; const w = gang.add(side, z, { role: 'point', crew: i, fx: (R.x0 + R.x1) / 2, fz: z }); if (w && w.a) w.a.fixedY = F; crew.push(w); }
+  const crew = []; for (let i = 0; i < 6; i++) { const z = 40 - i * 5, side = i % 2 ? R.x0 - 1.4 : R.x1 + 1.4; const w = gang.add(side, z, { role: 'point', crew: i, fx: (R.x0 + R.x1) / 2, fz: z }); if (w && w.a) w.a.fixedY = F; crew.push(w); if (opts.keep) opts.keep.push(w); }
   X.line('ההקפה: החזיקו אצבע על המסך והכהן הולך. נגעו בכל קרן כשהיא מוארת, לפי הסדר', 4200);
   near(X, true);
   const hornAt = (c) => { const h = S11.horns[c]; return [(h.box[0] + h.box[2]) / 2, (h.box[1] + h.box[3]) / 2]; };
@@ -100,7 +101,7 @@ export async function circuit(X, opts = {}) {
       k.a.x = C.x; k.a.z = C.z; k.a.fixedY = C.y; k.a.yaw = Math.atan2(tx - C.x, tz - C.z); k.fx = tx; k.fz = tz; k.stride = (C.held || auto) && !C.at && !C.done ? 0.8 : 0; k.rate = 1.2;
     }
     // (build 134, the review: the horn in its turn is lit, softly pulsing, so the order shows in the world)
-    if (!C.done) { const c = CORNERS[C.i], hb = S11.horns[c].box; if (!C.turn || C.turn.c !== c) { if (C.turn) root.remove(C.turn.g); const g = box(X, Mt.y11glow, hb[0] - 0.2, Y1, hb[1] - 0.2, hb[2] + 0.2, Y1 + 0.03, hb[3] + 0.2, root); C.turn = { c, g }; } C.turn.g.position.y = Math.abs(Math.sin(C.t * 3)) * 0.04; }
+    if (!C.done) { const c = CORNERS[C.i], hb = S11.horns[c].box; if (!C.turn || C.turn.c !== c) { if (C.turn) root.remove(C.turn.g); const g = box(X, Mt.y11glow, hb[0] - 0.2, Y1, hb[1] - 0.2, hb[2] + 0.2, Y1 + 0.03, hb[3] + 0.2, root); C.turn = { c, g, y0: g.position.y }; } C.turn.g.position.y = C.turn.y0 + Math.abs(Math.sin(C.t * 3)) * 0.04; }
     else if (C.turn) { root.remove(C.turn.g); C.turn = null; }
     for (const q of C.glint) { q.t += dt; q.g.visible = q.t < 1.2 && Math.floor(q.t * 8) % 2 === 0; }
     if (C.shake) { C.shake.t += dt; const g = SH11.g && SH11.g.getObjectByName('h134-horn-' + C.shake.c); if (g) g.position.x = C.shake.t < 0.4 ? Math.sin(C.shake.t * 60) * 0.03 : 0; if (C.shake.t >= 0.4) C.shake = null; }
@@ -114,7 +115,9 @@ export async function circuit(X, opts = {}) {
       const U = S11.upper, dx0 = C.x - U[0], dx1 = U[2] - C.x, dz0 = C.z - U[1], dz1 = U[3] - C.z;
       const nx = dx1 < 3 ? 1 : dx0 < 3 ? -1 : 0, nz = dz1 < 3 ? 1 : dz0 < 3 ? -1 : 0, L = Math.hypot(nx, nz) || 1;
       const ox = (nx || (dz1 < dz0 ? 0 : 0)) / L, oz = (nz || (!nx ? 1 : 0)) / L;
-      soft([C.x + ox * 7, C.y + 5.2, C.z + oz * 7], [C.x - ox * 0.5, C.y + 1.1, C.z - oz * 0.5]);
+      // (r13 stills: the aim beyond the horn left it at the screen's foot — now between him and his horn, a little lower and nearer)
+      const [hx, hz] = C.at || C.leg >= 0 ? hornAt(CORNERS[Math.min(3, C.i)]) : [C.x, C.z], ax = (C.x + hx) / 2, az = (C.z + hz) / 2;
+      soft([ax + ox * 9.5, C.y + 5.2, az + oz * 9.5], [ax, C.y + 1.5, az]);   // (r14 stills: at 6 out his head was off the top: the big kohen whole, the horn by his feet)
     }
     return C.done;
   });
@@ -208,11 +211,11 @@ export function makePack11(env = {}) {
     /** the circuit (once, alone, no points), the pull-back (fireworks only when the altar is whole), the result card */
     async finale(X) {
       const M = X.M, st = M.st; finalWorld(X);
-      let figsBack = null; try { figsBack = filmFigs({}); } catch (e) { figsBack = null; }
+      const keepers = []; let figsBack = null; try { figsBack = filmFigs({ keep: () => keepers }); } catch (e) { figsBack = null; }
       try { X.kohen(false); } catch (e) { /* */ }
       let C = null;
       if (!st.finale) {
-        try { C = await circuit(X, { auto: !!globalThis.__H134_AUTO_CIRCUIT }); } catch (e) { console.warn('[h134] circuit', e && e.message); }
+        try { C = await circuit(X, { auto: !!globalThis.__H134_AUTO_CIRCUIT, keep: keepers }); } catch (e) { console.warn('[h134] circuit', e && e.message); }
         st.finale = 1; X.save(); SH11.key = ''; finalWorld(X);
       }
       const whole = !M.flawedHorns().length;

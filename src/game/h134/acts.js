@@ -13,6 +13,9 @@ import { CORNERS, RU } from './model.js';
 import { BOOK } from '../world/grid.js';
 
 const S11 = BOOK.s11;
+// (build 134, the review's opening lines are a sentence long: the director's line is one row (nowrap) and ran off a 640-wide phone — it
+// wraps now, two rows at most, centred; a short line looks as before)
+try { if (typeof document !== 'undefined' && !document.getElementById('h134-line-css')) { const st = document.createElement('style'); st.id = 'h134-line-css'; st.textContent = 'body .h109-line{white-space:normal;max-width:min(92vw,600px);width:max-content;text-align:center}'; document.head.appendChild(st); } } catch (e) { /* */ }
 function champion(dt, X) {
   const M = X.M; if (!M || !M.championDue) return;
   const C = SH11.champ;

@@ -38,7 +38,7 @@ export function migrate10(G, oldDone) {
   if (!oldDone) return false;
   G.h133 = fromOld(true); return true;
 }
-const frames = (fn) => new Promise((res) => { let last = performance.now(); const go = (ms) => { const dt = Math.min(0.1, (ms - last) / 1000); last = ms; if (fn(dt)) res(); else requestAnimationFrame(go); }; requestAnimationFrame(go); });
+const frames = (fn) => new Promise((res) => { let last = performance.now(); const cap = globalThis.__H133_AUTO_CLIMB ? 1 : 0.1; /* (a probe on a slow machine: the frame as long as it was) */ const go = (ms) => { const dt = Math.min(cap, (ms - last) / 1000); last = ms; if (fn(dt)) res(); else requestAnimationFrame(go); }; requestAnimationFrame(go); });
 
 /** the climb: salt, the kohen up with the wood, the wood on the fire's place → resolves when the wood lies there */
 export async function climb(X, opts = {}) {
@@ -141,6 +141,7 @@ export function makePack10(env = {}) {
     unitEnd: () => null,
     /** the opening (rule 3): from the south-east over the court, down to the altar and the kevesh's site in its scaffold; a tap skips it */
     before(m, X, M) {
+      try { globalThis.__H133_X = X; } catch (e) { /* (the probes: the hero to a station) */ }
       const st = M.st;
       if (m || st.intro) return null;
       return (async () => {

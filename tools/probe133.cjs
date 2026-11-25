@@ -15,7 +15,7 @@ const srv = http.createServer((q, s) => { s.writeHead(200, { 'content-type': 'te
   pg.on('pageerror', (e) => errs.push(e.message.slice(0, 300)));
   pg.on('console', (m) => { const t = m.text(); if (m.type() === 'error' || /\[h133\]/.test(t)) errs.push(m.type() + ' ' + t.slice(0, 300)); });
   await pg.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
-  await pg.addInitScript(([extra, extra2]) => { window.__FORCE_Q = extra2.q; window.__FORCE_TIME = 'noon'; try { localStorage.clear(); } catch (e) { /* */ } if (extra) { try { (0, eval)(extra); } catch (e) { console.error('init', e.message); } } }, [process.env.INIT || '', { q: process.env.Q || 'normal' }]);
+  await pg.addInitScript(([extra, extra2]) => { window.__FORCE_Q = extra2.q; window.__FORCE_TIME = 'noon'; try { if (!sessionStorage.getItem('p133')) { localStorage.clear(); sessionStorage.setItem('p133', '1'); } } catch (e) { /* */ } if (extra) { try { (0, eval)(extra); } catch (e) { console.error('init', e.message); } } }, [process.env.INIT || '', { q: process.env.Q || 'normal' }]);
   const T0 = Date.now();
   await pg.goto(url);
   await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 250, timeout: 200000 });

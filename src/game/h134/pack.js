@@ -56,7 +56,7 @@ export async function circuit(X, opts = {}) {
   const C = { x: P.foot[0], z: P.foot[1], y: F, t: 0, idle: 0, held: null, leg: -1, i: 0, at: false, touched: [], shake: null, glint: [], done: false };
   try { globalThis.__H134_CIRCUIT = C; } catch (e) { /* (the probes' eyes) */ }
   const Bt = createBeat(X), gang = createGang(X);
-  const k = gang.add(C.x, C.z, { role: 'carry', variant: 'kohen', fx: C.x, fz: C.z - 5 }); if (k && k.a) k.a.fixedY = F;
+  const k = gang.add(C.x, C.z, { role: 'hold', variant: 'kohen', item: null, fx: C.x, fz: C.z - 5 });   // (the first stills: 'carry' gave him a stone on a barrow) if (k && k.a) k.a.fixedY = F;
   // the crews below the altar, on the court's floor, watching
   const crew = []; for (let i = 0; i < 6; i++) { const z = 40 - i * 5, side = i % 2 ? R.x0 - 1.4 : R.x1 + 1.4; const w = gang.add(side, z, { role: 'point', crew: i, fx: (R.x0 + R.x1) / 2, fz: z }); if (w && w.a) w.a.fixedY = F; crew.push(w); }
   X.line('ההקפה: החזיקו את האגודל, הכהן עולה בכבש ופונה אל הקרן הדרומית מזרחית', 3200);
@@ -97,13 +97,20 @@ export async function circuit(X, opts = {}) {
     C.y = C.z >= R.foot ? F : C.z > R.head ? S10.rampY(C.z) : Y1;
     if (k && k.a) {
       const [tx, tz] = C.at ? hornAt(CORNERS[C.i]) : target();
-      k.a.x = C.x; k.a.z = C.z; k.a.fixedY = C.y; k.a.yaw = Math.atan2(tx - C.x, tz - C.z); k.stride = (C.held || auto) && !C.at && !C.done ? 0.8 : 0; k.rate = 1.2;
+      k.a.x = C.x; k.a.z = C.z; k.a.fixedY = C.y; k.a.yaw = Math.atan2(tx - C.x, tz - C.z); k.fx = tx; k.fz = tz; k.stride = (C.held || auto) && !C.at && !C.done ? 0.8 : 0; k.rate = 1.2;
     }
     for (const q of C.glint) { q.t += dt; q.g.visible = q.t < 1.2 && Math.floor(q.t * 8) % 2 === 0; }
     if (C.shake) { C.shake.t += dt; const g = SH11.g && SH11.g.getObjectByName('h134-horn-' + C.shake.c); if (g) g.position.x = C.shake.t < 0.4 ? Math.sin(C.shake.t * 60) * 0.03 : 0; if (C.shake.t >= 0.4) C.shake = null; }
-    // the camera: behind him and a little above, the next horn ahead
-    const [ax, az] = C.leg < 0 ? [C.x, C.z - 6] : hornAt(CORNERS[Math.min(3, C.i)]), bx = C.x - ax, bz = C.z - az, BL = Math.hypot(bx, bz) || 1;
-    X.shot([C.x + (bx / BL) * 6.5 + 1, C.y + 4.6, C.z + (bz / BL) * 6.5], [(C.x + ax) / 2, C.y + 1.2, (C.z + az) / 2], 0.01);
+    // the camera (the first stills: from behind him it sat in his back at the horns and saw only the kevesh's face): on the kevesh high
+    // behind him; on the top from outside the altar's nearest edge (at a corner its diagonal), a little above, he and his horn in the middle
+    const soft = (e, a) => { if (!C.eye) C.eye = e.slice(); const k = Math.min(1, dt * 2.5); for (let j = 0; j < 3; j++) C.eye[j] += (e[j] - C.eye[j]) * k; X.shot(C.eye.slice(), a, 0.01); };
+    if (C.leg < 0 && C.z > R.head) soft([C.x + 3, C.y + 8, C.z + 11], [C.x, C.y + 1.3, C.z - 1.5]);
+    else {
+      const U = S11.upper, dx0 = C.x - U[0], dx1 = U[2] - C.x, dz0 = C.z - U[1], dz1 = U[3] - C.z;
+      const nx = dx1 < 3 ? 1 : dx0 < 3 ? -1 : 0, nz = dz1 < 3 ? 1 : dz0 < 3 ? -1 : 0, L = Math.hypot(nx, nz) || 1;
+      const ox = (nx || (dz1 < dz0 ? 0 : 0)) / L, oz = (nz || (!nx ? 1 : 0)) / L;
+      soft([C.x + ox * 7, C.y + 5.2, C.z + oz * 7], [C.x - ox * 0.5, C.y + 1.1, C.z - oz * 0.5]);
+    }
     return C.done;
   });
   removeEventListener('pointerdown', dn, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true);

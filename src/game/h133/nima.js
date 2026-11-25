@@ -13,7 +13,7 @@
  */
 import { BOOK } from '../world/grid.js';
 import { WORDS } from './model.js';
-import { fresh, load, save, step, gapOf, closeOf, result, done, NM } from './nima-model.js';
+import { fresh, load, save, step, gapOf, closeOf, result, done, NM, WAYS } from './nima-model.js';
 import { mats10, own, wedge, smallRamps } from './world.js';
 import { award, extra, hurt, finish, thumb, V3, lens } from './kit10.js';
 import { box } from '../h131/world.js';
@@ -24,16 +24,19 @@ import { createGang, createBeat } from '../h109/kit.js';
 const S10 = BOOK.s10, R = S10.ramp, U = S10.upper, F = S10.floor, B9 = S10.block9;
 export const NA = Object.freeze({ FOV: 50, CLOSE_FOV: 7, SLOW: 3, LIFT: 0.3 });
 /** each level's way in the world: the stone's leading edge at s (0 … len), its height there, its size and the face's close-up view */
-const SPUR = BOOK.s09.spur && BOOK.s09.spur.S ? BOOK.s09.spur.S : [-53, 12.5, -52, 14.5];
+// (review fix 16, rule 65: the ways read the address book — BOOK.s10.nima's lanes, the faces they stop at; the lengths are the model's)
+const NB = S10.nima, LEN = { 1: WAYS[1].len, 2: WAYS[2].len, 3: WAYS[3].len };
+const FACE = { 1: U[3], 2: NB.b.to[1] - 0.5, 3: NB.c.to[1] - 0.5 };   // (the upper block's south face; the sovev's; the spur's)
+const X1 = NB.a.from[0], X2 = NB.b.from[0], X3 = NB.c.turn[0], X30 = NB.c.from[0], Z3 = NB.c.from[1], T3 = WAYS[3].turn;
 const WAY = {
-  1: { at: (s) => ({ x: -38, z: 15 - s, y: S10.rampY(15 - s) }), size: [16, 2], dir: [0, -1], face: U[1] === undefined ? 10.5 : 10.5,
-    cam: [[-20, 31, 24], [-38, 24, 12]], close: [[-31, 27.4, 12.9], [-31, 24.95, 10.5]], top: true },
-  2: { at: (s) => ({ x: -29, z: 20 - s, y: S10.ksY(20 - s) }), size: [2, 1.2], dir: [0, -1], face: 11.5,
-    cam: [[-14, 24, 26], [-30, 20, 14]], close: [[-29, 23.9, 13.9], [-29, 21.95, 11.5]] },
-  3: { at: (s) => (s < 6 ? { x: -46.5 - s, z: 14.5, y: F + 1 } : { x: -52.5, z: 14.5 - (s - 6), y: F + 1 }), size: [1, 1], dir: [-1, 0], face: 12.5,
-    cam: [[-36, 24, 26], [-50, 17, 14]], close: [[-52.5, 18.9, 14.9], [-52.5, 16.95, 12.5]] },
+  1: { at: (s) => ({ x: X1, z: FACE[1] + LEN[1] - s, y: S10.rampY(FACE[1] + LEN[1] - s) }), size: [16, 2], dir: [0, -1], face: FACE[1],
+    cam: [[X1 + 18, 31, 24], [X1, 24, 12]], close: [[X1 + 7, FACE[1] + 16.9, FACE[1] + 2.4], [X1 + 7, FACE[1] + 14.45, FACE[1]]], top: true },
+  2: { at: (s) => ({ x: X2, z: FACE[2] + LEN[2] - s, y: S10.ksY(FACE[2] + LEN[2] - s) }), size: [2, 1.2], dir: [0, -1], face: FACE[2],
+    cam: [[X2 + 15, 24, 26], [X2 - 1, 20, 14]], close: [[X2, FACE[2] + 12.4, FACE[2] + 2.4], [X2, FACE[2] + 10.45, FACE[2]]] },
+  3: { at: (s) => (s < T3 ? { x: X30 - s, z: Z3, y: F + 1 } : { x: X3, z: Z3 - (s - T3), y: F + 1 }), size: [1, 1], dir: [-1, 0], face: FACE[3],
+    cam: [[X3 + 16.5, 24, 26], [X3 + 2.5, 17, 14]], close: [[X3, FACE[3] + 6.4, FACE[3] + 2.4], [X3, FACE[3] + 4.45, FACE[3]]] },
 };
-void SPUR; void B9;
+void B9;
 
 export const NIMA_ACT = {
   icon: '🪶',
@@ -49,7 +52,7 @@ export const NIMA_ACT = {
     const b0 = Mo.workOf('nima');
     let S = b0 && b0.id === m.id ? load(b0) : null; if (S && (done(S) || S.lv !== lv)) S = null; const resumed = !!S;
     if (!S) S = fresh(lv);
-    let n0 = -1; const keep = () => { if (S.n === n0) return; n0 = S.n; Mo.keep('nima', save(S, m.id)); X.save(); };
+    let n0 = -1; const keep = () => { const b = save(S, m.id), k0 = JSON.stringify(b); if (k0 === n0) return; n0 = k0; Mo.keep('nima', b); X.save(); };   // (review fix 3/4: any change of the work is kept, not only a new count)
     const headBefore = (Mo.st.done || []).some((id) => id.startsWith('nima')) || !!Mo.st.crews;
     // ── the stone: level 1 the head stone (16 × 2, its top on the kevesh's slope); levels 2, 3 a block of the small kevesh
     if (lv === 1) own('head', true);
@@ -98,11 +101,13 @@ export const NIMA_ACT = {
       if (shadow.visible) { const wd = lv === 1 ? 16 : 1.6; shadow.scale.set(wd, lv === 1 ? 1.1 : 0.9, 1); shadow.position.set(a.x, a.y - 0.45, W.face + (d[1] < 0 ? 0.004 : 0)); }
       if (!S.seated) { V.scrape(Math.min(1, Math.abs(Mm.v) / 2)); V.creak(Mm.brake * Math.min(1, Math.abs(Mm.v) * 2)); }
       // the feather down the gap
-      const Fh = A.feather; if (Fh) { Fh.t += dt; const u = Math.min(1, Fh.t / 2.2); feather.visible = true; feather.position.set(a.x + Math.sin(Fh.t * 5) * 0.05, a.y + 0.6 - u * (Fh.through ? 1.6 : 0.6), W.face + Math.max(0.002, g / 2)); feather.rotation.z = Math.sin(Fh.t * 3) * 0.3; if (u >= 1) { A.feather = null; Fh.res(); } }
+      const Fh = A.feather; if (Fh) { Fh.t += dt; const u = Math.min(1, Fh.t / 2.2); feather.visible = true; feather.position.set(a.x + Math.sin(Fh.t * 5) * 0.05, a.y + 0.6 - u * (Fh.through ? 1.6 : 0.6), W.face + Math.max(0.002, g / 2)); feather.rotation.z = Math.sin(Fh.t * 3) * 0.3; if (u >= 1) { A.feather = null; feather.visible = false; Fh.res(); } }   // (review fix 16: the feather goes once it is down)
+      // (review fix 8: the crew's helper brings a far stone close — seen, and the gap with it)
+      const Sl = A.slide; if (Sl) { Sl.t += dt; const u = Math.min(1, Sl.t / 1.2); S.mo.s = Sl.from + (Sl.to - Sl.from) * (u * u * (3 - 2 * u)); V.scrape(0.4 * (1 - u)); if (u >= 1) { A.slide = null; Sl.res(); } }
       // the hair round the altar (a perfect gap)
       const Hh = A.hair; if (Hh) { Hh.t += dt; const u = Math.min(1, Hh.t / 2.4); Hh.g.children.forEach((c, k) => { c.visible = u * 4 > k; c.scale.x = Math.max(0.001, Math.min(1, u * 4 - k)); }); V.frame(); if (u >= 1 && !Hh.rung) { Hh.rung = 1; V.harp(392); } if (Hh.t > 3.4) { root.remove(Hh.g); A.hair = null; Hh.res(); } }
       // the crew builds the two small kevashim (level 1's first completion)
-      const Bd = A.build; if (Bd) { Bd.t += dt; const k = Math.min(1, Bd.t / 3); Bd.g.scale.y = Math.max(0.01, k); Bd.g.position.y = F * (1 - k); if (k >= 1 && !Bd.done) { Bd.done = 1; V.thud(); X.dust(-29, F + 1, 30, 10, 4); X.dust(-47, F + 1, 30, 10, 4); setTimeout(Bd.res, 400); } }
+      const Bd = A.build; if (Bd) { Bd.t += dt; const k = Math.min(1, Bd.t / 3); Bd.g.scale.y = Math.max(0.01, k); Bd.g.position.y = F * (1 - k); if (k >= 1 && !Bd.done) { Bd.done = 1; V.thud(); X.dust(-29, F + 1, 30, 10, 4); X.dust(-47, F + 1, 30, 10, 4); setTimeout(() => { if (!A.ended) Bd.res(); }, 400); } }
     }
     function onEvents(es) {
       for (const e of es) {
@@ -119,7 +124,12 @@ export const NIMA_ACT = {
       // the feather goes down the gap by itself; through when there is a gap
       await new Promise((res) => { A.feather = { t: 0, through: e.gap > 0, res }; V.quill && V.quill(); });
       if (A.ended) return;
-      if (e.close === 'crew') X.line('רחוק: העוזר מקרב את האבן', 1600);
+      if (e.close === 'crew') {
+        X.line('רחוק: העוזר מקרב את האבן', 1600);
+        await new Promise((res) => { A.slide = { t: 0, from: S.mo.s, to: S.way.len - NM.NEAR, res }; });
+        if (A.ended) return;
+        S.seated.gap = +gapOf(S).toFixed(4); S.seated.tef = +(gapOf(S) * 6).toFixed(3); keep();
+      }
       if (e.grade) award(X, faceAt(), e.grade, lv, 'מקרבים');
       if (e.bonus) extra(X, NM.PTS.turn, lv, 'turn', 'פנייה נקייה');
       if (e.grade === 'gold') {
@@ -160,7 +170,7 @@ export const NIMA_ACT = {
       begin() {
         try { X.kohen(false); } catch (e) { /* (the kohen with the feather stands by the stone, one of the figures) */ }
         castMen(); FG.attach(); home(0.01); X.line('', 0);
-        X.wait(0.9).then(hint);
+        X.wait(0.9).then(() => { if (!A.ended) hint(); });
         ev(resumed ? 'resume' : 'begin'); keep();
       },
       update(dt) {

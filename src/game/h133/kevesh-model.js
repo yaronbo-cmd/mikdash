@@ -136,12 +136,16 @@ export function result(S) {
   const perfect = S.dmg === 0 && S.list.every((p) => p.res && p.res.grade === 'gold' && p.res.lip === 'none');
   return { pts: S.pts, max: S.max, q, stars, perfect, flags: { dmg: S.dmg, lips: S.lips, cracked: S.cracked, slabs: S.list.map((p) => (p.res ? [p.i, p.res.grade || 'lip', p.res.lip, p.res.rabuva || ''] : [p.i, '-'])) } };
 }
-export function save(S, id) { return { id, lv: S.lv, k: S.k, pts: S.pts, dmg: S.dmg, n: S.n, free: S.free, lips: S.lips, cracked: S.cracked, res: S.list.map((p) => p.res) }; }
+/** (build 133 review, fix 4: the slab on its way is kept too — where it stands, its tail aside, the time on it; after a reload the crew
+ *  holds it there two seconds before the slope takes it) */
+export function save(S, id) { const Mo = S.mo; return { id, lv: S.lv, k: S.k, pts: S.pts, dmg: S.dmg, n: S.n, free: S.free, lips: S.lips, cracked: S.cracked, streak: S.streak, res: S.list.map((p) => p.res), mo: Mo && Mo.pulled ? { s: +Mo.s.toFixed(3), x: +Mo.x.toFixed(3), t: +S.tSlab.toFixed(1) } : null }; }
 export function load(b) {
   if (!b || !b.lv) return null;
   const S = fresh(b.lv);
   for (const k of ['pts', 'dmg', 'n', 'free', 'lips', 'cracked']) if (b[k] !== undefined) S[k] = b[k];
   (b.res || []).forEach((r, j) => { if (S.list[j]) S.list[j].res = r; });
   S.k = Math.min(S.list.length, b.k | 0); start(S);
+  if (b.streak !== undefined) S.streak = b.streak | 0;
+  if (S.mo && b.mo && Number.isFinite(b.mo.s)) { S.mo.s = Math.max(0, Math.min(S.mo.len + 0.5, b.mo.s)); S.mo.x = +b.mo.x || 0; S.mo.pulled = true; S.mo.rest = -2; S.tSlab = +b.mo.t || 0; }
   return S;
 }

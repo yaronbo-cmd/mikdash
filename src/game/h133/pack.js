@@ -7,7 +7,7 @@
  * in its place) with one button "שוב, לשיפור" that names the work with the fewest stars.
  */
 import { h131Card } from '../h131/card.js';
-import { PLAN, LINES, NEXT_STAGE, TITLES, KINDS, LOSS, createH133, fromOld } from './model.js';
+import { PLAN, LINES, NEXT_STAGE, TITLES, KINDS, LOSS, createH133, fromOld, MUL } from './model.js';
 import { ACTS } from './acts.js';
 import { SH10, initWorld, finalWorld, restWorld, mats10 } from './world.js';
 import { filmFigs } from '../h128/figgate.js';
@@ -98,6 +98,11 @@ async function fireworks(X) {
   const P = [[0, 30, 0], [-12, 36, -8], [12, 34, 6], [-6, 42, 10], [8, 40, -12], [0, 48, 0], [-16, 44, 4], [16, 46, -4], [0, 38, 14]];
   for (let i = 0; i < P.length; i++) { const p = P[i]; try { X.sparks(MID[0] + p[0], p[1], MID[1] + p[2], 46); X.dust(MID[0] + p[0], p[1], MID[1] + p[2], 4, 8); if (X.play) X.play('fanfare', { level: 3 }); } catch (e) { /* */ } await beat(X, 330); }
 }
+/** (review fix 11: where the points came from — the works' own, the level's multiplier, the best streak — each on its own line) */
+function pointsRows(st) {
+  let base = 0, lvb = 0; for (const [id, r] of Object.entries(st.res || {})) { const lv = +String(id).slice(-1) || 1, p = (r && r.pts) | 0; base += p; lvb += p * ((MUL[lv] || 1) - 1); }
+  return `<ul class="pts"><li>נקודות העבודות: ${base}</li>${lvb ? `<li>בונוס הרמה: ${lvb}</li>` : ''}<li>הרצף הטוב ביותר: ${st.best | 0}</li></ul>`;
+}
 /** the result card: what stands in the world, every flaw in its place; one button "שוב, לשיפור" (the work with the fewest stars) */
 function resultCard(M) {
   return new Promise((res) => {
@@ -108,7 +113,7 @@ function resultCard(M) {
     const low = KINDS.slice().sort((a, b) => ((best[a] ? best[a].stars : 0) - (best[b] ? best[b].stars : 0)))[0];
     const el = document.createElement('div'); el.className = 'h109-ui h133-card';
     el.innerHTML = `<style>.h133-card{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(14,10,4,.42);font-family:Heebo,system-ui;direction:rtl}.h133-card>div{background:#FBF6EA;color:#3A2A14;border-radius:16px;padding:16px 22px;width:min(92vw,520px);box-shadow:0 8px 30px rgba(0,0,0,.35)}.h133-card h3{margin:0 0 6px;font-size:22px}.h133-card ul{margin:4px 0 10px;padding:0 18px;font-size:16px;line-height:1.45}.h133-card i{color:#C08A1A;font-style:normal;letter-spacing:1px}.h133-card button{font:800 18px Heebo,system-ui;border:0;border-radius:12px;padding:10px 18px;margin-inline-end:8px;background:#C08A1A;color:#fff}.h133-card button.b{background:#E8DCC2;color:#3A2A14}</style>`
-      + `<div><h3>גוף המזבח והכבש</h3><ul>${KINDS.map(row).join('')}</ul><b>מה נשאר בעולם</b><ul>${fls}</ul><button class="a">שוב, לשיפור: ${TITLES[low]}</button><button class="b">להמשיך</button></div>`;
+      + `<div><h3>גוף המזבח והכבש</h3><ul>${KINDS.map(row).join('')}</ul>${pointsRows(st)}<b>מה נשאר בעולם</b><ul>${fls}</ul><button class="a">שוב, לשיפור: ${TITLES[low]}</button><button class="b">להמשיך</button></div>`;
     document.body.appendChild(el);
     const close = (v) => { try { el.remove(); } catch (e) { /* */ } res(v); };
     el.querySelector('.a').addEventListener('click', (e) => { e.stopPropagation(); close(low); });
@@ -127,7 +132,7 @@ export function makePack10(env = {}) {
     count: (M) => M.count(),
     freeFilms: true,
     workLinks: true,
-    workSeed(M, id) { M.clearFlaws(id); },
+    workSeed() { /* (review fix 5: a work played again keeps every flaw in the world; only the kevesh's good seat mends a lip) */ },
     quiet: true,
     byPlan: true,
     endTitle: 'גוף המזבח והכבש נבנו!',
@@ -169,11 +174,12 @@ export function makePack10(env = {}) {
         try { C = await climb(X, { auto: !!globalThis.__H133_AUTO_CLIMB }); } catch (e) { console.warn('[h133] climb', e && e.message); }
         st.finale = 1; X.save(); SH10.key = ''; finalWorld(X);
       }
-      try { X.shot([MID[0] + 48, 62, MID[1] + 58], [MID[0], 20, MID[1] + 10], 2.0); await beat(X, 1600); await fireworks(X); } catch (e) { /* */ }
+      try { X.shot([MID[0] + 40, 52, MID[1] + 50], [MID[0], Y1 + 6, MID[1] + 4], 2.0)   /* (review fix 12: the kohen, the wood and the altar in the middle under the fireworks) */; await beat(X, 1600); await fireworks(X); } catch (e) { /* */ }
       if (C) { try { C.gang.clear(); } catch (e) { /* */ } try { X.props.remove(C.root); } catch (e) { /* */ } }
       near(X, false);
       const low = await resultCard(M);
-      if (low) { try { X.line(`שוב, לשיפור: ${TITLES[low]}. התחנה מחכה ברמה הבאה`, 4000); } catch (e) { /* */ } }
+      // (review fix 1: the button leads to the work — after the stage's card the visits open and the kohen walks to its station)
+      if (low) { P.again = low; try { X.line(`שוב, לשיפור: ${TITLES[low]}. הולכים אל התחנה`, 4000); } catch (e) { /* */ } }
       h131Card(true);
       if (figsBack) SH10.figsBack = figsBack;
     },

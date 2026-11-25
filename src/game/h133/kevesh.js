@@ -41,7 +41,7 @@ export const KEVESH_ACT = {
     const b0 = Mo.workOf('kevesh');
     let S = b0 && b0.id === m.id ? load(b0) : null; if (S && (done(S) || S.lv !== lv)) S = null; const resumed = !!S;
     if (!S) S = fresh(lv);
-    let n0 = -1; const keep = () => { if (S.n === n0) return; n0 = S.n; Mo.keep('kevesh', save(S, m.id)); X.save(); };
+    let n0 = -1; const keep = () => { const b = save(S, m.id), k0 = JSON.stringify(b); if (k0 === n0) return; n0 = k0; Mo.keep('kevesh', b); X.save(); };   // (review fix 3/4: any change of the work is kept, not only a new count)
     const builtBefore = (Mo.st.done || []).some((id) => id.startsWith('kevesh')) || !!Mo.st.crews;
     const mine = SLABS_OF[lv];
     // ── the things: the body (and its scaffold, the first time), the slabs that stand, the one on its rollers
@@ -98,7 +98,8 @@ export const KEVESH_ACT = {
     const home = (d = 0) => { lens(X, KA.FOV); X.shot(S10.cam.w3[0].slice(), S10.cam.w3[1].slice(), d); };
     const slabAt = () => { const Mm = S.mo; const z = Mm ? zOf(Mm.s) : 40; return { x: (R.x0 + R.x1) / 2 + (Mm ? Mm.x : 0), y: yOn(z + 2.5) + 0.3, z: z + 2.5 }; };
     // the thumb: forward is up the kevesh on the screen (from the slab toward the altar)
-    const TH = thumb({ side: lv >= 2, dir() { const a = slabAt(), p = X.scr(a.x, a.y, a.z), q = X.scr(a.x, yOn(a.z - 4) + 0.3, a.z - 4); const dx = q.x - p.x, dy = q.y - p.y, L = Math.hypot(dx, dy) || 1; return { x: dx / L, y: dy / L }; } });
+    const TH = thumb({ side: true,   // (review fix 14: slab 2 sways at level 1 too, and the spec straightens it with a small side drag)
+      dir() { const a = slabAt(), p = X.scr(a.x, a.y, a.z), q = X.scr(a.x, yOn(a.z - 4) + 0.3, a.z - 4); const dx = q.x - p.x, dy = q.y - p.y, L = Math.hypot(dx, dy) || 1; return { x: dx / L, y: dy / L }; } });
     const FG = fingers(X, {
       down(f) { if (A.finished || A.busy || f.x > innerWidth * 0.6) return; TH.down(f); X.hand(null); },
       move(f) { TH.move(f); },
@@ -171,6 +172,7 @@ export const KEVESH_ACT = {
       if (e.lip === 'tiny') X.line('שפה זעירה: הצוות משייף אותה במפה', 1800);
       if (e.far) X.line('רחוק מהקו: הצוות דוחף, והרווח מתמלא בסיד', 1800);
       if (e.lip === 'lip') hurt(X, Mo, 'kevesh.lip', at, { slab: e.slab, lv });
+      else if (Mo.mendLip && Mo.mendLip(e.slab)) X.line('השפה הישנה תוקנה: הלוח הושב חלק', 1800);
       if (e.rabuva === 'open') extra(X, KM.PTS.rabuva, lv, 'rabuva', 'הרבובה פתוחה');
       if (e.rabuva === 'covered') { hurt(X, Mo, 'kevesh.rabuva', V3(X, S10.rabuva.x, S10.rabuva.y1, 30), { slab: e.slab, lv }); }
       if (e.lime) extra(X, KM.PTS.lime, lv, 'lime', 'מצע הסיד');
@@ -203,7 +205,7 @@ export const KEVESH_ACT = {
         try { X.kohen(false); } catch (e) { /* (his figure leads on the kevesh as one of the crew: the hero stays at the stand) */ }
         const P = slabNow(S); if (P) { stopAt(P.i); castMen(P.i); }
         FG.attach(); home(0.01); X.line('', 0);
-        X.wait(0.9).then(hint);
+        X.wait(0.9).then(() => { if (!A.ended) hint(); });
         ev(resumed ? 'resume' : 'begin'); keep();
       },
       update(dt) {

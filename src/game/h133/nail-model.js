@@ -126,11 +126,21 @@ export function result(S) {
   const perfect = S.dmg === 0 && S.wrong === 0 && S.missed === 0 && S.exact === S.stones.filter((s) => s.bad).length;
   return { pts: S.pts, max: S.max, q, stars, perfect, flags: { dmg: S.dmg, wrong: S.wrong, missed: S.missed, exact: S.exact, basket: S.basket, heap: S.heap } };
 }
-export function save(S, id) { return { id, lv: S.lv, i: S.i, pts: S.pts, dmg: S.dmg, wrong: S.wrong, missed: S.missed, exact: S.exact, n: S.n, free: S.free, heap: S.heap, basket: S.basket, sorted: S.stones.map((s) => s.sorted) }; }
+export function save(S, id) { return { id, lv: S.lv, i: S.i, pts: S.pts, dmg: S.dmg, wrong: S.wrong, missed: S.missed, exact: S.exact, n: S.n, free: S.free, heap: S.heap, basket: S.basket, sorted: S.stones.map((s) => s.sorted), now: nowOf(cur(S)) }; }
+/** (build 133 review, fix 4: the stone in hand is kept — its edge, what was checked and marked, the moss wiped, the coverage) */
+function nowOf(s) { return s && !s.sorted ? { e: s.e, ck: s.ck.slice(), marked: s.marked.slice(), cov: s.cov.map((c) => c.map((v) => +(+v).toFixed(2))), wipes: s.moss.map((m) => m.wipes) } : null; }
 export function load(b) {
   if (!b || !b.lv) return null;
   const S = fresh(b.lv);
   for (const k of ['i', 'pts', 'dmg', 'wrong', 'missed', 'exact', 'n', 'free', 'heap', 'basket']) if (b[k] !== undefined) S[k] = b[k];
   (b.sorted || []).forEach((v, j) => { if (S.stones[j]) S.stones[j].sorted = v; });
+  const s = cur(S), w = b.now;
+  if (s && w && !s.sorted) {
+    if (Number.isInteger(w.e) && w.e < s.edges) s.e = w.e;
+    (w.ck || []).forEach((v, j) => { if (j < s.edges) s.ck[j] = !!v; });
+    (w.marked || []).forEach((v, j) => { if (j < s.edges) s.marked[j] = v == null ? null : +v; });
+    (w.cov || []).forEach((c, j) => { if (s.cov[j] && Array.isArray(c)) c.forEach((v, q) => { if (q < s.cov[j].length) s.cov[j][q] = +v || 0; }); });
+    (w.wipes || []).forEach((v, j) => { if (s.moss[j]) s.moss[j].wipes = v | 0; });
+  }
   return S;
 }

@@ -23,7 +23,7 @@ import { fingers } from '../h113/acts.js';
 import { createGang, createBeat } from '../h109/kit.js';
 
 const S10 = BOOK.s10, S8 = BOOK.s08;
-export const NA1 = Object.freeze({ FOV: 30, W: 1.4, H: 0.8, D: 0.9, NEAR: 46, STILL: 0.22, STILLPX: 5, SORT: 50, FLY: 0.8 });
+export const NA1 = Object.freeze({ FOV: 22, W: 1.4, H: 0.8, D: 0.9, NEAR: 46, STILL: 0.22, STILLPX: 5, SORT: 50, FLY: 0.8 });
 
 export const NAIL_ACT = {
   icon: '💅',
@@ -40,7 +40,7 @@ export const NAIL_ACT = {
     const b0 = Mo.workOf('nail');
     let S = b0 && b0.id === m.id ? load(b0) : null; if (S && (done(S) || S.lv !== lv)) S = null; const resumed = !!S;
     if (!S) S = fresh(lv);
-    let n0 = -1; const keep = () => { if (S.n === n0) return; n0 = S.n; Mo.keep('nail', save(S, m.id)); X.save(); };
+    let n0 = -1; const keep = () => { const b = save(S, m.id), k0 = JSON.stringify(b); if (k0 === n0) return; n0 = k0; Mo.keep('nail', b); X.save(); };   // (review fix 3/4: any change of the work is kept, not only a new count)
     // ── the station on the pit's sheet: where he kneels, facing the pit; the stone before him, the basket left, the heap right
     const st = S10.w1[['a', 'b', 'c'][lv - 1]], hole = S8.pit.hole.at;
     let dx = hole[0] - st[0], dz = hole[1] - st[1]; const dl = Math.hypot(dx, dz) || 1; dx /= dl; dz /= dl;
@@ -76,7 +76,7 @@ export const NAIL_ACT = {
       while (marks.children.length) marks.remove(marks.children[0]);
       const E = edgeOf(S); if (!E) return;
       const y = NA1.H, z = NA1.D / 2;
-      if (E.bad != null) box(X, Mt.y10crack, Ex(E.bad) - 0.012, y - 0.06, z - 0.03, Ex(E.bad) + 0.012, y + 0.004, z + 0.004, marks).name = 'notch';
+      if (E.bad != null) box(X, Mt.y10crack, Ex(E.bad) - 0.025, y - 0.1, z - 0.07, Ex(E.bad) + 0.025, y + 0.006, z + 0.006, marks).name = 'notch';   /* (review fix 9: the notch read on a phone held sideways — wider, and into the top face seen from above) */
       for (const u of E.mud) box(X, Mt.y10mud, Ex(u) - 0.06, y - 0.05, z - 0.06, Ex(u) + 0.06, y + 0.006, z + 0.006, marks).name = 'mud';
       for (const mo of E.moss) if (mo.wipes < NK.WIPES) { const k = 1 - mo.wipes / NK.WIPES; const mm = box(X, Mt.y10moss, Ex(mo.a), y - 0.09, z - 0.09, Ex(mo.b), y + 0.01, z + 0.01, marks); mm.scale.y *= 0.4 + 0.6 * k; mm.name = 'moss'; }
       if (E.marked != null) box(X, Mt.y10charcoal, Ex(E.marked) - 0.03, y + 0.004, z - 0.03, Ex(E.marked) + 0.03, y + 0.02, z + 0.004, marks).name = 'mark';
@@ -95,7 +95,7 @@ export const NAIL_ACT = {
     // (the camera's floor is 7 over the valley everywhere off the Mount — the director's camFloor: so the eye stands high over his shoulder and the
     //  lens is narrow, the stone a third of the screen as the spec's low shot would give it)
     const eye = () => { const k = P(st[0] - dx * 2.6 + rt[0] * 0.8, 0, st[1] - dz * 2.6 + rt[1] * 0.8); return [k[0], base[1] + 10.5, k[2]]; };
-    const aim = () => [base[0], base[1] + 0.55, base[2]];
+    const aim = () => [base[0] - dx * 0.5, base[1] - 0.2, base[2] - dz * 0.5];   // (the stone in the frame's middle, not its lower third)
     const home = (d = 0) => { lens(X, NA1.FOV); X.shot(eye(), aim(), d); };
     // the edge on the screen: its two ends (world), u of a screen point
     const wEdge = (u) => { const v = new T.Vector3(Ex(u), NA1.H, NA1.D / 2); stone.localToWorld(v); return v; };
@@ -160,7 +160,7 @@ export const NAIL_ACT = {
     }
     /** (decision build 133: an edge checked, the stone turns by itself to the one not checked yet — the right thumb on it may still turn it) */
     function autoTurn() { const s = cur(S); if (s && s.edges > 1 && s.ck.some((c) => !c)) A.autoRot = 0.7; }
-    function spin() { V.knock(0.6); A.spin = { t: 0, r0: stone.rotation.y }; X.hand(null); ev('rotate:' + cur(S).e); }
+    function spin() { V.knock(0.6); A.spin = { t: 0, r0: stone.rotation.y }; X.hand(null); ev('rotate:' + cur(S).e); const s = cur(S); if (s && s.edges > 1) X.line(`עכשיו בודקים: קצה ${s.e + 1} מתוך ${s.edges}`, 1400); }   // (review fix 10: which edge is in hand)
     function sortTo(to) {
       const s = cur(S), es = sort(S, to); ev('sort:' + to);
       for (const e of es) {
@@ -218,7 +218,7 @@ export const NAIL_ACT = {
         goPit(X);
         try { X.kohen(false); } catch (e) { /* (the kohen kneels at the stone as one of the figures, his hand the thumb) */ }
         castMen(); drawMarks(); drawRow(); FG.attach(); home(0.01); X.line('', 0);
-        X.wait(0.9).then(hintGlide);
+        X.wait(0.9).then(() => { if (!A.ended) hintGlide(); });
         ev(resumed ? 'resume' : 'begin'); keep();
       },
       update(dt) {

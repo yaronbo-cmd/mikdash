@@ -42,23 +42,29 @@ export function step(S, input = {}, dt = 1 / 60) {
   const ev = []; if (S.seated) return ev;
   S.t += dt;
   const s0 = S.mo.s;
-  for (const e of mstep(S.mo, input, dt)) if (e.k === 'seat') ev.push(...seat(S));
-  if (S.seated) return ev;
+  // (build 133 review, fix 2: the face is checked BEFORE the seating — a stone that reached the face in the same step as the thumb left
+  //  the brake touched it: a scratch, never a seat at gap 0 without one)
+  const seatDue = mstep(S.mo, input, dt).some((e) => e.k === 'seat');
   // the turn (level 3): passing it fast, the stone touches the corner — slowed, no bonus, no damage
   if (S.way.turn != null && S.turn == null && s0 < S.way.turn && S.mo.s >= S.way.turn) {
     const v = Math.abs(S.mo.v); S.turn = v <= NM.TURN_V ? 'clean' : 'bump';
     if (S.turn === 'bump') S.mo.v = Math.min(S.mo.v, 0.3);
     ev.push({ k: 'turn', clean: S.turn === 'clean', v: +v.toFixed(2) });
   }
-  // the face: never through it
+  // the face: never through it; reaching it is touching it
   if (S.mo.s >= S.way.len) {
-    S.mo.s = S.way.len; const hit = S.mo.v > 0.01; S.mo.v = 0;
+    const hit = S.mo.v > 1e-4 || s0 < S.way.len;
+    S.mo.s = S.way.len; S.mo.v = 0;
     if (hit && !S.touched) {
       if (S.free) ev.push({ k: 'touch', free: true });
       else { S.touched = true; S.dmg++; ev.push({ k: 'touch', loss: NM.PTS.loss }); }
     }
   }
+  // (fix 7: a stone that touched the face stays against it — it does not slide back)
+  if (S.touched && S.mo.s >= S.way.len - 1e-6) { S.mo.rest = 0; S.mo.back = false; if (S.mo.v < 0) S.mo.v = 0; }
   if (S.mo.s < 0) { S.mo.s = 0; S.mo.v = 0; }
+  if (seatDue) ev.push(...seat(S));
+  if (S.seated) return ev;
   if (S.mo.pulled && S.free && S.mo.s > 0.3 && !input.pull) S.free = false;   // (the free trial: the first push, until it is let go)
   return ev;
 }
@@ -81,5 +87,12 @@ export function result(S) {
   const stars = S.dmg > 0 ? (q >= 0.7 ? 2 : 1) : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1;
   return { pts, max: S.max, q, stars, perfect: S.dmg === 0 && R.grade === 'gold' && (S.way.turn == null || R.bonus > 0), flags: { gap: R.gap, tef: R.tef, touched: S.touched, turn: S.turn } };
 }
-export function save(S, id) { return { id, lv: S.lv, free: S.free, touched: S.touched, n: S.n }; }
-export function load(b) { if (!b || !b.lv) return null; const S = fresh(b.lv); S.free = !!b.free; S.touched = !!b.touched; S.n = b.n | 0; return S; }
+/** (build 133 review, fix 3: the whole work is kept — its damage, points, turn, seating and where the stone stands; a reload goes on
+ *  from the stone at rest where it was) */
+export function save(S, id) { return { id, lv: S.lv, free: S.free, touched: S.touched, n: S.n, dmg: S.dmg, pts: S.pts, turn: S.turn, seated: S.seated, s: +S.mo.s.toFixed(4), pulled: S.mo.pulled }; }
+export function load(b) {
+  if (!b || !b.lv) return null; const S = fresh(b.lv);
+  S.free = !!b.free; S.touched = !!b.touched; S.n = b.n | 0; S.dmg = b.dmg | 0; S.pts = +b.pts || 0; S.turn = b.turn || null; S.seated = b.seated || null;
+  if (Number.isFinite(b.s)) S.mo.s = Math.max(0, Math.min(S.way.len, b.s)); S.mo.pulled = !!b.pulled;
+  return S;
+}

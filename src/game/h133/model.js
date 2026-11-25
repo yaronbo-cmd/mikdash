@@ -144,6 +144,8 @@ export function createH133(save) {
     },
     flaws(f) { return st.flaws.filter((x) => !f || x.f === f); },
     clearFlaws(id) { st.flaws = st.flaws.filter((x) => x.work !== id); },
+    /** (spec "ביצוע חוזר", row 3; review fix 5: the only mend — a slab of the kevesh seated again without a lip takes its old lip away) */
+    mendLip(slab) { const n = st.flaws.length; st.flaws = st.flaws.filter((x) => !(x.f === 'kevesh.lip' && (x.slab | 0) === (slab | 0))); return n - st.flaws.length; },
     workOf(kind) { return (st[kind] && st[kind].work) || null; },
     keep(kind, blob) { if (st[kind]) st[kind].work = blob == null ? null : blob; },
     resultOf(id) { return st.res[id] || null; },

@@ -3662,7 +3662,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     try { const d = h33Make(); const ok = !!(d && d.rest && d.rest()); if (ok) setTimeout(() => h33Visits(), 400); return ok; } catch (e) { console.warn('[h133] rest', e && e.message); return false; }
   }
   function h33Visits() {
-    try { if (!H109_ON || !S.isDone(G, 'guf')) return false; if (H9 && H9.site !== 'guf') return false; const d = h33Make(); return !!(d && d.pack && d.pack.visits && d.visits && d.visits()); } catch (e) { console.warn('[h133] visits', e && e.message); return false; }
+    try { if (!H109_ON || !S.isDone(G, 'guf')) return false; if (H9 && H9.site !== 'guf') return false; const d = h33Make(); const ok = !!(d && d.pack && d.pack.visits && d.visits && d.visits()); const k = ok && d.pack.again; if (k) { d.pack.again = null; setTimeout(() => { try { const s = d.state && d.state(); const id = ((s && s.open) || []).find((x) => x.replace(/\d+$/, '') === k); if (id && d._goId) d._goId(id); } catch (e) { /* */ } }, 500); } return ok; } catch (e) { console.warn('[h133] visits', e && e.message); return false; }
   }
   /** a stage-10 page: stages 01–09 stand done (quietly; the yesod and the sovev as the crews'), the director of the altar's body opens on it */
   function h33Only() {

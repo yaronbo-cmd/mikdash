@@ -42,7 +42,7 @@ export const MALBEN_ACT = {
     const b0 = Mo.workOf('malben');
     let S = b0 && b0.id === m.id ? load(b0) : null; if (S && (S.landed || S.lv !== lv)) S = null; const resumed = !!S;
     if (!S) S = fresh(lv);
-    let n0 = -1; const keep = () => { if (S.n === n0) return; n0 = S.n; Mo.keep('malben', save(S, m.id)); X.save(); };
+    let n0 = -1; const keep = () => { const b = save(S, m.id), k0 = JSON.stringify(b); if (k0 === n0) return; n0 = k0; Mo.keep('malben', b); X.save(); };   // (review fix 3/4: any change of the work is kept, not only a new count)
     const upperBefore = (Mo.st.done || []).some((id) => id.startsWith('malben')) || !!Mo.st.crews;
     if (!upperBefore) own('upper', true);
     // ── the marking lines: a thin rope and charcoal dots one amah in from each of the sovev's edges
@@ -86,7 +86,7 @@ export const MALBEN_ACT = {
         if (A.finished || A.busy || S.landed) return;
         const c = midScr(), dm = Math.hypot(f.x - c.x, f.y - c.y);
         let side = null, best = 1e9; for (const k of SIDES) { const p = sideScr(k), d = Math.hypot(f.x - p.x, f.y - p.y); if (d < best) { best = d; side = k; } }
-        A.f = { id: f.id, x0: f.x, y0: f.y, t0: A.t, mid: dm < MA.MIDR * (innerHeight / 420) && dm < best, side };
+        A.f = { id: f.id, x0: f.x, y0: f.y, t0: A.t, mid: dm < midR() && dm < best, side };
         X.hand(null); ev('down:' + (A.f.mid ? 'mid' : side));
       },
       move() {},
@@ -102,8 +102,10 @@ export const MALBEN_ACT = {
         keep();
       },
     });
-    const nearMid = (f) => { const c = midScr(); return Math.hypot(f.x - c.x, f.y - c.y) < MA.MIDR; };
-    function tug(k) { V.rope && V.rope(true); for (const w of crew[k] || []) if (w) { gang.setRole(w, 'pull'); setTimeout(() => { try { gang.setRole(w, 'hold'); } catch (e) { /* */ } }, 900); } }
+    // (review fix 13: one touch radius everywhere, in the screen's own pixels — the 420-px design scaled to this screen)
+    const midR = () => MA.MIDR / kpx();
+    const nearMid = (f) => { const c = midScr(); return Math.hypot(f.x - c.x, f.y - c.y) < midR(); };
+    function tug(k) { V.rope && V.rope(true); for (const w of crew[k] || []) if (w) { gang.setRole(w, 'pull'); setTimeout(() => { if (A.ended) return; try { gang.setRole(w, 'hold'); } catch (e) { /* */ } }, 900); /* (review fix 15: not after the act ended) */ } }
     // ── each frame
     function draw(dt) {
       const y = FY();
@@ -173,7 +175,7 @@ export const MALBEN_ACT = {
       begin() {
         try { X.kohen(false); } catch (e) { /* (the kohen is out: the player conducts the four crews) */ }
         castMen(); FG.attach(); home(0.01); X.line('', 0);
-        X.wait(0.9).then(hint);
+        X.wait(0.9).then(() => { if (!A.ended) hint(); });
         ev(resumed ? 'resume' : 'begin'); keep();
       },
       update(dt) {
@@ -187,10 +189,10 @@ export const MALBEN_ACT = {
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
       cancel() { A.f = null; keep(); },
-      wants(p) { if (!p) return true; if (p.x < innerWidth * 0.6) return true; const c = midScr(); if (Math.hypot(p.x - c.x, p.y - c.y) < MA.MIDR) return true; return SIDES.some((k) => { const q = sideScr(k); return Math.hypot(p.x - q.x, p.y - q.y) < MA.MIDR * 1.2; }); },   // (a crew's side on the right of the screen is still the left thumb's: the frame fills the middle)
+      wants(p) { if (!p) return true; if (p.x < innerWidth * 0.6) return true; const c = midScr(); if (Math.hypot(p.x - c.x, p.y - c.y) < midR()) return true; return SIDES.some((k) => { const q = sideScr(k); return Math.hypot(p.x - q.x, p.y - q.y) < midR() * 1.2; }); },   // (a crew's side on the right of the screen is still the left thumb's: the frame fills the middle)
       holds() { return !!A.f; },
       lensFov: MA.FOV,
-      end() { A.ended = true; FG.detach(); V.stop(); X.hand(null); lens(X, fov0); try { gang.clear(); } catch (e) { /* */ } X.props.remove(root); own('upper', false); },
+      end() { A.ended = true; FG.detach(); V.stop(); X.hand(null); lens(X, fov0); try { gang.clear(); } catch (e) { /* */ } X.props.remove(root); if (!upperBefore) own('upper', false); },
       at() { return V3(X, MID[0] + S.dx, FY(), MID[1] + S.dz); },
       dbg() {
         const r2 = (v) => +(+v).toFixed(3), mg = margins(S);

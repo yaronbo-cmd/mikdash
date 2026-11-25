@@ -90,7 +90,7 @@ const X0geo = () => (SH10.X && SH10.X.props && SH10.X.props.geo ? SH10.X.props.g
 function sync(X, M) {
   if (!SH10.g || !M) return;
   const st = M.st, own = SH10.own;
-  const key = [st.done.join(','), st.flaws.length, st.crews, st.finale, st.champion, st.cur || '', st.rejects | 0, Object.keys(own).join(','), (M.shown || '')].join('|');
+  const key = [st.done.join(','), st.flaws.map((x) => x.f + ':' + (x.slab | 0) + ':' + (x.corner || '') + ':' + (x.work || '')).join(';'), st.basket | 0, st.crews, st.finale, st.champion, st.cur || '', st.rejects | 0, Object.keys(own).join(','), (M.shown || '')].join('|');
   if (key === SH10.key) return; SH10.key = key;
   const D = SH10.drawn, Mt = mats10(X); clear(D);
   const stock = builtOf(M, 'nail'), upper = builtOf(M, 'malben'), ramp = builtOf(M, 'kevesh'), head = builtOf(M, 'nima');

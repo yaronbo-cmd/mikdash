@@ -38,7 +38,7 @@ export const SH = Object.freeze({
   CROWNS: { 1: ['helem'], 2: ['helem', 'tuviah'], 3: ['helem', 'tuviah', 'yedaiah', 'hen'] },
   STEADY: { helem: 0.1, tuviah: 0.1, yedaiah: 0.05, hen: 9 },
   HEN_T: 0.3, GLINT_R: S13.glint.r, GLINT_Z: S13.glint.z - CH.zc,
-  HIDE: [-4, 1],                   // tuviah: the other chain covers it while the view is this many degrees from it
+  HIDE: [-3, 0.5],                 // tuviah: the other chain covers it while the view is this many degrees from it (−4 … 1 before build 136's review: hidden too much)
 });
 export const crownOf = (k) => S13.crowns.find((c) => c.k === k);
 export function fresh(lv) {

@@ -30,7 +30,7 @@ const KS = BOOK.s13.kelonsa;
 const RAD = Math.PI / 180;
 export const KL = Object.freeze({
   H: KS.len / 2, W_FACE: -92, POCKET: KS.pocket.x0, ENTRY: -92.45, DEEP: -92.9, E_FACE: -81, SEAT_D: 0.3, MIN_BEAR: 0.05,
-  X0: -86.5, TILT0: KS.tilt0, TILT_MAX: 20, TH: { 1: 6, 2: 4, 3: 2.5 },
+  X0: -86.5, TILT0: KS.tilt0, TILT_MAX: 20, TH: { 1: 6, 2: 4.5, 3: 3 }, CLEAN: 0.6,   // (spec 6 / 4 / 2.5 and clean under half: build 136's review widened them, the line between a scrape and clean was razor-thin)
   K_SLIDE: 60, C_SLIDE: 14,   // the strap's pull on the trolley (heavy: it lags the finger)
   K_TILT: 28, C_TILT: 6.5,    // the ring's pull on the tilt (a little overshoot: its weight)
   FAST: 3, BACK: 0.35, RIGHT: 3,    // amot/s that swing it; how far a jammed end backs off; level 1's self-righting, deg/s
@@ -98,7 +98,7 @@ export function step(S, dt, inp = {}) {
   let E = ends(S);
   if (!S.inW && E.xw < KL.ENTRY) {
     if (Math.abs(S.phi) < S.th) {
-      S.inW = true; S.clean = Math.abs(S.phi) < S.th / 2; ev.push({ k: 'enter', clean: S.clean, tilt: +S.phi.toFixed(2) });
+      S.inW = true; S.clean = Math.abs(S.phi) < S.th * KL.CLEAN; ev.push({ k: 'enter', clean: S.clean, tilt: +S.phi.toFixed(2) });
       if (S.fast > 0) { S.cap = 20; ev.push({ k: 'knock' }); }
     } else {
       // the jam: the end on the pocket's rim, a scratch (the work's first is a free try), it backs off by itself

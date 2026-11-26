@@ -49,6 +49,19 @@ function make(m, X) {
     circle = document.createElement('div'); circle.className = 'h109-ui h136-circle'; circle.style.cssText = 'position:fixed;z-index:5;pointer-events:none;border-radius:50%;border:3px solid rgba(255,240,184,.85);left:50%;top:50%;transform:translate(-50%,-50%);display:none;box-shadow:0 0 10px rgba(255,220,140,.6)'; document.body.appendChild(circle);
     band = document.createElement('div'); band.className = 'h109-ui h136-band'; band.style.cssText = `position:fixed;z-index:5;pointer-events:none;left:50%;bottom:${Math.round(dp(18))}px;width:${Math.round(dp(64))}px;height:${Math.round(dp(64))}px;margin-left:${-Math.round(dp(32))}px;border-radius:50%;border:5px solid ${HANDS.R};display:none;box-shadow:0 0 10px ${HANDS.R}`; document.body.appendChild(band);
   } catch (e) { circle = null; band = null; }
+  // (build 136's review: the swing's direction as an arrow by the holding hand — or over the bracelet at the top — its length the swing;
+  // a drag that calmed flashes blue, one that pumped flashes orange, one that missed a short grey)
+  let arrow = null;
+  try { arrow = document.createElement('div'); arrow.className = 'h109-ui h136-swing'; arrow.style.cssText = 'position:fixed;z-index:5;pointer-events:none;height:0;border-top:4px solid rgba(255,240,200,.9);display:none;transform-origin:0 50%'; const head = document.createElement('div'); head.style.cssText = 'position:absolute;right:-2px;top:-9px;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:12px solid rgba(255,240,200,.9)'; arrow.appendChild(head); arrow.userData = head; document.body.appendChild(arrow); } catch (e) { arrow = null; }
+  const FLASH = { calm: '#8FD0FF', pump: '#FFA040', miss: '#9A9A9A' };
+  function showArrow(x, y, dir, amp) {
+    if (!arrow) return;
+    if (!dir || amp < 0.03 || A.busy) { arrow.style.display = 'none'; return; }
+    const len = Math.round(dp(18) + dp(60) * Math.min(1, amp / 0.4));
+    arrow.style.display = 'block'; arrow.style.width = len + 'px'; arrow.style.top = Math.round(y) + 'px';
+    arrow.style.left = Math.round(dir > 0 ? x + dp(30) : x - dp(30)) + 'px'; arrow.style.transform = dir > 0 ? '' : 'scaleX(-1)';
+    const c = A.flash && A.flash.t > 0 ? FLASH[A.flash.k] : 'rgba(255,240,200,.9)'; arrow.style.borderTopColor = c; arrow.userData.style.borderLeftColor = c;
+  }
   X.kohen(false);
   try { X.stages.hero.place({ x: CH.x + 1, z: CH.zc + 1.2, face: [CH.x - 5, CH.zc] }); } catch (e) { /* */ }
   // ── the camera
@@ -111,8 +124,8 @@ function make(m, X) {
     else if (e.k === 'free') { ev('free'); try { X.line('ניסוי חינם: התנודה הייתה גדולה. גרירה קטנה הצידה של היד שאוחזת מרגיעה אותה', 2600); } catch (er) { /* */ } }
     else if (e.k === 'bump') { V.knock(1.2); V.breath(); try { X.shake(0.08, 0.12); } catch (er) { /* */ } ev('bump'); }
     else if (e.k === 'crush') { ev('crush'); hurt(X, Mo, 'sharsheret.link', V3(X, CH.x, e.y, CH.zc), { lv, at: +(+e.y).toFixed(2) }); }
-    else if (e.k === 'calm' || e.k === 'pump') { ev(e.k); V.spark(); const k = S.air ? K.other(S.air) : 'L'; try { X.sparks(CH.x, S.h[k] + 0.9, zOf(k) + S.s, 4); } catch (er) { /* */ } }
-    else if (e.k === 'miss') ev('miss');
+    else if (e.k === 'calm' || e.k === 'pump') { ev(e.k); A.flash = { k: e.k, t: 0.5 }; if (e.k === 'calm') V.breath(); else V.spark(); const k = S.air ? K.other(S.air) : 'L'; try { X.sparks(CH.x, S.h[k] + 0.9, zOf(k) + S.s, e.k === 'pump' ? 8 : 4); } catch (er) { /* */ } }
+    else if (e.k === 'miss') { ev('miss'); A.flash = { k: 'miss', t: 0.25 }; }
     else if (e.k === 'top') { ev('top'); V.breath(); try { X.line(lv === 1 ? 'למעלה. גררו על החלל: הגוף מסתובב. מצאו את עטרת חלם בעיגול, ושקט' : 'למעלה. מצאו את העטרות. יד על הצמיד למטה מייצבת', 4200); } catch (er) { /* */ } }
     else if (e.k === 'glint') { ev('glint:' + e.n); V.shine(); const c = K.crownOf('hen'); try { X.sparks(c.x + 1, c.y, c.z, 8); } catch (er) { /* */ } }
     else if (e.k === 'crown') {
@@ -142,17 +155,27 @@ function make(m, X) {
     climber.visible = !S.top || A.busy === 2;
     if (S.tgt != null && S.air) { mark.visible = true; mark.position.set(CH.x, S.tgt, zOf(S.air) + S.s); mark.rotation.y = Math.PI / 2; } else mark.visible = false;
     if (!S.top) {
-      for (const k of ['R', 'L']) { const p = handScr(k), on = [...A.f.values()].some((g) => g.k === k && g.role && g.role !== 'dead'); rings[k].show(p.x, p.y, on ? 1 : 0, S.sparkT > 0 && S.air && k !== S.air); }
+      for (const k of ['R', 'L']) { const p = handScr(k), on = [...A.f.values()].some((g) => g.k === k && g.role && g.role !== 'dead'); rings[k].show(p.x, p.y, on ? 1 : 0, !!(A.flash && A.flash.t > 0 && A.flash.k !== 'miss' && k !== S.air), { halo: A.flash ? FLASH[A.flash.k] : null }); }
+      { const hk = S.air ? K.other(S.air) : K.low(S) === 'R' ? 'L' : 'R', p = handScr(hk), q = scr(CH.x, handsAt()[hk] + 0.9, zOf(hk) + S.s + 0.5 * Math.sign(S.v || 0)); showArrow(p.x, p.y, Math.sign(q.x - p.x) * (S.v ? 1 : 0), K.swingAmp(S)); }
       if (circle) circle.style.display = 'none'; if (band) band.style.display = 'none';
       // the camera: frozen under a thumb; with both hands holding and nothing down, it slides to the new height
       if (!A.f.size && !S.air && A.camK !== Math.min(S.h.R, S.h.L).toFixed(2)) climbView(SR.SLIDE);
     } else {
       rings.R.hide(); rings.L.hide();
       if (circle) { const r = (innerHeight / 2) * Math.tan(K.SH.CIRCLE * RAD) / Math.tan((SR.EYE_FOV / 2) * RAD); circle.style.display = 'block'; circle.style.width = circle.style.height = Math.round(r * 2) + 'px'; circle.style.borderColor = S.seeT > 0 ? 'rgba(255,214,90,1)' : 'rgba(255,240,184,.85)'; }
-      if (band) { band.style.display = A.busy ? 'none' : 'block'; band.style.boxShadow = S.sparkT > 0 ? '0 0 22px 8px #FFF0B8' : `0 0 10px ${HANDS.R}`; }
+      if (band) { band.style.display = A.busy ? 'none' : 'block'; band.style.boxShadow = A.flash && A.flash.t > 0 ? `0 0 22px 8px ${FLASH[A.flash.k]}` : `0 0 10px ${HANDS.R}`; }
+      // (looking west, south (+z) is the screen's left: the eyes' motion as an arrow over the bracelet)
+      showArrow(innerWidth / 2, innerHeight - dp(100), -Math.sign(S.v || 0) * Math.sign(Math.cos(S.yaw * RAD)), K.swingAmp(S));
+      // Hen's hint: while she is the one left, a faint glint off her crown now and then, and the circle flickers gold as the eyes near her zone
+      const nx = S.crowns.find((k) => !S.seen.includes(k));
+      if (nx === 'hen' && !A.busy) {
+        A.henT = (A.henT || 0) - dt; if (A.henT <= 0) { A.henT = 2.6; const c = K.crownOf('hen'); try { X.sparks(c.x + 1, c.y, c.z, 3); } catch (er) { /* */ } }
+        const near = Math.abs(S.s - K.SH.GLINT_Z) <= K.SH.GLINT_R * 2.5;
+        if (circle && near) circle.style.borderColor = Math.floor(A.t * 8) % 2 ? 'rgba(255,214,90,1)' : 'rgba(255,240,184,.85)';
+      }
       if (!A.busy) eyeView();
     }
-    void dt;
+    if (A.flash) A.flash.t -= dt;
   }
   return {
     close: true, kohenWorks: true,
@@ -185,7 +208,7 @@ function make(m, X) {
     lensFov: SR.FOV,
     end() {
       A.ended = true; FG.detach(); V.hush(); X.hand(null); lens(X, fov0);
-      rings.R.remove(); rings.L.remove(); try { if (circle) circle.remove(); if (band) band.remove(); } catch (e) { /* */ }
+      rings.R.remove(); rings.L.remove(); try { if (circle) circle.remove(); if (band) band.remove(); if (arrow) arrow.remove(); } catch (e) { /* */ }
       SH13.sway = 0; SH13.handsY = 40; SH13.key = '';
       X.kohen(true);
       X.props.remove(root);

@@ -103,7 +103,12 @@ function make(m, X) {
     const at = beamAt();
     if (e.k === 'hang') { ev('hang'); }
     else if (e.k === 'glow') { V.glow(); ev('glow'); }
-    else if (e.k === 'shove') { V.knock(2.4); ev('shove'); }
+    else if (e.k === 'shove') {
+      // the late release, explained by sight and sound: the end let go too early gets a knock, a burst at that end, a short line
+      V.knock(2.4); V.rim(); ev('shove');
+      try { const E = K.ends(S), R = MA.rest(S.b.i), en = E[e.end], y = (S.phase === 'hang' ? MA.beams[S.b.i].y + MA.hang : MA.beams[S.b.i].y) + MA.beams[S.b.i].h / 2; X.sparks(R.x + en.x, y, en.z, 16); X.shake(0.06, 0.15); } catch (er) { /* */ }
+      if (!A.shoveSaid || A.t - A.shoveSaid > 8) { A.shoveSaid = A.t; try { X.line('שחרור מאוחר: חבל אחד נשאר מתוח והקצה השני נדחף. עזבו את שניהם יחד', 2400); } catch (er) { /* */ } }
+    }
     else if (e.k === 'gust') { V.wind(); ev('gust'); }
     else if (e.k === 'knock') { if (S.phase !== 'arrive') V.knock(2); ev('knock'); }   // (the swing-in's touches are the machine's: no sound)
     else if (e.k === 'drop') { V.lower(); ev('drop'); }
@@ -154,7 +159,10 @@ function make(m, X) {
       const tk = Math.max(S.T[k] || 0, S.auto[k] || 0), taut = tk > K.ML.SLACK;
       const L = lines[hIdx]; L.material = S.glow ? Mt.y13ropeGlow : taut ? Mt.y13ropeT : Mt.y13rope;
       L.userData.set(a, b, taut ? 0.05 : 1.6, 0.075);
-      const p = handleAt(hIdx); rings[hIdx].show(p.x, p.y, (Th[k] != null ? Th[k] : 0), S.glow);
+      // (the ring tells the state without words — build 136's review: the quiet growing as a widening halo; once one thumb let go of its
+      // line, the OTHER ring swells and blinks white for what is left of the window; after a late release its end flashes)
+      const winLeft = S.win && S.win.k !== k ? Math.max(0, 1 - (S.t - S.win.t) / K.ML.WINDOW) : 0;
+      const p = handleAt(hIdx); rings[hIdx].show(p.x, p.y, (Th[k] != null ? Th[k] : 0), S.glow, { q: S.phase === 'hang' ? S.quiet / K.ML.QUIET_T : 0, win: winLeft });
     }
     // the light strip between the beam and the face, on its top: even when parallel and close
     const yS = y0 + be.h + 0.03, P = stripG.attributes.position.array, xb = (e) => R.x + e.x - 0.35;

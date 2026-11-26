@@ -18,6 +18,7 @@ import { award, extra, hurt, finish, V3, lens, voices13, ring, HANDS, dp } from 
 import { fingers } from '../h113/acts.js';
 
 const S13 = BOOK.s13, KS = S13.kelonsa, FR = S13.front, HW = S13.heichalWall, RAD = Math.PI / 180;
+export const SEC_COL = Object.freeze(['#78B4F0', '#F0C850', '#D08CF0']);   // each wall section's colour: its waiting pole's ring and its band on the front
 export const KT = Object.freeze({ FOV: 44, GRIP: 34, CHOOSE: [[-86.5, 74, 28], [-86.5, 60, -14]], PICK_R: 70 });   // (the choice: from over the hall's south end, inside it — z 38 was in the wing's wall)
 
 function make(m, X) {
@@ -45,6 +46,36 @@ function make(m, X) {
   const marks = new T.Group(); root.add(marks);
   const ghost = new T.Mesh(X.props.geo.box, Mt.y13ghost); ghost.visible = false; root.add(ghost);
   const rings = { sl: ring(HANDS.R), tl: ring(HANDS.L) };
+  // ── build 136's review: a level by the ring (its bubble green under the clean line, amber under the threshold, red over it), each wall
+  // section in its own colour (its band on the front and its waiting pole's ring), the section nearest the crack pulsing, a lock's wave
+  // slowing its neighbours — all without words
+  const SE0 = K.KL.SECT[lv] || K.KL.SECT[1];
+  const secMats = SE0.map((_, i) => new T.MeshBasicMaterial({ color: SEC_COL[i % 3], transparent: true, opacity: 0.3, depthWrite: false, side: T.DoubleSide }));
+  const ringMats = SE0.map((_, i) => new T.MeshBasicMaterial({ color: SEC_COL[i % 3] }));
+  const bands = new T.Group(); root.add(bands);
+  if (lv > 1) SE0.forEach((zz, i) => { const b = new T.Mesh(new T.PlaneGeometry(zz[1] - zz[0] - 0.6, 2.6), secMats[i]); b.rotation.y = Math.PI / 2; b.position.set(FR.x0 - 0.06, KS.y - 2.2, (zz[0] + zz[1]) / 2); b.userData.i = i; bands.add(b); });
+  const waveT = SE0.map(() => 0);
+  const gauge = (() => {
+    let el = null, bub = null, mid = null;
+    try {
+      el = document.createElement('div'); el.className = 'h109-ui h136-level';
+      el.style.cssText = 'position:fixed;z-index:5;pointer-events:none;width:128px;height:22px;margin:-11px 0 0 -64px;border-radius:11px;background:rgba(30,24,16,.55);border:2px solid #E8D9B0;box-sizing:border-box;display:none';
+      mid = document.createElement('div'); mid.style.cssText = 'position:absolute;top:2px;bottom:2px;left:50%;border-radius:7px;background:rgba(120,220,120,.35);border-left:1px solid #CFE8C0;border-right:1px solid #CFE8C0'; el.appendChild(mid);
+      bub = document.createElement('div'); bub.style.cssText = 'position:absolute;top:2px;width:14px;height:14px;margin-left:-7px;border-radius:50%;left:50%;box-shadow:0 0 6px #fff'; el.appendChild(bub);
+      document.body.appendChild(el);
+    } catch (e) { el = null; }
+    return {
+      show(x, y, phi, th) {
+        if (!el) return; el.style.display = 'block'; el.style.left = x + 'px'; el.style.top = y + 'px';
+        const span = 52, k = span / K.KL.TILT_MAX, w = Math.max(6, 2 * th * k);
+        mid.style.width = w.toFixed(1) + 'px'; mid.style.marginLeft = (-w / 2).toFixed(1) + 'px';
+        bub.style.left = `calc(50% + ${(Math.max(-1, Math.min(1, phi / K.KL.TILT_MAX)) * span).toFixed(1)}px)`;
+        const a = Math.abs(phi); bub.style.background = a < th * K.KL.CLEAN ? '#7CE07C' : a < th ? '#F0C850' : '#E86A50';
+      },
+      hide() { if (el) el.style.display = 'none'; },
+      remove() { try { if (el) el.remove(); } catch (e) { /* */ } },
+    };
+  })();
   const fov0 = X.camera.fov;
   function buildRail(z) {
     for (let k = rail.children.length - 1; k >= 0; k--) rail.remove(rail.children[k]);
@@ -65,7 +96,7 @@ function make(m, X) {
       if (z === S.cur) continue;
       // (the waiting poles lie on the hall's floor under their places, a gold ring at each: tap one to bring it up)
       const p = new T.Mesh(new T.CylinderGeometry(KS.r, KS.r, KS.len, 10), Mt.y13cedarL); p.rotation.z = Math.PI / 2; p.position.set(-86.5, KS.y - 4, z); waiting.add(p);   // (hanging under their places, ready)
-      const g = new T.Mesh(new T.TorusGeometry(1.1, 0.14, 6, 20), Mt.y13goldLit); g.rotation.y = Math.PI / 2; g.position.set(-86.5, KS.y - 4, z); g.userData.z = z; waiting.add(g);
+      const g = new T.Mesh(new T.TorusGeometry(1.1, 0.2, 6, 20), lv > 1 ? ringMats[K.secOf(lv, z)] : Mt.y13goldLit); g.rotation.y = Math.PI / 2; g.position.set(-86.5, KS.y - 4, z); g.userData.z = z; waiting.add(g);
     }
   }
   function choosing() { return S.cur == null && !S.done; }
@@ -129,6 +160,7 @@ function make(m, X) {
       ev('lock:' + e.z + ':' + e.grade); V.tok(); try { X.shake(0.12, 0.22); X.dust(FR.x0 - 0.2, KS.y, e.z, 4, 2); } catch (er) { /* */ }
       award(X, at, e.grade, lv, 'ארז');
       Mo.st.poles[e.z] = { d: e.d, bw: e.bw, be: e.be }; keep();
+      { const si = K.secOf(lv, e.z); waveT[si] = 1; for (const j of [si - 1, si + 1]) if (j >= 0 && j < waveT.length && !S.frozen[j]) { waveT[j] = 0.8; const zz = SE0[j]; try { X.dust(FR.x0 - 0.3, KS.y - 1, (zz[0] + zz[1]) / 2, 3, 2); } catch (er) { /* */ } } }
     } else if (e.k === 'choose') { own('pole' + A.lastZ, false); ev('choose'); A.view = 0.6; }
     else if (e.k === 'done') { ev('done'); done(); }
   }
@@ -154,7 +186,19 @@ function make(m, X) {
       if (A.sl) rings.sl.show(sp.x, sp.y, 1); else rings.sl.show(sp.x, sp.y, 0);
       if (lv > 1 || A.tl) rings.tl.show(rp.x, rp.y, A.tl ? 1 : 0); else rings.tl.hide();
       ringM.material = A.tl ? Mt.y13goldLit : Mt.y13goldDark;
-    } else { rings.sl.hide(); rings.tl.hide(); }
+      if (S.phase === 'hang' && (lv > 1 || A.tl || Math.abs(S.phi) > S.th)) gauge.show(rp.x, Math.max(30, rp.y - dp(46)), S.phi, S.th); else gauge.hide();
+    } else { rings.sl.hide(); rings.tl.hide(); gauge.hide(); }
+    // the sections: the one nearest the crack (still moving, the most lean) pulses toward red; a frozen one goes calm; a lock's wave
+    if (lv > 1) {
+      let risk = -1, rd = 0.15; for (let i = 0; i < S.d.length; i++) if (!S.frozen[i] && !S.cracked[i] && S.d[i] > rd) { rd = S.d[i]; risk = i; }
+      for (const b of bands.children) {
+        const i = b.userData.i, M = secMats[i]; waveT[i] = Math.max(0, waveT[i] - 1 / 60);
+        if (waveT[i] > 0) { M.color.set('#FFFFFF'); M.opacity = 0.3 + 0.5 * waveT[i]; }
+        else if (S.frozen[i]) { M.color.set(SEC_COL[i % 3]); M.opacity = 0.12; }
+        else if (i === risk) { const k = (S.d[i] - 0.15) / (K.KL.DMAX - 0.15); M.color.set(SEC_COL[i % 3]).lerp(new T.Color('#E8503C'), Math.min(1, k)); M.opacity = 0.3 + (0.25 + 0.25 * k) * (0.5 + 0.5 * Math.sin(A.t * (5 + 6 * k))); }
+        else { M.color.set(SEC_COL[i % 3]); M.opacity = 0.3; }
+      }
+    }
     // the live cracks: in the corners and between the sections, as wide as the lean's difference
     for (let k = cracks.children.length - 1; k >= 0; k--) cracks.remove(cracks.children[k]);
     const SE = K.KL.SECT[lv] || K.KL.SECT[1];
@@ -201,7 +245,8 @@ function make(m, X) {
     lensFov: KT.FOV,
     end() {
       A.ended = true; FG.detach(); V.hush(); X.hand(null); lens(X, fov0);
-      rings.sl.remove(); rings.tl.remove();
+      rings.sl.remove(); rings.tl.remove(); gauge.remove();
+      for (const M of secMats.concat(ringMats)) M.dispose();
       for (const z of KS.zs) own('pole' + z, false);
       SH13.lean = null; SH13.scaf = null; SH13.key = '';
       X.props.remove(root);

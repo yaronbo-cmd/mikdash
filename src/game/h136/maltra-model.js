@@ -8,7 +8,7 @@
  *   · one line: the beam turns (that end goes east) and the centre moves a little (full: ~0.16 east, ~0.09 to the middle);
  *     both equal: the torques and the inward parts cancel, a net force east (~0.3 amah at full) — damping costs distance, so PULSES;
  *   · the face: a beam end touching it in the hanging is a soft knock, no damage, a little spin added.
- * QUIET: both ends' sway under 0.1 and the centre within 0.1 of rest for 0.5 s → the lines glow. RELEASE: both thumbs off within 0.45 s
+ * QUIET: both ends' sway under 0.1 and the centre within 0.1 of rest for 0.5 s → the lines glow. RELEASE: both thumbs off within 0.65 s (0.45 in the spec; build 136's review: ChatGPT and Gemini, too thin)
  * (one already slack: the other alone); a taut line let go outside the window gives its end a 3° shove and the quiet starts again.
  * LANDING (2 s down): two grades, the step takes the lower: parallel (the ends' distance from the face differs by L·|sin θ|: 40 ≤ 0.15,
  * 20 ≤ 0.3, 10 ≤ 0.45) and overhang (the two sides differ by 2|dz|: 40 ≤ 0.15, 20 ≤ 0.3, 10 ≤ 0.5); level 1 doubles the thresholds.
@@ -27,7 +27,7 @@ export const ML = Object.freeze({
   CD: 0.7,             // the centre's damping (1/s)
   YD: 0.10,            // the hook's turning damping (1/s)
   F1: 0.72,            // one line at full tension, its horizontal part per unit mass (amah/s²): 0.4 · 0.15 · W0² · Lp
-  QUIET: 0.1, QUIET_T: 0.5, WINDOW: 0.45, SHOVE: 3, DROP_T: 2.0, LIFT_T: 1.6, COURSE_T: 1.4,
+  QUIET: 0.1, QUIET_T: 0.5, WINDOW: 0.65, SHOVE: 3, DROP_T: 2.0, LIFT_T: 1.6, COURSE_T: 1.4,
   PAR: [0.15, 0.3, 0.45], OVER: [0.15, 0.3, 0.5],
   KNOCK_E: 0.35,       // the face's give: the end's speed into it comes back at this part
   GUST: 0.5, GUST_T: 1.0, GUST_EVERY: 6, GUST_WARN: 1, GUST_FIRST: 4,   // (a gust: a push of 0.5 amah/s² on average over a second; unopposed it moves the beam ~0.3 amah — the spec's 0.4 tuned in step 0 so that a pulse against it can stop it)

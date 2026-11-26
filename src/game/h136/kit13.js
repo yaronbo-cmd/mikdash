@@ -65,7 +65,16 @@ export function ring(color, size = 56) {
   try { el = document.createElement('div'); el.className = 'h109-ui h136-ring'; el.style.cssText = `position:fixed;z-index:5;pointer-events:none;width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;border-radius:50%;border:4px solid ${color};box-sizing:border-box;display:none;box-shadow:0 0 8px ${color}`; document.body.appendChild(el); } catch (e) { el = null; }
   return {
     el,
-    show(x, y, k = 0, glow = false) { if (!el) return; el.style.display = 'block'; el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.background = `radial-gradient(circle, ${color} ${Math.round(k * 62)}%, transparent ${Math.round(k * 62) + 4}%)`; el.style.opacity = glow ? '1' : '0.85'; el.style.boxShadow = glow ? `0 0 18px 6px #FFF0B8` : `0 0 8px ${color}`; },
+    /** o: { q: 0 … 1 the quiet growing (a white halo widening), win: 0 … 1 what is left of a window (the ring swells, white, pulsing), halo: the glow's colour } */
+    show(x, y, k = 0, glow = false, o = null) {
+      if (!el) return; el.style.display = 'block'; el.style.left = x + 'px'; el.style.top = y + 'px';
+      el.style.background = `radial-gradient(circle, ${color} ${Math.round(k * 62)}%, transparent ${Math.round(k * 62) + 4}%)`;
+      const q = o && o.q > 0 ? Math.min(1, o.q) : 0, w = o && o.win > 0 ? Math.min(1, o.win) : 0;
+      el.style.opacity = glow || w ? '1' : '0.85';
+      el.style.borderColor = w ? (Math.floor(performance.now() / 110) % 2 ? '#FFFFFF' : color) : color;
+      el.style.transform = w ? `scale(${(1.15 + 0.25 * w).toFixed(2)})` : glow ? `scale(${(1.06 + 0.06 * Math.sin(performance.now() / 160)).toFixed(3)})` : '';
+      el.style.boxShadow = glow ? `0 0 22px 8px ${(o && o.halo) || '#FFF0B8'}` : q ? `0 0 ${Math.round(6 + 14 * q)}px ${Math.round(4 * q)}px rgba(255,248,220,${(0.3 + 0.5 * q).toFixed(2)})` : `0 0 8px ${color}`;
+    },
     hide() { if (el) el.style.display = 'none'; },
     remove() { try { if (el) el.remove(); } catch (e) { /* */ } },
   };

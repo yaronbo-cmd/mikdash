@@ -1686,7 +1686,7 @@ function s13(S12) {
     lock: { w: -92.3, e: -80.7 }, rail: { x0: -91.5, x1: -81.5, y: 72 }, scaffold: { y: 63, half: 2.2 },
     tilt0: 20,   // (degrees, the east end up: 11.6 amot across the 11-amah gap clear both walls only from ~18.5°; the spec's 15° would sink both ends 0.1 into the walls)
     // the camera south of each pole looking north (the Heichal's wall at the screen's left, the Ulam's front at its right: the spec's picture)
-    cam: (z) => [[-86.5, 64.6, z + 8], [-86.5, 66, z - 4]],
+    cam: (z) => [[-86.5, 65.6, z + 11.5], [-86.5, 65.4, z - 4]],   // (build 136's stills: 8 amot left the ring at the screen's edge)
     stand: [-86.5, 0],
   };
   // the golden chains (Middot 3:8) — one pair (המחשה), the four crowns over the Heichal's windows (Tiferet Yisrael; Zechariah 6:14)
@@ -1696,7 +1696,7 @@ function s13(S12) {
   const crowns = CR.map(([k, he, z]) => ({ id: `crown:${k}`, k, he, x: -91.8, y0: 86, y1: 89, y: 87.5, z }));
   const glint = { x: chains.x, y: chains.eye, z: r4(chains.zc + 0.6), r: 0.25 };
   const scaffolds = [72, 62, 42].map((y) => ({ y, x: chains.x, z: chains.zc, half: 1.6 }));
-  const finale = { rail: { x: -55, y: 40, z0: -40, z1: 40 }, look: [-78, 52, 0], sun: [60, 14, 6] };
+  const finale = { rail: { x: -38, y: 46, z0: -40, z1: 40 }, look: [-78, 58, 0], sun: [60, 14, 6] };   // (build 136's stills: from x −55 only the opening filled the frame)
   const steps = { x0: ST.x0, x1: ST.x1, z0: ST.z0, z1: ST.z1, xr: [-55, -56, -57, -60, -61, -62, -65, -66, -67, -70, -71, -72], rise: 0.5 };
   const S13 = {
     stage: 13, name: 'האולם', floor: F, hallFloor: FL, hall, front, opening, heichalWall, heichalDoor: { x0: HD.x0, x1: HD.x1, z0: HD.z0, z1: HD.z1, y0: HD.y0, y1: HD.y1 },

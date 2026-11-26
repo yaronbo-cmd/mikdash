@@ -177,12 +177,13 @@ function roof(X, Mt, D, H) {
 }
 function crane(X, Mt, D) {
   const C = MA.crane, y0 = F + 0.5 * S13.steps.xr.length, top = 78, T = X.THREE, g = new T.Group(); g.name = 'h136-crane';
+  // (a gantry: its legs wide apart, z ±17, outside the work's view and the longest lintel — the camera looks between them)
   const leg = (dz) => { const m = new T.Mesh(X.props.geo.box, Mt.y13wood); m.scale.set(0.6, top - y0, 0.6); m.position.set(C.x, (y0 + top) / 2, dz); m.castShadow = true; g.add(m); };
-  leg(-1.6); leg(1.6);
-  const cross = new T.Mesh(X.props.geo.box, Mt.y13woodD); cross.scale.set(0.6, 0.6, 4); cross.position.set(C.x, top, 0); g.add(cross);
+  leg(-17); leg(17);
+  const cross = new T.Mesh(X.props.geo.box, Mt.y13woodD); cross.scale.set(0.6, 0.6, 35); cross.position.set(C.x, top, 0); g.add(cross);
   const boom = new T.Mesh(X.props.geo.box, Mt.y13wood); boom.scale.set(C.x - C.armTo + 1, 0.55, 0.55); boom.position.set((C.x + C.armTo) / 2, top + 0.6, 0); boom.castShadow = true; g.add(boom);
   const pul = new T.Mesh(new T.CylinderGeometry(0.5, 0.5, 0.3, 12), Mt.y13woodD); pul.rotation.x = Math.PI / 2; pul.position.set(C.armTo + 0.2, top + 0.2, 0); g.add(pul);
-  for (const dz of [-2.2, 2.2]) { const b = new T.Mesh(X.props.geo.box, Mt.y13wood); b.scale.set(3, 0.4, 0.4); b.position.set(C.x + 1, y0 + 0.2, dz); g.add(b); }
+  for (const dz of [-17, 17]) { const b = new T.Mesh(X.props.geo.box, Mt.y13wood); b.scale.set(3, 0.4, 0.8); b.position.set(C.x + 1, y0 + 0.2, dz); g.add(b); }
   D.add(g);
   return { top, x: C.armTo + 0.2 };
 }

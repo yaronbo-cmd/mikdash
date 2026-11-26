@@ -65,7 +65,7 @@ export function createH136(save) {
     finished() { return !!st.crews || STAGE_FLOW.every(d); },
     round() { return M.finished() ? 2 : 1; },
     /** the walls stand to the roof and the chains hang: works 1 and 2 done (at any level), or the crews' */
-    roofed() { return !!st.crews || (M.built('maltra') && M.built('kelonsa')); },
+    roofed() { return !!st.crews || !!st.linkRoof || (M.built('maltra') && M.built('kelonsa')); },
     canDo(m) {
       if (!m) return false;
       if (m.work === 'sharsheret' && !M.roofed()) return false;
@@ -112,7 +112,9 @@ export function createH136(save) {
       const off = PLAN.find((m) => !d(m.id) && want(m)) || PLAN.find((m) => want(m)) || null;
       if (!off) return null;
       const need = [];
-      if (off.work === 'sharsheret') need.push('maltra1', 'kelonsa1');
+      // (a chains' page needs the walls to the roof: the link stands them up — not works 1 and 2 done, so that round 1 stays open and the
+      // stage does not close on a link, as stage 12's)
+      if (off.work === 'sharsheret') st.linkRoof = 1;
       for (let lv = 1; lv < off.lv; lv++) need.push(off.k + lv);
       for (const id of need) if (!d(id)) { st.done.push(id); st.res[id] = { stars: 2, q: 0.7, pts: 20, flags: { crews: 1 } }; }
       if (M.roofed()) st.walls = Math.max(1, st.walls | 0);

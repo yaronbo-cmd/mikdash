@@ -18,7 +18,7 @@ import { award, extra, hurt, finish, V3, lens, voices13, ring, HANDS, dp } from 
 import { fingers } from '../h113/acts.js';
 
 const S13 = BOOK.s13, KS = S13.kelonsa, FR = S13.front, HW = S13.heichalWall, RAD = Math.PI / 180;
-export const KT = Object.freeze({ FOV: 40, GRIP: 34, CHOOSE: [[-84, 74, 38], [-86.5, 64, -6]], PICK_R: 70 });
+export const KT = Object.freeze({ FOV: 44, GRIP: 34, CHOOSE: [[-86.5, 78, 27], [-86.5, 40, -14]], PICK_R: 70 });   // (the choice: from over the hall's south end, inside it — z 38 was in the wing's wall)
 
 function make(m, X) {
   const T = X.THREE, Mo = X.M, lv = m.lv | 0 || 1, V = voices13(X), Mt = mats13(X);
@@ -45,6 +45,7 @@ function make(m, X) {
   const marks = new T.Group(); root.add(marks);
   const ghost = new T.Mesh(X.props.geo.box, Mt.y13ghost); ghost.visible = false; root.add(ghost);
   const rings = { sl: ring(HANDS.R), tl: ring(HANDS.L) };
+  const fov0 = X.camera.fov;
   function buildRail(z) {
     for (let k = rail.children.length - 1; k >= 0; k--) rail.remove(rail.children[k]);
     const R = KS.rail;
@@ -80,7 +81,7 @@ function make(m, X) {
     own('pole' + S.cur, true); buildRail(S.cur); buildScaffold(S.cur); buildWaiting();
     // (level 1: the place's shadow — where the locked pole lies)
     ghost.visible = lv === 1; ghost.scale.set(KS.len, 2 * KS.r, 2 * KS.r); ghost.position.set((KS.lock.w + KS.lock.e) / 2, KS.y, S.cur);
-    try { X.stages.hero.place({ x: HW.x1 + 1.6, z: S.cur + 1.4, face: [-86.5, S.cur] }); } catch (e) { /* */ }
+    try { X.stages.hero.place({ x: HW.x1 + 1.2, z: S.cur + 0.9, face: [-86.5, S.cur] }); } catch (e) { /* */ }
   }
   gear();
   // ── the screen: the strap and the ring where they are now

@@ -105,7 +105,7 @@ function make(m, X) {
     else if (e.k === 'glow') { V.glow(); ev('glow'); }
     else if (e.k === 'shove') { V.knock(2.4); ev('shove'); }
     else if (e.k === 'gust') { V.wind(); ev('gust'); }
-    else if (e.k === 'knock') { V.knock(2); ev('knock'); }
+    else if (e.k === 'knock') { if (S.phase !== 'arrive') V.knock(2); ev('knock'); }   // (the swing-in's touches are the machine's: no sound)
     else if (e.k === 'drop') { V.lower(); ev('drop'); }
     else if (e.k === 'free') { V.knock(1.4); ev('free:' + e.why); try { X.line('ניסוי חינם: הקורה עולה שוב. כוונו עד שהחבלים זוהרים', 2200); } catch (er) { /* */ } }
     else if (e.k === 'hit') {
@@ -128,7 +128,7 @@ function make(m, X) {
     if (lv === 3 || Object.keys(Mo.st.beams).length >= 5) { try { V.chord(); } catch (e) { /* */ } }
     await finish(X, A, res, WORDS.maltra, at, { eye: [-36, 58, 14], aim: [-77, 60, 0], secs: 1.8, kohen: true, after: () => { try { Mo.filmOver(); } catch (er) { /* */ } } });
   }
-  function hint() { if (resumed || A.hintOn || lv > 1) return; A.hintOn = 1; try { X.hand({ x: FR.face + 4, y: 62, z: -4 }, 0, 40); } catch (e) { /* */ } }
+  function hint() { if (resumed || A.hintOn || lv > 1) return; A.hintOn = 1; try { const b = A.hb || [-60, 58, 4]; X.hand({ x: b[0], y: b[1], z: b[2] }, 0, 40); } catch (e) { /* */ } }
   /** draw what moves */
   function draw(dt) {
     const i = S.b.i, be = MA.beams[i], R = MA.rest(i), Ln = S.b.L;
@@ -150,6 +150,7 @@ function make(m, X) {
       const hp = handleAt(hIdx); let b = null;
       try { const r = X.rayAt ? X.rayAt(hp.x, hp.y) : null, ray = r && (r.ray || r); if (ray) { const t = (-60 - ray.origin.x) / ray.direction.x; if (t > 0) b = [ray.origin.x + ray.direction.x * t, ray.origin.y + ray.direction.y * t, ray.origin.z + ray.direction.z * t]; } } catch (er) { b = null; }
       if (!b) b = [-60, y0 - 6, e.z * 0.5];
+      if (hIdx === 0) A.hb = b;
       const tk = Math.max(S.T[k] || 0, S.auto[k] || 0), taut = tk > K.ML.SLACK;
       const L = lines[hIdx]; L.material = S.glow ? Mt.y13ropeGlow : taut ? Mt.y13ropeT : Mt.y13rope;
       L.userData.set(a, b, taut ? 0.05 : 1.6, 0.075);

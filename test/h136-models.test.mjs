@@ -102,3 +102,10 @@ test('sharsheret (step 0): hand over hand, never two in the air, the swing grade
   SH.aim(S, S.h.R + 9); const e = SH.grab(S); assert.equal(e[0].k, 'back', 'too far: the hand returns');
   assert.ok(SH.omega(SH.fresh(1)) > SH.omega(SH.fresh(3)), 'faster as he climbs');
 });
+
+test('kelonsa: pushing on against the rim is one jam, not a scratch per back-off', async () => {
+  const K = await import('../src/game/h136/kelonsa-model.js');
+  const S = K.fresh(2); K.pick(S, -20); S.first = false;
+  for (let k = 0; k < 600; k++) K.step(S, 1 / 60, { slide: S.px - 0.6, tilt: 20, held: true });
+  assert.equal(S.flaws.filter((x) => x.f === 'kelonsa.rim').length, 1);
+});

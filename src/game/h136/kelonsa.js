@@ -18,7 +18,7 @@ import { award, extra, hurt, finish, V3, lens, voices13, ring, HANDS, dp } from 
 import { fingers } from '../h113/acts.js';
 
 const S13 = BOOK.s13, KS = S13.kelonsa, FR = S13.front, HW = S13.heichalWall, RAD = Math.PI / 180;
-export const KT = Object.freeze({ FOV: 44, GRIP: 34, CHOOSE: [[-86.5, 78, 27], [-86.5, 40, -14]], PICK_R: 70 });   // (the choice: from over the hall's south end, inside it — z 38 was in the wing's wall)
+export const KT = Object.freeze({ FOV: 44, GRIP: 34, CHOOSE: [[-86.5, 74, 28], [-86.5, 60, -14]], PICK_R: 70 });   // (the choice: from over the hall's south end, inside it — z 38 was in the wing's wall)
 
 function make(m, X) {
   const T = X.THREE, Mo = X.M, lv = m.lv | 0 || 1, V = voices13(X), Mt = mats13(X);
@@ -64,8 +64,8 @@ function make(m, X) {
     for (const z of K.leftPoles(S)) {
       if (z === S.cur) continue;
       // (the waiting poles lie on the hall's floor under their places, a gold ring at each: tap one to bring it up)
-      const p = new T.Mesh(new T.CylinderGeometry(KS.r, KS.r, KS.len, 10), Mt.y13cedarL); p.rotation.z = Math.PI / 2; p.position.set(-86.5, S13.hallFloor + KS.r, z); waiting.add(p);
-      const g = new T.Mesh(new T.TorusGeometry(0.9, 0.12, 6, 20), Mt.y13goldLit); g.rotation.x = Math.PI / 2; g.position.set(-86.5, S13.hallFloor + 2.2, z); g.userData.z = z; waiting.add(g);
+      const p = new T.Mesh(new T.CylinderGeometry(KS.r, KS.r, KS.len, 10), Mt.y13cedarL); p.rotation.z = Math.PI / 2; p.position.set(-86.5, KS.y - 4, z); waiting.add(p);   // (hanging under their places, ready)
+      const g = new T.Mesh(new T.TorusGeometry(1.1, 0.14, 6, 20), Mt.y13goldLit); g.rotation.y = Math.PI / 2; g.position.set(-86.5, KS.y - 4, z); g.userData.z = z; waiting.add(g);
     }
   }
   function choosing() { return S.cur == null && !S.done; }
@@ -93,7 +93,7 @@ function make(m, X) {
   const near = (f, p, r) => Math.hypot(f.x - p.x, f.y - p.y) < Math.max(dp(KT.GRIP), r || 0);
   function pickAt(f) {
     let best = null, bd = 1e9;
-    for (const z of K.leftPoles(S)) { const p = scr(-86.5, S13.hallFloor + 2.2, z), q = scr(-86.5, KS.y, z), d = Math.min(Math.hypot(f.x - p.x, f.y - p.y), Math.hypot(f.x - q.x, f.y - q.y)); if (d < bd) { bd = d; best = z; } }
+    for (const z of K.leftPoles(S)) { const p = scr(-86.5, KS.y - 4, z), q = scr(-86.5, KS.y, z), d = Math.min(Math.hypot(f.x - p.x, f.y - p.y), Math.hypot(f.x - q.x, f.y - q.y)); if (d < bd) { bd = d; best = z; } }
     return bd < dp(KT.PICK_R) ? best : null;
   }
   // ── the fingers: the first on the strap or the ring is that role; at level 1 the strap is enough (the tilt rights itself)
@@ -212,7 +212,7 @@ function make(m, X) {
       return { id: m.id, lv, cur: S.cur, phase: S.phase, px: r3(S.px || 0), phi: r3(S.phi || 0), inW: S.inW, deep: S.deep, d: S.d.map(r3), frozen: S.frozen, bw: E && r3(E.bw), be: E && r3(E.be),
         steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.map((x) => x.f), done: S.done, busy: A.busy, finished: A.finished, cam: A.cam,
         strap: sp && [Math.round(sp.x), Math.round(sp.y)], ring: rp && [Math.round(rp.x), Math.round(rp.y)], ppa: S.cur != null ? ppa() : null,
-        picks: K.leftPoles(S).map((z) => { const p = scr(-86.5, S13.hallFloor + 2.2, z); return [z, Math.round(p.x), Math.round(p.y)]; }), held: { sl: !!A.sl, tl: !!A.tl }, ev: A.ev.slice(-12) };
+        picks: K.leftPoles(S).map((z) => { const p = scr(-86.5, KS.y - 4, z); return [z, Math.round(p.x), Math.round(p.y)]; }), held: { sl: !!A.sl, tl: !!A.tl }, ev: A.ev.slice(-12) };
     },
     probe() { return { S, K, A }; },
   };

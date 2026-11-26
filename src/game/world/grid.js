@@ -1702,7 +1702,7 @@ function s13(S12) {
     stage: 13, name: 'האולם', floor: F, hallFloor: FL, hall, front, opening, heichalWall, heichalDoor: { x0: HD.x0, x1: HD.x1, z0: HD.z0, z1: HD.z1, y0: HD.y0, y1: HD.y1 },
     sideWalls, rise, maltra, kelonsa, chains, windows, crowns, glint, scaffolds, finale, steps, tables: { marble: [ULAM_TABLES.marble.x, ULAM_TABLES.marble.z], gold: [ULAM_TABLES.gold.x, ULAM_TABLES.gold.z] },
     champion: [-57, -24], start: [-50, 30],
-    stands: { maltra: [-54.5, 0], kelonsa: [-56.5, -10], sharsheret: [-56.5, 10] },   // (the last two on the steps' lowest treads, west of the altar)
+    stands: { maltra: [-54.5, 0], kelonsa: [-56.5, -22], sharsheret: [-56.5, 22] },   // (build 136's stills: at ±10 the three signs overlapped)   // (the last two on the steps' lowest treads, west of the altar)
     cam: { open: [[-10, 70, 60], [-80, 50, 0]], end: { c: [-80, 40, 0], R: 60, y: 60 } },
   };
   const E = [];

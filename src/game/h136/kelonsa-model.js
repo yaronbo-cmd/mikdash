@@ -104,13 +104,15 @@ export function step(S, dt, inp = {}) {
       // the jam: the end on the pocket's rim, a scratch (the work's first is a free try), it backs off by itself
       S.px += KL.ENTRY - E.xw + KL.BACK; S.vx = 0; S.sway = 0;
       if (!S.jam) {
-        S.jam = true;
+        S.jam = true; S.jamPhi = S.phi;
         if (S.first) { S.first = false; ev.push({ k: 'free', tilt: +S.phi.toFixed(2) }); }
         else { S.flaws.push({ f: 'kelonsa.rim', at: S.cur }); ev.push({ k: 'jam', tilt: +S.phi.toFixed(2) }); }
       }
     }
   }
-  if (S.jam && E.xw > KL.ENTRY + 0.25) S.jam = false;
+  // (a jam counts again only after the strap was let go or the tilt changed: pushing on against the rim is the same jam, not a new
+  // scratch each time it backs off — build 136's probe of a real finger: eleven scratches in a second)
+  if (S.jam && E.xw > KL.ENTRY + 0.25 && (inp.slide == null || Math.abs(S.phi - (S.jamPhi != null ? S.jamPhi : S.phi)) > 2)) S.jam = false;
   E = ends(S);
   if (S.inW) {
     if (E.xw < KL.POCKET) { S.px += KL.POCKET - E.xw; if (S.vx < 0) { if (S.vx < -KL.FAST) { S.cap = 20; ev.push({ k: 'knock' }); } S.vx = 0; } S.sway = Math.max(S.sway, 0); }

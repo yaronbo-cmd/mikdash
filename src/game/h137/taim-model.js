@@ -63,11 +63,11 @@ export const neighbours = (id) => (NB.get(id) || []).map((J) => (J.a === id ? J.
 /** a room's walls: its four edges minus the openings; each { a: [x, z], b: [x, z], jamb (a doorway's side) , ends: [jambA, jambB] } */
 function wallsOf(R) {
   const [x0, z0, x1, z1] = R.r, out = [];
-  const edges = [['z', z0, x0, x1], ['z', z1, x0, x1], ['x', x0, z0, z1], ['x', x1, z0, z1]];
-  for (const [ax, at, lo, hi] of edges) {
+  const edges = [['z', z0, x0, x1, [0, -1]], ['z', z1, x0, x1, [0, 1]], ['x', x0, z0, z1, [-1, 0]], ['x', x1, z0, z1, [1, 0]]];
+  for (const [ax, at, lo, hi, n] of edges) {
     const gaps = (NB.get(R.id) || []).filter((J) => J.axis === ax && Math.abs(J.at - at) < 1e-6).map((J) => [J.lo, J.hi]).sort((p, q) => p[0] - q[0]);
     let s = lo;
-    const push = (u0, u1, e0, e1) => { if (u1 - u0 < 1e-6) return; const a = ax === 'z' ? [u0, at] : [at, u0], b = ax === 'z' ? [u1, at] : [at, u1]; out.push({ a, b, jamb: R.kind === 'door', ends: [e0, e1] }); };
+    const push = (u0, u1, e0, e1) => { if (u1 - u0 < 1e-6) return; const a = ax === 'z' ? [u0, at] : [at, u0], b = ax === 'z' ? [u1, at] : [at, u1]; out.push({ a, b, jamb: R.kind === 'door', ends: [e0, e1], n }); };
     let lastGap = false;
     for (const [g0, g1] of gaps) { push(s, Math.min(g0, hi), lastGap, true); s = Math.max(s, g1); lastGap = true; }
     push(s, hi, lastGap, false);
@@ -75,6 +75,7 @@ function wallsOf(R) {
   return out;
 }
 const WALLS = new Map(ROOMS.map((R) => [R.id, wallsOf(R)]));
+export const wallsOfRoom = (id) => WALLS.get(id) || [];
 /** a doorway's axis (the way through it): the axis of its openings' normal */
 const AXIS = new Map(ROOMS.filter((R) => R.kind === 'door' || R.kind === 'end').map((R) => [R.id, R.axis || 'x']));
 /** a doorway's room next to a room (its mouth) — for the jamb's axis when he touches a mouth's corner */
@@ -152,7 +153,7 @@ function stepDone(S, roomId, how) {
   const g = S.broke || S.touched || how === 'rim' ? 'good' : S.detour ? 'ok' : 'gold';
   const grade = S.detour && g !== 'gold' ? 'ok' : S.detour ? 'ok' : g;
   const s = { room: roomId, grade, broke: S.broke, touched: S.touched, detour: S.detour, two: S.used.ring };
-  S.steps.push(s); S.k++; S.touched = false; S.broke = false; S.detour = false; S.halt = true; S.used.ring = false;
+  S.steps.push(s); S.k++; S.touched = false; S.broke = false; S.detour = false; S.halt = true; S.used.ring = false; S.brokeAt = null;
   push(S, { k: 'step', room: roomId, grade, i: S.steps.length - 1, two: s.two });
   const nx = target(S);
   if (!nx) { S.done = true; S.phase = 'done'; push(S, { k: 'done' }); }
@@ -205,7 +206,9 @@ export function step(S, dt, inp = {}) {
         const ax = hit.door ? AXIS.get(hit.door.id) || 'x' : 'x', along = ax === 'x' ? Math.abs(cx) : Math.abs(cz), off = Math.acos(Math.min(1, along)) / RAD;
         const hard = Math.abs(v) >= TM.BREAK_V * TM.VMAX && off > TM.BREAK_ANG;
         S.cTouch = 0.5;
+        if (hard && S.brokeAt === (hit.door ? hit.door.id : S.room)) { S.touched = true; S.v = 0; S.x += hit.nx * TM.BOUNCE; S.z += hit.nz * TM.BOUNCE; collide(S); break; }   // (one break a doorway a step: the next hit there only stops him)
         if (hard) {
+          S.brokeAt = hit.door ? hit.door.id : S.room;
           S.x += hit.nx * TM.BOUNCE; S.z += hit.nz * TM.BOUNCE; S.v = 0;
           if (S.first) { S.first = false; push(S, { k: 'free', door: hit.door ? hit.door.id : null }); S.touched = true; }
           else { S.broke = true; S.flaws.push({ f: 'taim.corner', at: hit.door ? hit.door.id : S.room }); push(S, { k: 'break', door: hit.door ? hit.door.id : null, x: S.x, z: S.z }); }

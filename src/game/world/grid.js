@@ -1801,7 +1801,7 @@ function s14(S13, S05) {
     3: { start: { room: 'n0c1', x: -113.4, z: -19.5, yaw: Math.PI }, steps: ['n1c1', 'n1c2', 'n2c2', { cut: 1, room: 'n0c0', x: -103, z: -19.5, yaw: -Math.PI / 2 }, 'mLand', 'rNW', 'rSW', 'upDoor'] },
   };
   // the camera (spec "taim:cam"): isometric from the north-east, 30° over; 10 amot from the aim keeps him 120 dp tall (lens 40°)
-  const tcam = { el: 30, dist: 10.5, dir: [0.7071, -0.7071], fov: 40, lift: 1.2 };
+  const tcam = { el: 48, dist: 16, dir: [0.7071, -0.7071], fov: 40, lift: 1.2 };
   const west = { x0: -171, x1: -165, z0: -16, z1: 16, per: [3, 3, 2] };   // ("שלשה על גבי שלשה ושנים על גביהן", Middot 4:3)
   const wing = { n: { z0: -35, z1: -10 }, s: { z0: 10, z1: 35 }, x0: -176, x1: X1, outer: [-27, -22], mWall: [-35, -30], drain: [27, 30] };
   const taim = { floors: FLOORS, roof: ROOF, inner: IN, outer: OUT, cellLen: CL, part: PW, doorW: DW, cells: [0, 1, 2, 3, 4].map(cellX), rooms, routes, cam: tcam, west, wing,

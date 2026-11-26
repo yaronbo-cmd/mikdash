@@ -144,9 +144,9 @@ export function bot(S, o = {}) {
     return { ...out, work: { down: false } };
   }
   if (S.phase === 'leaf') {
-    if (!S.held) return { ...out, cushion: { x: -60, y: ZH.H / 2 }, work: { down: false } };
+    if (!S.held) return { ...out, cushion: { x: 24, y: -58 }, work: { down: false } };
     const tx = slotX(S.g.n, S.leaf) + (o.err || 0), ty = ZH.H / 2;
-    if (!B.path) { B.path = []; for (let k = 0; k <= 24; k++) B.path.push({ x: -60 + (tx + 60) * k / 24, y: ZH.H / 2 + (ty - ZH.H / 2) * k / 24 }); if (o.pull) for (let k = 1; k <= 4; k++) B.path.push({ x: tx - k * 4, y: ty }); B.i = 0; }
+    if (!B.path) { B.path = []; for (let k = 0; k <= 24; k++) B.path.push({ x: 24 + (tx - 24) * k / 24, y: -58 + (ty + 58) * k / 24 }); if (o.pull) for (let k = 1; k <= 4; k++) B.path.push({ x: tx - k * 4, y: ty }); B.i = 0; }
     if (B.i < B.path.length) return { ...out, work: { ...B.path[B.i++], down: true } };
     return { ...out, work: { down: false } };
   }

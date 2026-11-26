@@ -78,7 +78,8 @@ function tear(S, c, why) {
   ev(S, { k: 'tear', c, why });
 }
 /** one frame. inp: { hold (the work hand on the handle), p (the plane's travel, dp, where the finger put it), skew (deg, the front
- *  handle; level 1: none), lean (−1 … 1), depth (0 1 2: set between strokes), two (the helper hand on the front handle now) } */
+ *  handle; level 1: none), lean (−1 … 1), depth (0 1 2: set between strokes), two (the helper hand on the front handle now),
+ *  lift (the plane drawn back toward the pushing hand: it rides lifted, no cut) } */
 export function step(S, dt, inp = {}) {
   S.ev = []; S.t += dt;
   if (S.done) return S.ev;
@@ -88,6 +89,11 @@ export function step(S, dt, inp = {}) {
   if (inp.lean != null) S.lean = Math.max(-1, Math.min(1, inp.lean));
   if (inp.two) S.used2 = true;
   if (!inp.hold) { if (S.stroke) endStroke(S); return S.ev; }
+  if (inp.lift) {   // (the plane lifted: drawn back toward the hand that pushes it, it does not cut)
+    if (S.stroke) endStroke(S);
+    if (inp.p != null) S.p = Math.max(0, Math.min(HK.TRAVEL, inp.p));
+    S.v = 0; return S.ev;
+  }
   let p = Math.max(0, Math.min(HK.TRAVEL, inp.p != null ? inp.p : S.p));
   // the deep plane is heavy: it lags a finger that outruns it
   const vmax = S.depth === 2 ? HK.DEEP_MAX : 1e9;
@@ -194,7 +200,7 @@ export function bot(S, o = {}) {
     if (S.lv === 3) { const l0 = b.e[0].reduce((a, v) => a + v, 0), l2 = b.e[2].reduce((a, v) => a + v, 0); B.lean = Math.max(-1, Math.min(1, (l2 - l0) * 0.4)); }
     return { hold: false, depth, p: B.from, skew: S.lv > 1 ? (o.rough ? 0 : 5) : 0, lean: B.lean };
   }
-  if (Math.abs(S.p - B.from) > 1 && !S.stroke && B.p === B.from) return { hold: false, p: B.from };
+  if (Math.abs(S.p - B.from) > 1 && !S.stroke && B.p === B.from) return { hold: true, lift: true, p: B.from };   // (drawn back, lifted)
   const v = o.rough ? 420 : 200;
   B.p += B.dir * v / 60;
   const end = B.dir > 0 ? B.p >= B.to : B.p <= B.to;

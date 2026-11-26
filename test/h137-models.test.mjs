@@ -8,7 +8,7 @@ import * as H from '../src/game/h137/hakzaa-model.js';
 import * as Z from '../src/game/h137/zahav-model.js';
 import * as V from '../src/game/h137/havraka-model.js';
 
-const run = (K, S, o, n = 60 * 400) => { const ev = []; for (let i = 0; i < n && !S.done; i++) { const inp = K.bot(S, o); if (K === H && !inp.hold && inp.p != null && !S.stroke) S.p = inp.p; for (const e of K.step(S, 1 / 60, inp)) ev.push(e); } return ev; };
+const run = (K, S, o, n = 60 * 400) => { const ev = []; for (let i = 0; i < n && !S.done; i++) { const inp = K.bot(S, o); for (const e of K.step(S, 1 / 60, inp)) ev.push(e); } return ev; };
 
 test('s14: rooms do not overlap on one floor; the routes are reachable; hatches only on floors 1–2', () => {
   const R = BOOK.s14.taim.rooms, yOf = (r) => (typeof r.y === 'number' ? r.y : r.y.x0);

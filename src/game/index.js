@@ -3719,7 +3719,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   /** stage 10 done, the page reloaded: the upper block and the kevesh drawn from his save; an old save whose old stage 10 was done gets
    *  the crews' (migrate10, once) */
   function h33Rest() {
-    if (H9 && !['ulam', 'kiyor', 'karnot', 'guf', 'sovev', 'yesod', 'lishka', 'nikanor', 'nashim'].includes(H9.site)) return false;   // (── h135 ── ── h134 ── a later stage's director: h34Rest calls this first, before its own)   // (a later stage's director owns the page)
+    if (H9 && !['kiyor', 'karnot', 'guf', 'sovev', 'yesod', 'lishka', 'nikanor', 'nashim'].includes(H9.site)) return false;   // (── h135 ── ── h134 ── a later stage's director: h34Rest calls this first, before its own)   // (a later stage's director owns the page)
     try { if (!G.h133 && S.isDone(G, 'guf')) { migrate10(G, true); persist(); } } catch (e) { /* */ }
     try { const d = h33Make(); const ok = !!(d && d.rest && d.rest()); if (ok) setTimeout(() => h33Visits(), 400); return ok; } catch (e) { console.warn('[h133] rest', e && e.message); return false; }
   }
@@ -3793,7 +3793,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   /** stage 11 done, the page reloaded: stage 10's block and kevesh first (its rest), then the horns and the cups from his save; an old
    *  save whose old stage 11 was done gets the crews' (migrate11, once) */
   function h34Rest() {
-    if (H9 && !['ulam', 'kiyor', 'karnot', 'guf', 'sovev', 'yesod', 'lishka', 'nikanor', 'nashim'].includes(H9.site)) return false;   // (a later stage's director owns the page)   // (── h135 ── h35Rest calls this first, before its own)
+    if (H9 && !['kiyor', 'karnot', 'guf', 'sovev', 'yesod', 'lishka', 'nikanor', 'nashim'].includes(H9.site)) return false;   // (a later stage's director owns the page)   // (── h135 ── h35Rest calls this first, before its own)
     if (!H9 || H9.site !== 'karnot') { try { h33Rest(); } catch (e) { /* */ } }
     try { if (!G.h134 && S.isDone(G, 'karnot')) { migrate11(G, true); persist(); } } catch (e) { /* */ }
     try { const d = h34Make(); const ok = !!(d && d.rest && d.rest()); if (ok) setTimeout(() => h34Visits(), 400); return ok; } catch (e) { console.warn('[h134] rest', e && e.message); return false; }
@@ -3868,7 +3868,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   /** stage 12 done, the page reloaded: stage 11's horns first (its rest), then the kiyor and its machine from his save; an old save
    *  whose old stage 12 was done gets the crews' (migrate12, once) */
   function h35Rest() {
-    if (H9 && !['ulam', 'kiyor', 'karnot', 'guf', 'sovev', 'yesod', 'lishka', 'nikanor', 'nashim'].includes(H9.site)) return false;   // (a later stage's director owns the page)
+    if (H9 && !['kiyor', 'karnot', 'guf', 'sovev', 'yesod', 'lishka', 'nikanor', 'nashim'].includes(H9.site)) return false;   // (a later stage's director owns the page)
     if (!H9 || H9.site !== 'kiyor') { try { h34Rest(); } catch (e) { /* */ } }
     try { if (!G.h135 && S.isDone(G, 'kiyor')) { migrate12(G, true); persist(); } } catch (e) { /* */ }
     try { const d = h35Make(); const ok = !!(d && d.rest && d.rest()); if (ok) setTimeout(() => h35Visits(), 400); return ok; } catch (e) { console.warn('[h135] rest', e && e.message); return false; }

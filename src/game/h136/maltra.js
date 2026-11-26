@@ -178,7 +178,7 @@ function make(m, X) {
       try {
         V.frame && V.frame();
         if (!A.busy && !A.finished) {
-          const inp = { T: tensions(), tap: A.tap }; A.tap = false;
+          const inp = A.feed ? A.feed(S) : { T: tensions(), tap: A.tap }; A.tap = false;   // (A.feed: the probes' bot)
           const evs = K.step(S, Math.min(dt, 1 / 30), inp);
           for (const e of evs) handle(e);
         }
@@ -206,7 +206,7 @@ function make(m, X) {
         handles: [handleAt(0), handleAt(1)].map((p) => [Math.round(p.x), Math.round(p.y)]), held: [...F.values()].map((g) => g.h), ev: A.ev.slice(-12), gust: S.gust ? { warn: !!S.gust.warn, on: !!S.gust.on } : null };
     },
     /** the probes: the model's state and a hand on it (the bot's pulses, the fast probe) */
-    probe() { return { S, K }; },
+    probe() { return { S, K, A }; },
   };
 }
 export const MALTRA_ACT = { icon: '🪵', title: 'חמש המלתראות', walkLine: () => 'המלתראות: אל רגלי המעלות, מול הפתח', stand() { return { x: MA.handler[0], z: MA.handler[1], face: [FR.face, 0] }; }, prepare() {}, make };

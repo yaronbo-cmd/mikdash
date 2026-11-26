@@ -177,7 +177,8 @@ function make(m, X) {
       try {
         V.frame && V.frame();
         if (!A.busy && !A.finished) {
-          const inp = { slide: A.sl ? (A.sl.want != null ? A.sl.want : S.px) : null, tilt: A.tl ? (A.tl.want != null ? A.tl.want : S.phi) : null, held: !!(A.sl || A.tl) };
+          let inp = { slide: A.sl ? (A.sl.want != null ? A.sl.want : S.px) : null, tilt: A.tl ? (A.tl.want != null ? A.tl.want : S.phi) : null, held: !!(A.sl || A.tl) };
+          if (A.feed) { inp = A.feed(S) || {}; if (inp.pick != null) { if (A.view == null && K.pick(S, inp.pick)) { ev('pick:' + inp.pick); gear(); view(0.9); } inp = {}; } }   // (A.feed: the probes' bot)
           const evs = K.step(S, Math.min(dt, 1 / 30), inp);
           for (const e of evs) handle(e);
           // between poles the camera moves only when no finger is down
@@ -212,7 +213,7 @@ function make(m, X) {
         strap: sp && [Math.round(sp.x), Math.round(sp.y)], ring: rp && [Math.round(rp.x), Math.round(rp.y)], ppa: S.cur != null ? ppa() : null,
         picks: K.leftPoles(S).map((z) => { const p = scr(-86.5, S13.hallFloor + 2.2, z); return [z, Math.round(p.x), Math.round(p.y)]; }), held: { sl: !!A.sl, tl: !!A.tl }, ev: A.ev.slice(-12) };
     },
-    probe() { return { S, K }; },
+    probe() { return { S, K, A }; },
   };
 }
 export const KELONSA_ACT = { icon: '🌲', title: 'כלונסות הארז', walkLine: () => 'הכלונסות: אל המעלות, ופנימה אל חלל האולם', stand() { const s = S13.stands.kelonsa; return { x: s[0], z: s[1], face: [FR.face, 0] }; }, prepare() {}, make };

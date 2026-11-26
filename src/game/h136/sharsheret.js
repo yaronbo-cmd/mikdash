@@ -168,7 +168,8 @@ function make(m, X) {
         V.frame && V.frame();
         if (!A.busy && !A.finished) {
           const steady = [...A.f.values()].some((g) => g.role === 'steady');
-          const inp = { turn: A.turn || 0, steady }; A.turn = 0;
+          let inp = { turn: A.turn || 0, steady }; A.turn = 0;
+          if (A.feed) { const b = A.feed(S) || {}, out = []; if (b.nudge) K.nudge(S, b.nudge, out); if (b.lift && K.lift(S, b.lift)) V.rustle(0.6); if (b.aim != null) { K.aim(S, b.aim); if (b.grab) K.grab(S, out); } for (const e of out) handle(e); inp = { turn: b.turn || 0, steady: !!b.steady }; }   // (A.feed: the probes' bot)
           const evs = K.step(S, Math.min(dt, 1 / 30), inp);
           for (const e of evs) handle(e);
         } else if (A.busy) { K.step(S, Math.min(dt, 1 / 30), {}); }
@@ -196,7 +197,7 @@ function make(m, X) {
         steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.map((x) => x.f), done: S.done, busy: A.busy, finished: A.finished,
         hands: { R: (() => { const p = handScr('R'); return [Math.round(p.x), Math.round(p.y)]; })(), L: (() => { const p = handScr('L'); return [Math.round(p.x), Math.round(p.y)]; })() }, ppa: Math.round(ppa()), fingers: [...A.f.values()].map((g) => g.role), ev: A.ev.slice(-12) };
     },
-    probe() { return { S, K }; },
+    probe() { return { S, K, A }; },
   };
 }
 export const SHARSHERET_ACT = { icon: '⛓️', title: 'שרשראות הזהב', walkLine: () => 'השרשראות: אל המעלות, ופנימה אל השרשראות', stand() { const s = S13.stands.sharsheret; return { x: s[0], z: s[1], face: [S13.front.face, 0] }; }, prepare() {}, make };

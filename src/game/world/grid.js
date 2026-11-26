@@ -12,7 +12,7 @@
  *          entries [{ id, kind, x, z, y?, cell, label, src }] (cell = nameOf(cellOf(x, z)); src: the source, or "המחשה"), and the
  *          stage's own tables the code reads its places from (stage 05: h120/layout.js, routes.js and model.js read BOOK.s05)
  */
-import { KIYOR, KIYOR_MECHANISM, GAZIT, ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL, ULAM_TABLES } from '../../places.js';   // ── h136 ── (+ stage 13's: the Ulam, the Heichal's door, the steps, the levels, the tables) ── /h136 ──   // ── h135 ── (stage 12's places are derived from the shared map) ── /h135 ──
+import { KIYOR, KIYOR_MECHANISM, GAZIT, ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL, ULAM_TABLES, HEICHAL, KODESH, UPPER_OPENINGS } from '../../places.js';   // ── h136 ── (+ stage 13's: the Ulam, the Heichal's door, the steps, the levels, the tables) ── /h136 ──   // ── h135 ── (stage 12's places are derived from the shared map) ── /h135 ──
 export const CELL = 25;
 export const EAST = 277;          // mount.js PLAT.X1: the east wall's face
 export const NORTH = -183.5;      // mount.js SQUARE.z0: the 500-amah square's north edge
@@ -115,6 +115,7 @@ function makeBook() {
   stages.s11 = s11(stages.s10, stages.s07);   // ── h134 ── (build 134: stage 11's section, derived from stage 10's upper block) ── /h134 ──
   stages.s12 = s12(stages.s10, stages.s07);
   stages.s13 = s13(stages.s12);   // ── h136 ── (build 136: stage 13's section, derived from places.js ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL) ── /h136 ──   // ── h135 ── (build 135: stage 12's section, derived from places.js KIYOR, KIYOR_MECHANISM, GAZIT) ── /h135 ──
+  stages.s14 = s14(stages.s13, stages.s05);   // ── h137 ── (build 137: stage 14's section, derived from places.js HEICHAL, KODESH, UPPER_OPENINGS and stage 05's wood chamber) ── /h137 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -1736,5 +1737,129 @@ function s13(S12) {
   return { ...S13, entries: E };
 }
 // ── /h136 ──
+// ── h137 ── build 137: stage 14 "ההיכל" (spec docs/specs/shlav-14-he.md v3, approved by ChatGPT and Gemini 26.11, by the owner 26.11
+// 22:22 UTC). THE source of the stage's places (rule 65): the cells' wing (38 cells, Middot 4:3–4), the junction's five openings, the
+// northern pishpash and its passage, the hatches to the cell above, the mesibah and the route on the cells' roofs (Middot 4:5, 7), the
+// upper chamber's door; the carpenters' yard in the wood chamber of the women's court (Middot 2:5 "לשכת דיר העצים"; outside the Azarah:
+// 1 Kings 6:7), its bench and its pile; the two ceilings (Middot 4:6); the walls to gild, the doors, the mask's track, the scaffolds, the
+// finale's seam, the parapet's spikes. Derived from places.js HEICHAL, KODESH, UPPER_OPENINGS, HEICHAL_DOOR, LEVEL and BOOK.s05.
+//
+// THE MAZE as rooms: every walkable place an axis-aligned rectangle [x0, z0, x1, z1] with its floor y (a number, or a ramp
+// { x0: y0, x1: y1 } linear in x). Two rooms join where they share an edge and their floors meet there (within 0.6): that shared stretch
+// is an opening (a portal); every other edge is a wall. A room's kind: 'cell' (a cell or the junction: a step when he enters it on the
+// route), 'door' (the doorway through a wall: its sides and the corners of its mouths are the jambs — the stone corners of the spec's
+// damage), 'hall' (a long place: the passage, the Heichal, the ramp's pieces, the roofs: the camera follows on a lift), 'corner' (a turn
+// of the route on the roofs: a step), 'end' (the upper chamber's door: the last step). Units: amot; x east, z south (as everywhere).
+function s14(S13, S05) {
+  const r4 = (v) => Math.round(v * 10000) / 10000;
+  const F = LEVEL.azara, FL = LEVEL.heichal, H = HEICHAL, KD = KODESH, HD = HEICHAL_DOOR;
+  const FLOORS = [FL, FL + 5, FL + 10];   // (three storeys of 5: 1 Kings 6:10, said of the First House — המחשה)
+  const ROOF = FL + 15;                  // (37: the cells' roof)
+  // the north side, from the Heichal's north wall outward (Middot 4:7: wall 6, cell 6, cell wall 5, mesibah 3, wall 5); the Heichal's
+  // wall narrows an amah at each storey (Middot 4:4, Bartenura: "הולך ומצר כלפי מעלה"): the cell's inner face −17, −16, −15
+  const IN = [-17, -16, -15], OUT = -22;
+  const CL = 10, PW = 3.4, X1 = -98;       // (each cell 10 long, the partition 3.4: five cells from −98 to −161.6 — the lengths המחשה)
+  const DW = 2.4;                          // (a doorway 2.4 wide: the kohen 0.9 across — המחשה)
+  const cellX = (i) => [r4(X1 - i * (CL + PW) - CL), r4(X1 - i * (CL + PW))];
+  const rooms = [];
+  const room = (id, kind, r, y, o = {}) => { rooms.push({ id, kind, r: r.map(r4), y, ...o }); return id; };
+  for (let f = 0; f < 3; f++) {
+    const z0 = OUT, z1 = IN[f], zc = r4((z0 + z1) / 2);
+    for (let i = 0; i < 5; i++) {
+      const [x0, x1] = cellX(i);
+      const hatch = f < 2 ? { x: r4(x1 - 2.5), z: r4(OUT + 1.6), to: `n${f + 1}c${i}` } : null;   // (by the outer wall, not on a ledge's beam)
+      room(`n${f}c${i}`, 'cell', [x0, z0, x1, z1], FLOORS[f], { f, i, hatch, sign: i === 0 && f === 0 ? 'junction' : null });
+      if (i < 4) room(`n${f}d${i}`, 'door', [r4(x0 - PW), r4(zc - DW / 2), x0, r4(zc + DW / 2)], FLOORS[f], { f, axis: 'x', sign: i === 0 && f === 0 ? 'cell' : null });
+    }
+  }
+  // the junction's other four openings (Middot 4:3: "ובקרן מזרחית צפונית היו חמשה פתחים")
+  const JX = [-104.2, -101.8];
+  room('jMes', 'door', [JX[0], -27, JX[1], OUT], FL, { axis: 'z', sign: 'mesibah' });
+  room('jHei', 'door', [JX[0], IN[0], JX[1], -10], FL, { axis: 'z', sign: 'heichal' });
+  room('jPp', 'door', [-98, -20.7, -96, -18.3], FL, { axis: 'x', sign: 'pishpash' });
+  room('pp', 'hall', [-96, -20.7, -93.6, -7], FL, { cam: 'follow' });                       // (the passage in the wall's thickness: R' Yehuda)
+  room('ppOut', 'door', [-93.6, -9, -92, -7], FL, { axis: 'x' });                          // (the pishpash's mouth on the Ulam: z −9 … −7, y 22 … 26)
+  room('ulam', 'hall', [-92, -12, -86, -4], FL, { cam: 'follow', outside: 1 });             // (the Ulam's floor before it: only so that he may step back out)
+  room('heichal', 'hall', [H.x0, H.z0, H.x1, H.z1], FL, { cam: 'follow' });
+  // the mesibah: from the junction's door a landing, then the ramp west along the north (z −30 … −27, 3 wide: Middot 4:7) up to the
+  // cells' roof (37) at the north-west corner; the roofs: south over the west cells, east over the south ones, to the upper door
+  const MZ = [-30, -27], RX = [-165, -104.2];
+  room('mLand', 'hall', [-104.2, MZ[0], -98, MZ[1]], FL, { cam: 'follow' });
+  const RP = 6, rw = (RX[1] - RX[0]) / RP, yAt = (x) => r4(FL + ((RX[1] - x) / (RX[1] - RX[0])) * (ROOF - FL));
+  for (let k = 0; k < RP; k++) { const x1 = r4(RX[1] - k * rw), x0 = r4(RX[1] - (k + 1) * rw); room(`mR${k}`, 'hall', [x0, MZ[0], x1, MZ[1]], { x0: yAt(x0), x1: yAt(x1) }, { cam: 'follow' }); }
+  room('rNW', 'corner', [-171, MZ[0], -165, MZ[1]], ROOF);
+  room('rW', 'hall', [-171, MZ[1], -165, 17], ROOF, { cam: 'follow' });
+  room('rSW', 'corner', [-171, 17, -165, 22], ROOF);
+  room('rS', 'hall', [-165, 17, -150.2, 22], ROOF, { cam: 'follow' });
+  room('rS2', 'hall', [-147.8, 17, -138, 22], ROOF, { cam: 'follow' });
+  room('rSd', 'hall', [-150.2, 17, -147.8, 22], ROOF, { cam: 'follow' });
+  room('upDoor', 'end', [-150.2, 15, -147.8, 17], ROOF, { axis: 'z' });                        // ("שפתחה של עלייה פתוח לדרום": entered northward)
+  // the routes of the three levels (spec "טבלת הרמות"): the rooms that are steps, in order; a cut = the kohen brought back (a short film)
+  const routes = {
+    1: { start: { room: 'pp', x: -94.8, z: -8.6, yaw: -Math.PI / 2 }, steps: ['n0c0', 'n0c1', 'n1c1'] },
+    2: { start: { room: 'heichal', x: -103, z: -7.5, yaw: -Math.PI / 2 }, steps: ['n0c0', 'n0c1', 'n0c2', 'n0c3', 'n0c4', 'n1c4'] },
+    3: { start: { room: 'n0c1', x: -113.4, z: -19.5, yaw: Math.PI }, steps: ['n1c1', 'n1c2', 'n2c2', { cut: 1, room: 'n0c0', x: -103, z: -19.5, yaw: -Math.PI / 2 }, 'mLand', 'rNW', 'rSW', 'upDoor'] },
+  };
+  // the camera (spec "taim:cam"): isometric from the north-east, 30° over; 10 amot from the aim keeps him 120 dp tall (lens 40°)
+  const tcam = { el: 30, dist: 10.5, dir: [0.7071, -0.7071], fov: 40, lift: 1.2 };
+  const west = { x0: -171, x1: -165, z0: -16, z1: 16, per: [3, 3, 2] };   // ("שלשה על גבי שלשה ושנים על גביהן", Middot 4:3)
+  const wing = { n: { z0: -35, z1: -10 }, s: { z0: 10, z1: 35 }, x0: -176, x1: X1, outer: [-27, -22], mWall: [-35, -30], drain: [27, 30] };
+  const taim = { floors: FLOORS, roof: ROOF, inner: IN, outer: OUT, cellLen: CL, part: PW, doorW: DW, cells: [0, 1, 2, 3, 4].map(cellX), rooms, routes, cam: tcam, west, wing,
+    junction: { x0: -108, x1: X1, z0: OUT, z1: IN[0] }, pishpash: { x0: -93.6, x1: -92, z0: -9, z1: -7, y0: FL, y1: FL + 4 }, mesibah: { z0: MZ[0], z1: MZ[1], x0: -171, x1: -98 },
+    upDoor: { x0: -150.2, x1: -147.8, z: 16, poles: [[-150.6, 16.6], [-147.4, 16.6]] }, r: 0.45, h: 2.4 };
+  // the carpenters' yard: in the wood chamber of the women's court (the chamber's free north-east part, away from stage 05's trestles
+  // at (121, −46), its clean pile (128, −44) and its door 117 … 125 on z −29.5)
+  const WC = S05.chambers.find((c) => c.id === 'wood');
+  const yard = { chamber: [WC.x0, WC.z0, WC.x1, WC.z1], floor: S05.court.floor, bench: { x: 134, z: -40, len: 7, w: 1.6, h: 1.1 }, pile: [138.6, -40], chips: [130.4, -42.6], stand: [134, -37.4], face: [134, -40],
+    cam: [[134.9, 8.6, -34.6], [134, 7.2, -40]] };   // (45° over the board, 15° from its side — the spec's view)
+  // the two ceilings (Middot 4:6: כיור 1, בית דלפה 2, תקרה 1, מעזיבה 1) over the Heichal and the Kodesh, x −159 … −98, z ±10
+  const tikra = { x0: KD.x0, x1: H.x1, z0: H.z0, z1: H.z1, one: [62, 63, 65, 66, 67], two: [107, 108, 110, 111, 112], upper: UPPER_OPENINGS.y };
+  // the gilding: the inner faces of the three walls, y 22 … 62; segments in a row along each (המחשה), the mask's track, the doors
+  const zahav = {
+    north: { face: H.z0, axis: 'x', a0: H.x0, a1: H.x1, y0: FL, y1: H.y1, n: 4, normal: [0, 1] },
+    east: { face: H.x1, axis: 'z', a0: H.z0, a1: H.z1, y0: FL, y1: H.y1, n: 6, normal: [-1, 0] },
+    south: { face: H.z1, axis: 'x', a0: H.x0, a1: H.x1, y0: FL, y1: H.y1, n: 8, normal: [0, -1] },
+    seg: { y0: 30, y1: 38 },   // (the band he gilds by hand, eye height on the scaffold: the rest gilds itself by the same strokes — המחשה)
+    doors: { inner: { hinge: [[H.x1, -5], [H.x1, 5]], lie: [[-10, -5], [5, 10]], y0: HD.y0, y1: HD.y1, w: 5 }, outer: { hinge: [[-92, -5], [-92, 5]], lie: [-97, -92] } },
+    mask: { x: H.x1 - 0.05, z: [-5, 5], y: HD.y1 },
+    scaffold: { north: [-118, -8.2], east: [-99.8, 0], south: [-118, 8.2], h: 8 },
+    seam: { x: -118, z: H.z1, y0: 32, y1: 36 },
+    cam: { north: [[-118, 34.6, 2.4], [-118, 34, -10]], east: [[-110.5, 34.6, 0], [-98, 34, 0]], south: [[-118, 34.6, -2.4], [-118, 34, 10]] },
+  };
+  const roof = { y: S13.front.roof, parapet: S13.front.parapet, top: S13.front.top, spikes: { n: 24 } };
+  const S14 = {
+    stage: 14, name: 'ההיכל', floor: F, hallFloor: FL, heichal: { x0: H.x0, x1: H.x1, z0: H.z0, z1: H.z1, y0: H.y0, y1: H.y1 }, kodesh: { x0: KD.x0, x1: KD.x1 },
+    taim, yard, tikra, zahav, roof,
+    stands: { taim: [-90, -8.6], hakzaa: yard.stand, zahav: [-104, 0] },
+    champion: [-62, -24], start: [-70, 20],
+    cam: { open: [[-60, 120, 90], [-130, 40, 0]], end: { c: [-128, 60, 0], R: 80, y: 120 } },
+  };
+  const E = [];
+  const e3 = (id, kind, p, y, label, src, extra) => E.push(ent(id, kind, p[0], p[1], label, src, { y, extra }));
+  for (const R of rooms) { const [x0, z0, x1, z1] = R.r; e3(`taim:${R.id}`, R.kind === 'door' ? 'doorway' : R.kind, [(x0 + x1) / 2, (z0 + z1) / 2], typeof R.y === 'number' ? R.y : R.y.x1, `מקום במבוך (${R.kind}): x ${x0} עד ${x1}, z ${z0} עד ${z1}`, R.kind === 'cell' ? 'מדות ד, ג–ד (האורך המחשה)' : R.id.startsWith('m') || R.id.startsWith('r') ? 'מדות ד, ה ו-ז (הצורה המחשה)' : 'מדות ד, ג; תמיד ג, ז (המקום המחשה)', { box: [x0, z0, x1, z1] }); }
+  for (const R of rooms) if (R.hatch) e3(`taim:hatch:${R.id}`, 'hatch', [R.hatch.x, R.hatch.z], R.y, 'פתח בתקרת התא אל התא שמעליו', 'מדות ד, ג ("אחד לתא שעל גביו"; המקום המחשה)');
+  e3('taim:west', 'cells', [(west.x0 + west.x1) / 2, 0], FL, 'שמונה תאי המערב, שלושה, שלושה ושניים', 'מדות ד, ג');
+  e3('taim:south', 'cells', [-130, 19], FL, 'חמישה עשר תאי הדרום, תמונת ראי', 'מדות ד, ג');
+  e3('taim:upDoor:poles', 'pole', taim.upDoor.poles[0], ROOF, 'שני כלונסות ארז סטטיים בפתח העלייה', ILL);
+  e3('hakzaa:yard', 'yard', [(WC.x0 + WC.x1) / 2 + 6, -40], yard.floor, 'חצר הנגרים, בלשכת דיר העצים שבעזרת הנשים, מחוץ לעזרה', 'מדות ב, ה; מלכים א ו, ז (המקום המחשה)');
+  e3('hakzaa:bench', 'bench', [yard.bench.x, yard.bench.z], yard.floor, 'ספסל הנגרים והכנות', ILL);
+  e3('hakzaa:pile', 'pile', yard.pile, yard.floor, 'ערמת הקרשים', ILL);
+  e3('hakzaa:chips', 'chips', yard.chips, yard.floor, 'ערמת השבבים, נשארת בחצר', ILL);
+  e3('hakzaa:cam', 'cam', [yard.cam[0][0], yard.cam[0][2]], yard.cam[0][1], 'מצלמת ההקצעה: 45° מעל הלוח, 15° מהצד', ILL);
+  e3('tikra:1', 'ceiling', [(tikra.x0 + tikra.x1) / 2, 0], 62, 'התקרה הראשונה: כיור, בית דלפה, תקרה, מעזיבה, y 62 עד 67', 'מדות ד, ו');
+  e3('tikra:2', 'ceiling', [(tikra.x0 + tikra.x1) / 2, 0.5], 107, 'התקרה השנייה, y 107 עד 112', 'מדות ד, ו');
+  for (const k of ['north', 'east', 'south']) { const W = zahav[k]; e3(`zahav:${k}`, 'gildwall', W.axis === 'x' ? [(W.a0 + W.a1) / 2, W.face] : [W.face, (W.a0 + W.a1) / 2], W.y0, `הקיר להזהבה (${k}), ${W.n} מקטעים`, 'מדות ד, א (המקטעים המחשה)'); }
+  e3('doors:inner', 'door', [H.x1, 0], HD.y0, 'שתי הדלתות הפנימיות, פתוחות 180° ונחות על הכותל המזרחי מבפנים', 'מדות ד, א (הרוחב והפתיחה המחשה)');
+  e3('doors:outer', 'door', [-92, 0], HD.y0, 'שתי הדלתות החיצוניות, פתוחות לתוך הפתח', 'מדות ד, א (הרוחב המחשה)');
+  e3('zahav:mask:track', 'track', [zahav.mask.x, -5], zahav.mask.y, 'מסלול מסכת העץ לאורך גבול "אחר הדלתות"', ILL);
+  for (const [k, p] of Object.entries(zahav.scaffold)) if (Array.isArray(p)) e3(`zahav:scaffold:${k}`, 'scaffold', p, FL, `פיגום נמוך ליד הקיר (${k})`, ILL);
+  e3('zahav:seam', 'seam', [zahav.seam.x, zahav.seam.z - 0.01], zahav.seam.y0, 'התפר של הסיום, במרכז הכותל הדרומי', ILL);
+  e3('roof:keleorev', 'spikes', [-120, -10.5], roof.parapet, 'קוצי "כלה עורב" על המעקה', 'מדות ד, ו; ברטנורא; מלחמות ה (המספר המחשה)');
+  for (const [k, p] of Object.entries(S14.stands)) e3(`stand:${k}`, 'stand', p, k === 'hakzaa' ? yard.floor : FL, `היתד של עבודת ${k}`, ILL);
+  e3('champion14', 'seal', S14.champion, F, 'חותם האלוף של שלב 14', ILL);
+  e3('stand:start14', 'stand', S14.start, F, 'הכהן בתחילת השלב', ILL);
+  return { ...S14, entries: E };
+}
+// ── /h137 ──
 
 export const BOOK = makeBook();

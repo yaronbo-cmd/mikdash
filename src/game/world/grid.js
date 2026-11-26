@@ -12,7 +12,7 @@
  *          entries [{ id, kind, x, z, y?, cell, label, src }] (cell = nameOf(cellOf(x, z)); src: the source, or "המחשה"), and the
  *          stage's own tables the code reads its places from (stage 05: h120/layout.js, routes.js and model.js read BOOK.s05)
  */
-import { KIYOR, KIYOR_MECHANISM, GAZIT } from '../../places.js';   // ── h135 ── (stage 12's places are derived from the shared map) ── /h135 ──
+import { KIYOR, KIYOR_MECHANISM, GAZIT, ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL, ULAM_TABLES } from '../../places.js';   // ── h136 ── (+ stage 13's: the Ulam, the Heichal's door, the steps, the levels, the tables) ── /h136 ──   // ── h135 ── (stage 12's places are derived from the shared map) ── /h135 ──
 export const CELL = 25;
 export const EAST = 277;          // mount.js PLAT.X1: the east wall's face
 export const NORTH = -183.5;      // mount.js SQUARE.z0: the 500-amah square's north edge
@@ -113,7 +113,8 @@ function makeBook() {
   stages.s09 = s09();   // ── h132 ── (build 132: stage 09's section, derived from stage 08's) ── /h132 ──
   stages.s10 = s10(stages.s09);   // ── h133 ── (build 133: stage 10's section, derived from stage 09's block) ── /h133 ──
   stages.s11 = s11(stages.s10, stages.s07);   // ── h134 ── (build 134: stage 11's section, derived from stage 10's upper block) ── /h134 ──
-  stages.s12 = s12(stages.s10, stages.s07);   // ── h135 ── (build 135: stage 12's section, derived from places.js KIYOR, KIYOR_MECHANISM, GAZIT) ── /h135 ──
+  stages.s12 = s12(stages.s10, stages.s07);
+  stages.s13 = s13(stages.s12);   // ── h136 ── (build 136: stage 13's section, derived from places.js ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL) ── /h136 ──   // ── h135 ── (build 135: stage 12's section, derived from places.js KIYOR, KIYOR_MECHANISM, GAZIT) ── /h135 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -1646,5 +1647,94 @@ function s12(S10, S7) {
   return { ...S12, entries: E };
 }
 // ── /h135 ──
+
+/* ───────── ── h136 ── stage 13 "האולם" (build 136; spec docs/specs/shlav-13-he.md v4, approved by ChatGPT and Gemini 26.11 ~00:40 UTC,
+ * by the owner 26.11 14:18 UTC; "המקום בעולם: טבלת הכתובות (BOOK.s13)").
+ * Every place is DERIVED from places.js (ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL, ULAM_TABLES) and temple.js's lintels (x −76 … −75.3, the
+ * lowest at y 62.3, one every 2 amot, 1.1 high), never typed twice. The Ulam's hall x −92 … −81 (11 amot), z ±30, its floor y 22; its
+ * front wall x −81 … −76, z ±50, y 16 … 112; the opening z ±10, y 22 … 62; the Heichal's east wall x −98 … −92, z ±35.
+ * Units: amot (x east, z south, y up). Nothing random (rule 56). */
+function s13(S12) {
+  const r4 = (v) => Math.round(v * 10000) / 10000;
+  const F = LEVEL.azara, FL = LEVEL.heichal, U = ULAM, HD = HEICHAL_DOOR, ST = ULAM_STEPS;
+  const hall = { x0: U.x0, x1: U.x1, z0: U.z0, z1: U.z1, y0: U.y0, ceil: U.y1 };
+  const front = { x0: U.x1, x1: -76, z0: -50, z1: 50, y0: F, roof: 112, parapet: 115, top: 116, face: -76 };
+  const opening = { z0: -10, z1: 10, y0: FL, y1: 62 };
+  const heichalWall = { x0: -98, x1: U.x0, z0: -35, z1: 35, y0: F, roof: 112 };
+  const sideWalls = { n: [U.x0, -50, U.x1, U.z0], s: [U.x0, U.z1, U.x1, 50] };   // (the Ulam's wings north and south of the hall: its 100 by 100)
+  // the walls rise by themselves at the stage's start to 62 and on to 70 (spec "הסדר"); after works 1 and 2 to the ceiling and the roof
+  const rise = { first: 62, then: 70, ceil: U.y1, roof: front.roof };
+  // the five lintels (Middot 3:7; Bartenura: 22, 24, 26, 28, 30, each an amah past the one under it on each side, not touching)
+  const BEAM_H = 1.1, BEAM_D = 0.7;
+  const beams = [0, 1, 2, 3, 4].map((i) => ({ id: `maltra:${i + 1}`, i, len: 22 + 2 * i, y: r4(62.3 + 2 * i), h: BEAM_H, x0: front.face, x1: r4(front.face + BEAM_D), z: 0 }));
+  // the stone course under each lintel (the first under the lowest: the opening's head, 62 … 62.3) and between them (Middot 3:7: "ונדבך של אבנים היה בין כל אחת ואחת")
+  const courses = beams.map((b) => ({ id: `maltra:course${b.i + 1}`, i: b.i, y0: b.i ? r4(b.y - (2 - BEAM_H)) : opening.y1, y1: b.y, half: b.i ? r4(beams[b.i - 1].len / 2 + 1) : 11 }));
+  const topCourse = { y0: r4(beams[4].y + BEAM_H), y1: r4(beams[4].y + 2), half: 15 };
+  const restGap = 0.3;   // (the hook holds the beam's centre 0.3 off the face, 1.5 amot over its course — המחשה)
+  const maltra = {
+    beams, courses, topCourse, restGap, hang: 1.5, Lp: 3,
+    rest: (i) => ({ x: r4(front.face + restGap + BEAM_D / 2), y: r4(beams[i].y + 1.5), z: 0 }),
+    crane: { x: -70, z: 0, armTo: -75.6, y: ST.x0 > -80 ? F + 6 : F + 6 },   // (on the steps' top, small: he passes it on both sides)
+    handler: [-54.5, 0], handlerY: F,
+    cam: [[-52, 70, 0], [-76, 66.1, 0]],   // (from the east at the lintels' height, a little over them, down 10° to the course)
+    flag: [front.face + 0.4, 71.5, -15],   // (on the wall's head north of the opening: the gusts' herald)
+  };
+  // the cedar poles (Middot 3:8; R' Shemaiah: over the opening, above 40; Melekhet Shelomoh: 11 and a little; Tiferet Yisrael: round and thick)
+  const KY = 66, KL = 11.6, KR = 0.5;
+  const kelonsa = {
+    y: KY, len: KL, r: KR, zs: [-20, 0, 20], half: r4(KL / 2), pocket: { x0: -93, x1: U.x0, d: 1.0, dia: 1.2 }, seat: { x0: U.x1, x1: -80.7, d: 0.3, dia: 1.2 },
+    lock: { w: -92.3, e: -80.7 }, rail: { x0: -91.5, x1: -81.5, y: 72 }, scaffold: { y: 63, half: 2.2 },
+    tilt0: 20,   // (degrees, the east end up: 11.6 amot across the 11-amah gap clear both walls only from ~18.5°; the spec's 15° would sink both ends 0.1 into the walls)
+    // the camera south of each pole looking north (the Heichal's wall at the screen's left, the Ulam's front at its right: the spec's picture)
+    cam: (z) => [[-86.5, 64.6, z + 8], [-86.5, 66, z - 4]],
+    stand: [-86.5, 0],
+  };
+  // the golden chains (Middot 3:8) — one pair (המחשה), the four crowns over the Heichal's windows (Tiferet Yisrael; Zechariah 6:14)
+  const chains = { x: -86.5, z: [-15.4, -14.6], zc: -15, top: U.y1, bottom: 23, link: 0.25, start: { 1: 72, 2: 62, 3: 42 }, hands: 86, eye: 87.2 };
+  const windows = [-20, -8, 8, 20].map((z) => ({ z, x: U.x0, y0: 80, y1: 85, w: 2 }));
+  const CR = [['helem', 'חלם', -20], ['tuviah', 'טוביה', -8], ['yedaiah', 'ידעיה', 8], ['hen', 'חן', 20]];
+  const crowns = CR.map(([k, he, z]) => ({ id: `crown:${k}`, k, he, x: -91.8, y0: 86, y1: 89, y: 87.5, z }));
+  const glint = { x: chains.x, y: chains.eye, z: r4(chains.zc + 0.6), r: 0.25 };
+  const scaffolds = [72, 62, 42].map((y) => ({ y, x: chains.x, z: chains.zc, half: 1.6 }));
+  const finale = { rail: { x: -55, y: 40, z0: -40, z1: 40 }, look: [-78, 52, 0], sun: [60, 14, 6] };
+  const steps = { x0: ST.x0, x1: ST.x1, z0: ST.z0, z1: ST.z1, xr: [-55, -56, -57, -60, -61, -62, -65, -66, -67, -70, -71, -72], rise: 0.5 };
+  const S13 = {
+    stage: 13, name: 'האולם', floor: F, hallFloor: FL, hall, front, opening, heichalWall, heichalDoor: { x0: HD.x0, x1: HD.x1, z0: HD.z0, z1: HD.z1, y0: HD.y0, y1: HD.y1 },
+    sideWalls, rise, maltra, kelonsa, chains, windows, crowns, glint, scaffolds, finale, steps, tables: { marble: [ULAM_TABLES.marble.x, ULAM_TABLES.marble.z], gold: [ULAM_TABLES.gold.x, ULAM_TABLES.gold.z] },
+    champion: [-57, -24], start: [-50, 30],
+    stands: { maltra: [-54.5, 0], kelonsa: [-56.5, -10], sharsheret: [-56.5, 10] },   // (the last two on the steps' lowest treads, west of the altar)
+    cam: { open: [[-10, 70, 60], [-80, 50, 0]], end: { c: [-80, 40, 0], R: 60, y: 60 } },
+  };
+  const E = [];
+  const e3 = (id, kind, p, y, label, src, extra) => E.push(ent(id, kind, p[0], p[1], label, src, { y, extra }));
+  e3('ulam:hall', 'hall', [(hall.x0 + hall.x1) / 2, 0], hall.y0, `חלל האולם: x ${hall.x0} עד ${hall.x1}, z ±30, y ${hall.y0} עד ${hall.ceil}`, 'מדות ד, ז', { box: [hall.x0, hall.z0, hall.x1, hall.z1] });
+  e3('ulam:front', 'wall', [(front.x0 + front.x1) / 2, 0], F, `כותל האולם (החזית): x ${front.x0} עד ${front.x1}, z ±50, y ${F} עד ${front.roof}`, 'מדות ד, ז', { box: [front.x0, front.z0, front.x1, front.z1] });
+  e3('ulam:opening', 'opening', [(front.x0 + front.x1) / 2, 0], FL, 'פתח האולם: z ±10, y 22 עד 62 (ארבעים על עשרים)', 'מדות ג, ז');
+  e3('heichal:eastwall', 'wall', [(heichalWall.x0 + heichalWall.x1) / 2, 0], F, `כותל ההיכל המזרחי: x ${heichalWall.x0} עד ${heichalWall.x1}, z ±35`, 'מדות ד, ז', { box: [heichalWall.x0, heichalWall.z0, heichalWall.x1, heichalWall.z1] });
+  e3('heichal:door', 'door', [(HD.x0 + HD.x1) / 2, 0], HD.y0, 'פתח ההיכל, פתוח, בלי דלתות (הן בשלב 14)', 'מדות ד, א');
+  for (const w of windows) e3(`heichal:window${w.z}`, 'window', [w.x, w.z], w.y0, `חלון בפני כותל ההיכל, y ${w.y0} עד ${w.y1}`, 'תפארת ישראל (המקום המחשה)');
+  for (const c of crowns) e3(c.id, 'crown', [c.x, c.z], c.y0, `עטרת ${c.he}, מעל החלון`, 'מדות ג, ח; זכריה ו, יד (המקום והשיוך המחשה)');
+  e3('crown:hen:glint', 'glint', [glint.x, glint.z], glint.y, 'אזור הברק של חן: כדור ברדיוס 0.25, 0.6 אמה דרומה מהעיניים במנוחה', ILL);
+  for (const b of beams) e3(b.id, 'beam', [(b.x0 + b.x1) / 2, b.z], b.y, `מלתרא ${b.i + 1}: אורך ${b.len}, y ${b.y}`, 'מדות ג, ז; ברטנורא');
+  for (const c of courses) e3(c.id, 'course', [front.face + 0.35, 0], c.y0, `הנדבך שתחת מלתרא ${c.i + 1}`, 'מדות ג, ז');
+  e3('maltra:crane', 'crane', [maltra.crane.x, maltra.crane.z], F + 6, 'מכונת ההרמה, עגורן עץ על המעלות', ILL);
+  e3('maltra:handlerPos', 'stand', maltra.handler, F, 'עמדת הכהן בעזרה, למרגלות המעלות', ILL);
+  e3('maltra:rest', 'rest', [maltra.rest(0).x, 0], maltra.rest(0).y, 'נקודת המנוחה של מרכז הקורה: 0.3 מפני החזית, 1.5 מעל הנדבך', ILL);
+  e3('maltra:cam', 'cam', [maltra.cam[0][0], maltra.cam[0][2]], maltra.cam[0][1], 'מצלמת המלתראות', ILL);
+  for (const z of kelonsa.zs) e3(`kelonsa:${z}`, 'pole', [(kelonsa.lock.w + kelonsa.lock.e) / 2, z], KY, `כלונס ארז, z ${z}: x ${kelonsa.lock.w} עד ${kelonsa.lock.e} בנטייה 0`, 'מדות ג, ח; ר\' שמעיה; מלאכת שלמה (המחשה)');
+  e3('kelonsa:pockets', 'pocket', [(kelonsa.pocket.x0 + kelonsa.pocket.x1) / 2, 0], KY, 'השקעים העמוקים בכותל ההיכל, x −93 עד −92', ILL);
+  e3('kelonsa:seats', 'seat', [(kelonsa.seat.x0 + kelonsa.seat.x1) / 2, 0], KY, 'המושבים הרדודים בכותל האולם, x −81 עד −80.7', ILL);
+  e3('kelonsa:rail', 'rail', [(kelonsa.rail.x0 + kelonsa.rail.x1) / 2, 0], kelonsa.rail.y, 'מסילת הגררה הזמנית, מוסרת בסוף', ILL);
+  e3('kelonsa:scaffold', 'scaffold', [-86.5, 0], kelonsa.scaffold.y, 'הפיגום שמתחת לכלונסות', ILL);
+  e3('chains:pair', 'chain', [chains.x, chains.zc], chains.bottom, `זוג שרשראות הזהב: z ${chains.z[0]} ו-${chains.z[1]}, מ-y ${chains.top} עד ${chains.bottom}`, 'מדות ג, ח (הזוג המחשה)');
+  for (const s of scaffolds) e3(`chains:start${s.y}`, 'scaffold', [s.x, s.z + 1.2], s.y, `נקודת ההתחלה בשרשראות, y ${s.y}`, ILL);
+  e3('finale:rail', 'cam', [finale.rail.x, 0], finale.rail.y, 'מסלול המצלמה בסיום, z −40 עד 40', ILL);
+  for (const [k, p] of Object.entries(S13.stands)) e3(`stand:${k}`, 'stand', p, F, `היתד של עבודת ${k}`, ILL);
+  e3('champion', 'seal', S13.champion, F, 'חותם האלוף של שלב 13', ILL);
+  e3('stand:start13', 'stand', S13.start, F, 'הכהן בתחילת השלב', ILL);
+  void S12;
+  return { ...S13, entries: E };
+}
+// ── /h136 ──
 
 export const BOOK = makeBook();

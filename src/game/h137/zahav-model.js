@@ -2,7 +2,8 @@
  * Everything in the segment's own frame, in dp (the act maps the fingers onto it): a segment W × H; its leaves side by side, each
  * overlapping the one before by OV (the target 4–8: 6). Per segment, the tools in the work hand change by themselves, in order:
  *   1. WET — the broad brush (radius BRUSH; level 1: the whole height in one stroke) over the segment: every cell of the wet grid
- *      covered; a cell crossed more than twice within PUDDLE_T is a puddle (the step capped at 20: a wrinkle later);
+ *      covered; a cell the brush comes onto a third time within PUDDLE_T is a puddle (the step capped at 20: a wrinkle later; the
+ *      brush staying on a cell along a stroke is one pass);
  *   2. LEAF × n — a tap on the cushion lifts a leaf on the gilder's tip; a drag to its slot and a release in ONE motion: no pulling
  *      back (the finger moving back toward the cushion by PULL dp in the last 0.12 s tears it); within SNAP of the slot it snaps into
  *      the overlap: ≤ GOLD both ways = 40, else 20 (borderline); beyond: a hole (short of the slot, or off the height) or a deep
@@ -32,7 +33,7 @@ export function fresh(lv) {
 function seg(S, i) {
   S.k = i; S.g = S.P.segs[i];
   S.phase = 'wet'; S.wet = new Array(ZH.COLS * ZH.ROWS).fill(0); S.wetT = new Array(ZH.COLS * ZH.ROWS).fill(-9); S.wetN = new Array(ZH.COLS * ZH.ROWS).fill(0);
-  S.puddle = false; S.warn = false; S.leaf = 0; S.held = null; S.leaves = []; S.border = false; S.patch = false; S.borderline = false; S.wrinkle = false;
+  S.puddle = false; S.under = new Set(); S.warn = false; S.leaf = 0; S.held = null; S.leaves = []; S.border = false; S.patch = false; S.borderline = false; S.wrinkle = false;
   S.burn = new Array(ZH.COLS * ZH.ROWS).fill(0); S.burnFast = new Array(ZH.COLS * ZH.ROWS).fill(0); S.steady = 0; S.brush = null; S.agate = null;
 }
 const ev = (S, e) => { S.ev.push(e); return e; };
@@ -56,18 +57,24 @@ export function step(S, dt, inp = {}) {
   if (S.phase === 'wet') {
     if (w && w.down) {
       if (!S.brush) { S.brush = { x: w.x, y: w.y }; if (S.g.border && !masked(S) && !S.warn) { S.warn = true; ev(S, { k: 'warn' }); } }
+      const now = new Set();
       const R = S.P.wetOne ? ZH.H : ZH.BRUSH, steps = Math.max(1, Math.ceil(Math.hypot(w.x - S.brush.x, w.y - S.brush.y) / 6));
       for (let i = 1; i <= steps; i++) {
         const x = S.brush.x + (w.x - S.brush.x) * i / steps, y = S.brush.y + (w.y - S.brush.y) * i / steps;
         const ys = S.P.wetOne ? [ZH.H * 0.125, ZH.H * 0.375, ZH.H * 0.625, ZH.H * 0.875] : [y];
         for (const yy of ys) for (const c of cellsNear(x, yy, S.P.wetOne ? ZH.W / ZH.COLS * 0.75 : R)) {
-          if (S.wet[c] && S.t - S.wetT[c] > 0.2) { S.wetN[c] = S.t - S.wetT[c] < ZH.PUDDLE_T ? S.wetN[c] + 1 : 1; if (S.wetN[c] > 2 && !S.puddle) { S.puddle = true; ev(S, { k: 'puddle', c }); } }
-          if (!S.wet[c] || S.t - S.wetT[c] > 0.2) S.wetT[c] = S.t;
-          S.wet[c] = 1;
+          // a pass = the brush coming onto the cell again (it was not under it the frame before): a third pass within PUDDLE_T = a puddle
+          const enter = !S.under.has(c) && !now.has(c); now.add(c);
+          if (enter) {
+            if (S.wet[c]) { S.wetN[c] = S.t - S.wetT[c] < ZH.PUDDLE_T ? S.wetN[c] + 1 : 1; if (S.wetN[c] > 2 && !S.puddle) { S.puddle = true; ev(S, { k: 'puddle', c }); } }
+            else S.wetN[c] = 1;
+          }
+          S.wetT[c] = S.t; S.wet[c] = 1;
         }
       }
+      S.under = now;
       S.brush = { x: w.x, y: w.y };
-    } else if (S.brush) { S.brush = null; if (wetDone(S)) { S.phase = 'leaf'; S.leaf = 0; ev(S, { k: 'wet-done' }); } }
+    } else if (S.brush) { S.brush = null; S.under = new Set(); if (wetDone(S)) { S.phase = 'leaf'; S.leaf = 0; ev(S, { k: 'wet-done' }); } }
     return S.ev;
   }
   if (S.phase === 'leaf') {

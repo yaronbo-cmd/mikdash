@@ -233,7 +233,7 @@ function make(m, X) {
     at,
     dbg() {
       const r = (v) => Math.round(v), sc = (x, y) => { const p = segScr(x, y); return [r(p.x), r(p.y)]; }, mk = maskScr();
-      return { id: m.id, lv, k: S.k, phase: S.phase, leaf: S.leaf, held: !!S.held, wet: S.wet.filter((v) => v).length, burn: S.burn.filter((v) => v >= ZH.BURN_N).length, mask: +(S.mask == null ? -1 : S.mask).toFixed(3), need: S.g.border, steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.length, done: S.done,
+      return { id: m.id, lv, finished: A.finished, busy: A.busy, k: S.k, phase: S.phase, leaf: S.leaf, held: !!S.held, wet: S.wet.filter((v) => v).length, burn: S.burn.filter((v) => v >= ZH.BURN_N).length, mask: +(S.mask == null ? -1 : S.mask).toFixed(3), need: S.g.border, steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.length, done: S.done,
         cush: sc(cushX, cushY), seg0: sc(0, 0), seg1: sc(ZH.W, ZH.H), slot: S.phase === 'leaf' ? sc(K.slotX(S.g.n, S.leaf), ZH.H / 2) : null, maskAt: mk ? [r(mk.x), r(mk.y)] : null, ev: A.ev.slice(-12) };
     },
     probe() { return { S, K, A }; },

@@ -117,6 +117,8 @@ function make(m, X) {
   if (!S) S = K.fresh(lv);
   let k0 = ''; const keep = () => { const b = K.save(S, m.id), k = JSON.stringify(b); if (k === k0) return; k0 = k; Mo.keep(m.k, b); X.save(); };
   const G = buildMaze(X, root, lv);
+  const chipAt = (x, y, z) => { const c = box(X, Mt.y14break, x - 0.15, y + 0.6, z - 0.15, x + 0.15, y + 1.0, z + 0.15, root); c.rotation.y = 0.6; return c; };
+  for (const c of Mo.st.corners || []) if (c && c.x != null) chipAt(c.x, c.y, c.z);   // (the corners broken on earlier visits stay)
   const kohen = kohenWalker(X); root.add(kohen);
   const ringM = new T.Mesh(new T.TorusGeometry(0.95, 0.07, 6, 40), Mt.y14ringL); ringM.rotation.x = -Math.PI / 2; ringM.renderOrder = 5; root.add(ringM);
   const tick = new T.Mesh(new T.ConeGeometry(0.16, 0.36, 6), Mt.y14ringL); tick.rotation.z = -Math.PI / 2; tick.renderOrder = 5; root.add(tick);   // (the ring's mark: the way he faces)
@@ -225,8 +227,8 @@ function make(m, X) {
       V.crack(); ev('break:' + e.door);
       hurt(X, Mo, 'taim.corner', at(), { lv, at: e.door });
       try { X.dust(e.x, S.y + 1, e.z, 8, 2); } catch (er) { /* */ }
-      if (e.door && !(Mo.st.corners || []).includes(e.door)) { (Mo.st.corners = Mo.st.corners || []).push(e.door); }
-      const chip = box(X, Mt.y14break, e.x - 0.15, S.y + 0.6, e.z - 0.15, e.x + 0.15, S.y + 1.0, e.z + 0.15, root); chip.rotation.y = 0.6;
+      const C = (Mo.st.corners = Mo.st.corners || []); if (!C.some((c) => c && c.d === e.door)) C.push({ d: e.door, x: +(+e.x).toFixed(2), y: S.y, z: +(+e.z).toFixed(2) });   // (kept: "שברים בפינות האבן נשארים")
+      chipAt(e.x, S.y, e.z);
     } else if (e.k === 'free') { V.knock(); ev('free'); try { X.line('ניסוי חינם: פגיעה חזקה בפינה שוברת אותה. היכנסו ישר לפתח', 2600); } catch (er) { /* */ } }
     else if (e.k === 'detour') { V.hollow(1.4); ev('detour'); }
     else if (e.k === 'rise') { V.rise(); ev('rise' + (e.rim ? ':rim' : '')); }
@@ -262,7 +264,7 @@ function make(m, X) {
     if (A.helper && A.helper.x != null) rings.helper.show(A.helper.x, A.helper.y, 0.4, false); else rings.helper.hide();
     lights();
     // the settling beams
-    for (let i = A.settle.length - 1; i >= 0; i--) { const s = A.settle[i]; s.t += dt; const k = Math.min(1, s.t / 0.35); s.m.position.y = s.y1 + 1.2 * (1 - k * k); if (k >= 1 && !s.hit) { s.hit = 1; V.thud(); try { X.dust(s.x, s.y + 4.4, s.z, 8, 3); } catch (e) { /* */ } } if (s.t > 0.6) A.settle.splice(i, 1); }
+    for (let i = A.settle.length - 1; i >= 0; i--) { const s = A.settle[i]; s.t += dt; const k = Math.min(1, s.t / 0.35); s.m.position.y = s.y1 + 1.2 * (1 - k * k); if (k >= 1 && !s.hit) { s.hit = 1; V.thud(); try { X.dust(s.x, s.y + 4.4, s.z, 4, 1.5); } catch (e) { /* */ } } if (s.t > 0.6) A.settle.splice(i, 1); }
     if (S.phase === 'rise' && S.rise) { /* (he goes up through the hatch: the camera follows when he is through) */ }
   }
   return {
@@ -304,7 +306,7 @@ function make(m, X) {
     at,
     dbg() {
       const r3 = (v) => +(+v).toFixed(3);
-      return { id: m.id, lv, room: S.room, x: r3(S.x), z: r3(S.z), y: r3(S.y), yaw: r3(S.yaw / RAD), phase: S.phase, halt: S.halt, k: S.k, steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.map((x) => x.at), done: S.done,
+      return { id: m.id, lv, finished: A.finished, busy: A.busy, room: S.room, x: r3(S.x), z: r3(S.z), y: r3(S.y), yaw: r3(S.yaw / RAD), phase: S.phase, halt: S.halt, k: S.k, steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.map((x) => x.at), done: S.done,
         pelvis: (() => { const p = pelvis(); return [Math.round(p.x), Math.round(p.y)]; })(), feet: (() => { const p = feet(); return [Math.round(p.x), Math.round(p.y)]; })(), work: !!A.work, helper: !!A.helper, edge: !!A.edge, ev: A.ev.slice(-12), cam: A.camKey };
     },
     probe() { return { S, K, A }; },

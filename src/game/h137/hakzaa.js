@@ -197,7 +197,9 @@ function make(m, X) {
       award(X, at(), e.grade, lv, 'קרש');
       if (lv === 1 && e.two) extra(X, 10, lv, 'two', 'שתי ידיים');
       if (e.grade === 'gold') V.clean(); else V.right();
-      A.sheen = 1; A.lift = 0.001; addPile(false); keep();
+      A.sheen = 1; A.lift = 0.001; addPile(false);
+      { const P = (Mo.st.planks = Mo.st.planks || []); P.push({ i: e.i, lv, scars: S.b.scars.slice() }); if (P.length > 24) P.splice(0, P.length - 24); }   // (his boards: the nesarim in the ceiling)
+      keep();
     } else if (e.k === 'board') { ev('board' + e.i); V.board(); buildBoard(); A.lift = 0; paintCoal(); keep(); }
     else if (e.k === 'done') { ev('done'); done(); }
   }
@@ -272,7 +274,7 @@ function make(m, X) {
     at,
     dbg() {
       const r = (v) => Math.round(v), h0 = handleAt(0), h1 = handleAt(1), w = wheelAt(), ax = axis();
-      return { id: m.id, lv, phase: S.phase, k: S.k, passes: S.passes, depth: S.depth, p: +S.p.toFixed(1), skew: +S.skew.toFixed(1), ex: +K.excess(S.b).toFixed(3), steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.length, done: S.done,
+      return { id: m.id, lv, finished: A.finished, busy: A.busy, phase: S.phase, k: S.k, passes: S.passes, depth: S.depth, p: +S.p.toFixed(1), skew: +S.skew.toFixed(1), ex: +K.excess(S.b).toFixed(3), steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.length, done: S.done,
         hA: [r(h0.x), r(h0.y)], hB: [r(h1.x), r(h1.y)], wheel: [r(w.x), r(w.y)], pxPerDp: +(ax.k / dp(1)).toFixed(3), work: !!A.work, helper: !!A.helper, ev: A.ev.slice(-12) };
     },
     probe() { return { S, K, A }; },

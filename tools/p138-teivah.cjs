@@ -20,7 +20,8 @@ module.exports = async ({ pg, st, shot, log, wait, unmodal }) => {
     if (rep === 0) await shot('teivah-pass');
   }
   log('one-pass', JSON.stringify(await pg.evaluate(() => { const S = globalThis.__T138; return S && S.st ? S.st.lips.map((l) => [l.fixed, +Math.max(...l.s.map((q) => q.h)).toFixed(3)]) : null; })));
+  await pg.evaluate(() => { globalThis.__H138_FF = 30; });
   // fast-forward: the remaining lips are flattened in the model (the real drag was checked above), so the run reaches the end
-  for (let i = 0; i < 12; i++) { const d = await pg.evaluate(() => { const S = globalThis.__T138; if (!S || S.done) return true; for (const l of S.st.lips) { for (const q of l.s) q.h = 0; l.fixed = true; } return false; }); if (d) break; await wait(1500); }
+  for (let i = 0; i < 12; i++) { const d = await pg.evaluate(() => { const S = globalThis.__T138; if (!S || S.done) return true; for (const l of S.st.lips) { for (const q of l.s) q.h = 0; l.fixed = true; } return false; }); if (d) break; await pg.mouse.move(520, 316); await pg.mouse.down(); await wait(200); await pg.mouse.up(); await wait(1500); }   // a tap closes the pass (the station is checked when a drag ends)
   await pg.evaluate(() => { globalThis.__H138_FF = 30; }); for (let i = 0; i < 30; i++) { await unmodal(); const s = await st(); if (s && (s.phase !== 'act' || (s.act && s.act.finished))) break; await wait(3000); } await wait(8000); log('after', JSON.stringify(await st()).slice(0, 400)); await shot('teivah-end');
 };

@@ -23,7 +23,7 @@
  * Nothing random: every board's shape is its index's. The work's first tear is a free try. */
 export const HK = Object.freeze({
   N: 20, LANES: 3, TRAVEL: 160, BOARD: 300, PLANE: 140, EPS: 0.04, DEPTH: [0.3, 0.6, 1.0], SKEW_MAX: 8, SKEW_OK: 4, SKEW_CUT: 0.85,
-  CLEAN_V: 240, TEAR_V: 300, V_TAU: 0.08, V_HYST: 20, TEAR_RUN: 70, DEEP_MAX: 330, PASS_MIN: 0.06, SCAR: 0.3, THIN: 2.4, GAUGE: 0.15, LEAN: 0.8,
+  CLEAN_V: 240, TEAR_V: 300, V_TAU: 0.08, V_HYST: 20, TEAR_RUN: 70, DEEP_MAX: 330, PASS_MIN: 0.06, DRAG_V: 340, SCAR: 0.3, THIN: 2.4, GAUGE: 0.15, LEAN: 0.8,
 });
 export const NAMES = Object.freeze(['דק', 'בינוני', 'עמוק']);
 export const LEVEL = Object.freeze({ 1: { boards: 3, passes: 3 }, 2: { boards: 4, passes: 4 }, 3: { boards: 4, passes: 6, pairs: true } });   // (passes: a fallback; each board's par is its own)
@@ -116,7 +116,8 @@ export function step(S, dt, inp = {}) {
   }
   let p = Math.max(0, Math.min(HK.TRAVEL, inp.p != null ? inp.p : S.p));
   // the deep plane is heavy: it lags a finger that outruns it
-  const vmax = S.depth === 2 ? HK.DEEP_MAX : 1e9;
+  // the deep plane is heavy; against the grain the plane drags (it is felt, not only heard: build 137 levels review)
+  const vmax = S.depth === 2 ? HK.DEEP_MAX : S.stroke && S.stroke.against ? HK.DRAG_V : 1e9;
   const want = p - S.p, can = vmax * dt; if (Math.abs(want) > can) p = S.p + Math.sign(want) * can;
   if (!S.stroke) { S.stroke = { p0: S.p, lo: S.p, hi: S.p, dir: 0, fast: 0, chipped: false, cut: 0, cells: new Set(), long: true }; ev(S, { k: 'stroke' }); }
   const st = S.stroke, dp = p - S.p, v0 = Math.abs(dp) / Math.max(1e-4, dt);
@@ -154,7 +155,7 @@ function cut(S, c, dir, st) {
   }
   // a pass over a flat board takes the depth off its thickness (level 3: the gauge)
   if (flatCell(b, c)) st.flatCut = (st.flatCut || 0) + d * k / HK.N;
-  st.cut += any;
+  st.cut += any; st.against = !with_ && any > 0;
   // (against the grain and no tear: the plane chatters — level 3 has no arrows, this is how the grain is read)
   if (!with_ && any > 0 && !st.rough) { st.rough = true; ev(S, { k: 'rough', c }); }
 }
@@ -164,7 +165,8 @@ function endStroke(S) {
   const st = S.stroke; S.stroke = null; if (!st) return;
   const span = (st.hi - st.lo) / HK.TRAVEL;
   if (span < 0.05) { ev(S, { k: 'nostroke' }); return; }
-  const pass = span >= HK.PASS_MIN; if (pass) S.passes++;
+  // (a pass = a real stroke: a short one counts only if it took wood — a finger set down or a slip on the handle does not)
+  const pass = span >= HK.PASS_MIN && (st.cut > 0.002 || span >= 0.15); if (pass) S.passes++;
   // the board's thickness: what came off where it was already flat (the gauge's reading)
   S.b.removed += st.flatCut || 0;
   ev(S, { k: 'pass', n: S.passes, pass, long: st.long && st.cut > 0.05, span: +span.toFixed(2), cut: +st.cut.toFixed(3) });

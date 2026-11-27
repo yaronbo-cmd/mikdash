@@ -20,7 +20,7 @@ import { BOOK } from '../world/grid.js';
 const T14 = BOOK.s14.taim;
 export const TM = Object.freeze({
   R: T14.r, VMAX: 2.3, BACK: 0.5, STEER: 2.4, AUTO: 1.0, AUTO_ANG: 30, AUTO2: 0.5, AUTO_ANG2: 20, BREAK_V: 0.95, BREAK_ANG: 45, BOUNCE: 0.35, HATCH_R: 0.85, HATCH_GOLD: 0.35, HATCH_VIA: 0.5,
-  RISE_T: 1.0, CUT_T: 1.2, EPS: 1e-6, JOIN: 0.6, SEE: 6,
+  RISE_T: 1.0, CUT_T: 1.2, PEEK_T: 1.5, EPS: 1e-6, JOIN: 0.6, SEE: 6,
 });
 const RAD = Math.PI / 180;
 const wrap = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
@@ -122,7 +122,7 @@ export function fresh(lv) {
 }
 /** a step begins: where he stands now (a dead end brings him back here), the shortest way's cells (the par) */
 function stepStart(S) {
-  S.from0 = { room: S.room, x: S.x, z: S.z, yaw: S.yaw }; S.cells = 0; S.stuck = false;
+  S.from0 = { room: S.room, x: S.x, z: S.z, yaw: S.yaw }; S.cells = 0; S.stuck = false; S.peek = false; S.peeking = false; S.still = 0;
   const tg = target(S); S.par = tg && !tg.cut && S.mode !== 'lit' ? cellsIn(pathTo(S, S.room, tg.room)) : null;
 }
 export const begin = (S) => { if (!S.from0) stepStart(S); };
@@ -183,7 +183,8 @@ function stepDone(S, roomId, how) {
   let grade = S.detour && g !== 'gold' ? 'ok' : S.detour ? 'ok' : g;
   // levels 2–3 (find the way): more cells than the shortest way = 20 (up to two more) or 10; a dead end = 10
   if (S.par != null) { const over = S.cells - S.par; if (S.stuck || over > 2) grade = 'ok'; else if (over > 0 && grade === 'gold') grade = 'good'; }
-  const s = { room: roomId, grade, broke: S.broke, touched: S.touched, detour: S.detour, two: S.used.ring, cells: S.cells, par: S.par, stuck: S.stuck };
+  if (S.peek && grade === 'gold') grade = 'good';   // (level 3: looked at the plan again on the way = 20)
+  const s = { room: roomId, grade, broke: S.broke, touched: S.touched, detour: S.detour, two: S.used.ring, cells: S.cells, par: S.par, stuck: S.stuck, peek: !!S.peek };
   S.steps.push(s); S.k++; S.touched = false; S.broke = false; S.detour = false; S.halt = true; S.used.ring = false; S.brokeAt = null;
   push(S, { k: 'step', room: roomId, grade, i: S.steps.length - 1, two: s.two });
   const nx = target(S);
@@ -234,6 +235,11 @@ export function step(S, dt, inp = {}) {
   const lv = S.lv;
   if (inp.turn) { S.yaw = wrap(S.yaw + inp.turn); if (Math.abs(inp.turn) > 1e-4) S.used.ring = true; }
   const fwd = Math.max(-1, Math.min(1, inp.fwd || 0));
+  // level 3: standing still on the way (1.5 s) shows the floors' plan again, and the step is worth 20 at most (Gemini, build 137 levels
+  // review: a child who forgot the way must not stay lost in the dark)
+  S.still = Math.abs(fwd) < 0.05 && !(inp.turn && Math.abs(inp.turn) > 1e-4) ? (S.still || 0) + dt : 0;
+  S.peeking = S.mode === 'name' && S.cells > 0 && S.still >= TM.PEEK_T && !!target(S) && !target(S).cut;
+  if (S.peeking && !S.peek) { S.peek = true; push(S, { k: 'peek' }); }
   if (lv === 1 && inp.steer != null && Math.abs(fwd) > 0.05) { const d = wrap(inp.steer - S.yaw); S.yaw = wrap(S.yaw + Math.sign(d) * Math.min(Math.abs(d), TM.STEER * dt)); }
   // the doorway's pull: walking forward nearly at the next opening, his heading eases onto it (level 1 within 30° at 1 rad/s; from
   // level 2 a gentler assist, within 20° at 0.5 rad/s, so the ring still steers: build 137 review, "a child must not stick in the jambs")

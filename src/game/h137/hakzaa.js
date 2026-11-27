@@ -108,7 +108,7 @@ function make(m, X) {
   const speedMk = speedEl ? (() => { const d = document.createElement('div'); d.style.cssText = 'position:absolute;top:-4px;width:4px;height:15px;margin-left:-2px;background:#2A1A0C;border-radius:2px'; speedEl.appendChild(d); return d; })() : null;
   // the passes of this board: one dot each, the board's par in wood, the ones over it amber (the plan matters, not only the count)
   const passEl = ui('h137-passes', 'position:fixed;z-index:4;pointer-events:none;left:50%;bottom:14px;transform:translate(-50%,0);font:600 13px system-ui;color:#3A2A18;background:#F6EAD2dd;border-radius:10px;padding:2px 10px;direction:rtl');
-  function drawPasses() { if (!passEl) return; const par = S.b.par || S.L.passes, n = S.passes; let h = 'מעברים: '; for (let i = 0; i < Math.max(par, n); i++) h += `<span style="display:inline-block;width:11px;height:11px;margin:0 2px;border-radius:50%;vertical-align:middle;background:${i < n ? (i < par ? '#7CC86A' : '#F0B848') : 'transparent'};border:2px solid ${i < par ? '#7A4E2C' : '#C08A2A'}"></span>`; passEl.innerHTML = h; passEl.style.display = S.phase === 'plane' && !A.finished ? 'block' : 'none'; }
+  function drawPasses() { if (!passEl) return; const par = S.b.par || S.L.passes, n = S.passes; let h = `מעברים (יעד ${par}): `; for (let i = 0; i < Math.max(par, n); i++) h += `<span style="display:inline-block;width:11px;height:11px;margin:0 2px;border-radius:50%;vertical-align:middle;background:${i < n ? (i < par ? '#7CC86A' : '#F0B848') : 'transparent'};border:2px solid ${i < par ? '#7A4E2C' : '#C08A2A'}"></span>`; passEl.innerHTML = h; passEl.style.display = S.phase === 'plane' && !A.finished ? 'block' : 'none'; }
   const twistOf = () => { try { const e = S.b.e; return e[0].reduce((a, v) => a + v, 0) - e[2].reduce((a, v) => a + v, 0); } catch (er) { return 0; } };
   let twist0 = null;
   const gaugeEl = lv === 3 ? ui('h137-gauge', 'position:fixed;z-index:4;pointer-events:none;right:14px;top:70px;width:22px;height:120px;border-radius:6px;background:#F6EAD2cc;border:2px solid #7A4E2C') : null;
@@ -197,7 +197,9 @@ function make(m, X) {
   function handle(e) {
     if (e.k === 'depth') { V.click(); try { X.haptic && X.haptic(8); } catch (er) { /* */ } ev('depth:' + e.d); }
     else if (e.k === 'stroke') { ev('stroke'); twist0 = twistOf(); }
-    else if (e.k === 'rough') { ev('rough'); V.plane(0.8, false); if (lv === 3 || !A.roughSaid) { A.roughSaid = 1; try { X.line('המקצוע מקרקש: נגד הסיבים', 1300); } catch (er) { /* */ } } }
+    else if (e.k === 'rough') { ev('rough'); V.plane(0.8, false); try { navigator.vibrate && navigator.vibrate(25); } catch (er) { /* */ }
+      // level 3: where the plane chattered, the grain's way is marked on the board's edge (heard, then seen)
+      if (lv === 3 && boardG && e.c != null) { try { const a = new T.Mesh(new T.ConeGeometry(0.05, 0.16, 3), Mt.y14woodD); a.rotation.set(0, 0, -Math.PI / 2 * S.b.g[e.c]); a.position.set(cellX(e.c), TOP + thickM() + 0.01, BZ + BW / 2 - 0.08); a.scale.set(1, 1, 0.3); boardG.add(a); } catch (er) { /* */ } } if (lv === 3 || !A.roughSaid) { A.roughSaid = 1; try { X.line('המקצוע מקרקש: נגד הסיבים', 1300); } catch (er) { /* */ } } }
     else if (e.k === 'chip') { ev('chip'); chipDrop(false); }
     else if (e.k === 'pass') {
       ev('pass:' + e.n + (e.long ? ':long' : '')); chipDrop(e.long); V.plane(0, true);

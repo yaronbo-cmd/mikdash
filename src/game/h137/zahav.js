@@ -58,7 +58,7 @@ function make(m, X) {
   }
   // level 3's carving: the grooves of each carved segment (dark until the tamping brush presses the leaf into them, then bright)
   const grooves = new Map();
-  const grooveM = new T.MeshBasicMaterial({ color: '#4A2A12' }), groovePressed = new T.MeshBasicMaterial({ color: '#FFE08A' });
+  const grooveM = new T.MeshBasicMaterial({ color: '#4A2A12' }), groovePressed = new T.MeshBasicMaterial({ color: '#FFE08A' }), creaseM = new T.MeshBasicMaterial({ color: '#5A3A1A' });
   for (let i = 0; i < N; i++) {
     const name = S.P.segs[i].relief; if (!name) continue;
     const pieces = []; let j0 = 0;
@@ -181,7 +181,9 @@ function make(m, X) {
     else if (e.k === 'free') { V.knock(); ev('free:' + e.why); const t = { pull: 'ניסוי חינם: משיכה אחורה בשחרור קורעת את העלה. תנועה אחת, ושחרור', hole: 'ניסוי חינם: העלה רחוק מהמקום שלו, נשאר חור. כוונו לחפיפה הקטנה', wrinkle: 'ניסוי חינם: חפיפה גדולה מדי מקמטת. כוונו לחפיפה הקטנה', border: 'ניסוי חינם: זהב מעבר לקו, על אחר הדלתות. קודם המסכה' }[e.why]; try { X.line(t || '', 2800); } catch (er) { /* */ } }
     else if (e.k === 'ready') { ev('ready'); }
     else if (e.k === 'carved') { ev('carved'); V.settle(); pop('מגולף: הכניסו את העלה לחריצים', '#FFD45A'); if (!A.carvedSaid) { A.carvedSaid = 1; try { X.line('תבליט: העלה מונח מעל החריצים כמו גשר. עברו במכחול הרך לאורך כל חריץ ולחצו את הזהב פנימה, ורק אז אגט', 3400); } catch (er) { /* */ } } }
-    else if (e.k === 'crease') { V.tear(); ev('crease'); pop('קמט: יצאתם מהחריץ', '#FF8A6A'); }
+    else if (e.k === 'crease') { V.tear(); ev('crease'); pop('קמט: יצאתם מהחריץ', '#FF8A6A');
+      // the crease is seen on the leaf itself, where the brush left the groove (a small dark fold)
+      if (e.x != null) try { for (const r of [0.5, -0.5]) { const f = new T.Mesh(new T.PlaneGeometry(10 * M_DP, 0.018), creaseM); const c = wallPt(S.k, e.x + r * 3, e.y, 0.036); f.position.set(c[0], c[1], c[2]); f.rotation.set(0, faceRot, r * 1.2); root.add(f); } } catch (er) { /* */ } }
     else if (e.k === 'pressed') { ev('pressed'); V.right(); pop('הזהב בתוך החריצים', '#FFD45A'); }
     else if (e.k === 'small-wrinkle') { V.tear(); ev('swrinkle'); pop('קמט קטן: לאט יותר', '#FF8A6A'); }
     else if (e.k === 'seg-done') {
@@ -211,7 +213,7 @@ function make(m, X) {
     const cp = wallPt(S.k, cushX, cushY, 0.1); cushM.position.set(cp[0], cp[1], cp[2]); cushM.rotation.y = faceRot;
     leafOnCush.position.set(cp[0] + nrm[0] * 0.06, cp[1], cp[2] + nrm[1] * 0.06); leafOnCush.rotation.y = faceRot; leafOnCush.visible = S.phase === 'leaf' && !S.held;
     const ti = S.phase === 'wet' || S.phase === 'press' ? 0 : S.phase === 'leaf' ? 1 : 2;   // (the press: the soft brush, dry)
-    { const P = grooves.get(S.k); if (P && S.pressed) for (const pc of P) { let n = 0; for (let j = pc.j0; j < pc.j1; j++) n += S.pressed[j] || 0; pc.m.material = n >= (pc.j1 - pc.j0) * 0.7 ? groovePressed : grooveM; } }
+    { const P = grooves.get(S.k); if (P && S.pressed) for (const pc of P) { let n = 0; for (let j = pc.j0; j < pc.j1; j++) n += S.pressed[j] || 0; const ok = n >= (pc.j1 - pc.j0) * 0.7; pc.m.material = ok ? groovePressed : grooveM; pc.m.scale.y = !ok && S.phase === 'press' ? 1.3 + 0.5 * Math.sin(A.t * 5) : 1; } }   // (the grooves still to press throb: no hunting for the missed bit)
     toolM.forEach((t, j) => { const p = wallPt(S.k, cushX + 52 + j * 20, cushY, 0.1); t.position.set(p[0], p[1], p[2]); t.rotation.y = faceRot; t.material.emissive && t.material.emissive.set(j === ti ? '#FFC23A' : '#000000'); t.material.emissiveIntensity = j === ti ? 0.6 + 0.3 * Math.sin(A.t * 5) : 0; t.scale.setScalar(j === ti ? 1.25 : 1); });
     // the held leaf on the gilder's tip (it flutters a little unless steadied)
     if (S.held && S.held.on !== undefined) {

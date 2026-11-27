@@ -142,7 +142,7 @@ export function step(S, dt, inp = {}) {
       for (let i = 1; i <= steps; i++) {
         const x = P.x + (w.x - P.x) * i / steps, y = P.y + (w.y - P.y) * i / steps;
         let near = 1e9; S.gv.forEach((g, j) => { const e = Math.hypot(g.x - x, g.y - y); if (e < near) near = e; if (e <= PR.ON) S.pressed[j] = 1; });
-        if (near > PR.OFF && !P.off) { P.off = true; if (!S.crease) { S.crease = true; ev(S, { k: 'crease' }); } }
+        if (near > PR.OFF && !P.off) { P.off = true; if (!S.crease) { S.crease = true; ev(S, { k: 'crease', x, y }); } }
         if (near <= PR.ON) P.off = false;
       }
       P.x = w.x; P.y = w.y;

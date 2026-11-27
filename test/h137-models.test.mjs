@@ -46,3 +46,9 @@ test('havraka: one clean stroke = 40; a stray or a wrong turn = 20', () => {
   const g = (o) => { const S = V.fresh(); for (let i = 0; i < 2000 && !S.done; i++) V.step(S, 1 / 60, V.bot(S, o)); return S.grade; };
   assert.equal(g({}), 'gold'); assert.equal(g({ dev: 10 }), 'good'); assert.equal(g({ angErr: 9 }), 'good');
 });
+test('taim: levels 2–3 find the way — a wrong climb is a dead end (brought back, the step 10); the shortest way is gold', () => {
+  const S = T.fresh(2); run(T, S, { two: true }); assert.ok(S.steps.every((s) => s.grade === 'gold' && s.cells === s.par), JSON.stringify(S.steps));
+  const D = T.fresh(2), C = T.roomOf('n1c3'); D.k = 2; D.room = 'n1c3'; D.x = C.hatch.x + 1.5; D.z = C.hatch.z; D.y = C.y; D.halt = false; D.from0 = null;
+  const ev = []; for (let i = 0; i < 600 && !ev.some((e) => e.k === 'placed'); i++) { const near = Math.hypot(D.x - C.hatch.x, D.z - C.hatch.z) < 0.05; ev.push(...T.step(D, 1 / 60, { fwd: D.phase === 'walk' && !near ? 0.3 : 0, turn: 0, free: true })); if (D.halt) D.halt = false; if (D.phase === 'walk' && D.room === 'n1c3') D.yaw = Math.atan2(C.hatch.z - D.z, C.hatch.x - D.x); }
+  assert.ok(ev.some((e) => e.k === 'rise' && e.to === 'n2c3'), 'up the wrong hatch'); assert.ok(ev.some((e) => e.k === 'stuck'), 'a dead end'); assert.equal(D.room, 'n1c3', 'brought back'); assert.ok(D.stuck);
+});

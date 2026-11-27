@@ -19,7 +19,7 @@ import { BOOK } from '../world/grid.js';
 
 const T14 = BOOK.s14.taim;
 export const TM = Object.freeze({
-  R: T14.r, VMAX: 2.3, BACK: 0.5, STEER: 2.4, AUTO: 1.0, AUTO_ANG: 30, AUTO2: 0.5, AUTO_ANG2: 20, BREAK_V: 0.95, BREAK_ANG: 45, BOUNCE: 0.35, HATCH_R: 0.85, HATCH_GOLD: 0.35,
+  R: T14.r, VMAX: 2.3, BACK: 0.5, STEER: 2.4, AUTO: 1.0, AUTO_ANG: 30, AUTO2: 0.5, AUTO_ANG2: 20, BREAK_V: 0.95, BREAK_ANG: 45, BOUNCE: 0.35, HATCH_R: 0.85, HATCH_GOLD: 0.35, HATCH_VIA: 0.5,
   RISE_T: 1.0, CUT_T: 1.2, EPS: 1e-6, JOIN: 0.6, SEE: 6,
 });
 const RAD = Math.PI / 180;
@@ -61,11 +61,11 @@ const NB = new Map(ROOMS.map((R) => [R.id, []]));
 for (const J of JOINS) { NB.get(J.a).push(J); NB.get(J.b).push(J); }
 export const neighbours = (id) => (NB.get(id) || []).map((J) => (J.a === id ? J.b : J.a));
 /** a room's walls: its four edges minus the openings; each { a: [x, z], b: [x, z], jamb (a doorway's side) , ends: [jambA, jambB] } */
-function wallsOf(R) {
+function wallsOf(R, nbm = NB) {
   const [x0, z0, x1, z1] = R.r, out = [];
   const edges = [['z', z0, x0, x1, [0, -1]], ['z', z1, x0, x1, [0, 1]], ['x', x0, z0, z1, [-1, 0]], ['x', x1, z0, z1, [1, 0]]];
   for (const [ax, at, lo, hi, n] of edges) {
-    const gaps = (NB.get(R.id) || []).filter((J) => J.axis === ax && Math.abs(J.at - at) < 1e-6).map((J) => [J.lo, J.hi]).sort((p, q) => p[0] - q[0]);
+    const gaps = (nbm.get(R.id) || []).filter((J) => J.axis === ax && Math.abs(J.at - at) < 1e-6).map((J) => [J.lo, J.hi]).sort((p, q) => p[0] - q[0]);
     let s = lo;
     const push = (u0, u1, e0, e1) => { if (u1 - u0 < 1e-6) return; const a = ax === 'z' ? [u0, at] : [at, u0], b = ax === 'z' ? [u1, at] : [at, u1]; out.push({ a, b, jamb: R.kind === 'door', ends: [e0, e1], n }); };
     let lastGap = false;
@@ -75,12 +75,38 @@ function wallsOf(R) {
   return out;
 }
 const WALLS = new Map(ROOMS.map((R) => [R.id, wallsOf(R)]));
+/** each level's own map: the doorways blocked by stacked beams are walls there (routes[lv].blocked), its mode ('lit' | 'beacon' | 'name') */
+const LVG = new Map();
+export function graphOf(lv) {
+  if (LVG.has(lv)) return LVG.get(lv);
+  const RT = T14.routes[lv] || T14.routes[1], blk = new Set(RT.blocked || []);
+  const ok = (J) => !blk.has(J.a) && !blk.has(J.b);
+  const nb = new Map(ROOMS.map((R) => [R.id, (NB.get(R.id) || []).filter(ok)]));
+  const g = { blk, nb, walls: new Map(ROOMS.map((R) => [R.id, wallsOf(R, nb)])), mode: RT.mode || 'lit' };
+  LVG.set(lv, g); return g;
+}
+const nbOf = (S, id) => (S.G.nb.get(id) || []).map((J) => (J.a === id ? J.b : J.a));
+/** the shortest way from a room to another on this level's map: through the open doorways, and up a hatch (from level 2 any hatch;
+ *  level 1 only the one to the target). → [{ id, J } | { id, hatch: true }] (the rooms after `from`), or null (no way: a dead end) */
+export function pathTo(S, from, to) {
+  const prev = new Map([[from, null]]), q = [from];
+  while (q.length) {
+    const id = q.shift(); if (id === to) break;
+    for (const J of S.G.nb.get(id) || []) { const n = J.a === id ? J.b : J.a; if (!prev.has(n)) { prev.set(n, { id, J }); q.push(n); } }
+    const C = BY.get(id); if (C && C.hatch && (S.lv > 1 || C.hatch.to === to) && !prev.has(C.hatch.to)) { prev.set(C.hatch.to, { id, hatch: true }); q.push(C.hatch.to); }
+  }
+  if (!prev.has(to)) return null;
+  const out = []; let n = to;
+  while (n !== from) { const p = prev.get(n); out.unshift({ id: n, J: p.J, hatch: !!p.hatch }); n = p.id; }
+  return out;
+}
+const cellsIn = (P) => (P ? P.filter((p) => { const R = BY.get(p.id); return R && R.kind === 'cell'; }).length : 0);
 export const wallsOfRoom = (id) => WALLS.get(id) || [];
 /** a doorway's axis (the way through it): the axis of its openings' normal */
 const AXIS = new Map(ROOMS.filter((R) => R.kind === 'door' || R.kind === 'end').map((R) => [R.id, R.axis || 'x']));
 /** a doorway's room next to a room (its mouth) — for the jamb's axis when he touches a mouth's corner */
-function doorAt(roomId, x, z) {
-  for (const id of [roomId, ...neighbours(roomId)]) { const R = BY.get(id); if (R && (R.kind === 'door' || R.kind === 'end') && inside(R, x, z, 0.6)) return R; }
+function doorAt(S, roomId, x, z) {
+  for (const id of [roomId, ...nbOf(S, roomId)]) { const R = BY.get(id); if (R && (R.kind === 'door' || R.kind === 'end') && inside(R, x, z, 0.6)) return R; }
   return null;
 }
 /* ───────── the state ───────── */
@@ -91,8 +117,15 @@ export function fresh(lv) {
     x: st.x, z: st.z, yaw: st.yaw, room: st.room, y: floorY(BY.get(st.room), st.x), v: 0,
     phase: 'walk', pt: 0, halt: false, touched: false, broke: false, detour: false, seen: [st.room], last: st.room,
     hatch: null, rise: null, cut: null, contact: null, two: false, used: { ring: false }, ev: [],
+    G: graphOf(lv), mode: (T14.routes[lv] || T14.routes[1]).mode || 'lit', cells: 0, par: null, stuck: false, from0: null,
   };
 }
+/** a step begins: where he stands now (a dead end brings him back here), the shortest way's cells (the par) */
+function stepStart(S) {
+  S.from0 = { room: S.room, x: S.x, z: S.z, yaw: S.yaw }; S.cells = 0; S.stuck = false;
+  const tg = target(S); S.par = tg && !tg.cut && S.mode !== 'lit' ? cellsIn(pathTo(S, S.room, tg.room)) : null;
+}
+export const begin = (S) => { if (!S.from0) stepStart(S); };
 /** the next step's target room */
 export const target = (S) => (S.k < S.route.length ? S.route[S.k] : null);
 const isStep = (R) => R && (R.kind === 'cell' || R.kind === 'corner' || R.kind === 'end' || (R.kind === 'hall' && !R.cam));
@@ -101,16 +134,12 @@ const isWrong = (S, R) => R && (R.kind === 'cell' || R.id === 'heichal' || R.id 
 export function goal(S) {
   const tg = target(S); if (!tg || tg.cut) return null;
   const T = BY.get(tg.room), C = BY.get(S.room);
-  if (C && C.hatch && C.hatch.to === tg.room) return { x: C.hatch.x, z: C.hatch.z, y: floorY(C, C.hatch.x), hatch: true };
-  // a breadth-first path through the rooms to the target; the first opening on it
-  const prev = new Map([[S.room, null]]), q = [S.room];
-  while (q.length) { const id = q.shift(); if (id === tg.room) break; for (const J of NB.get(id) || []) { const n = J.a === id ? J.b : J.a; if (!prev.has(n)) { prev.set(n, { id, J }); q.push(n); } } }
-  if (!prev.has(tg.room)) return T ? { x: (T.r[0] + T.r[2]) / 2, z: (T.r[1] + T.r[3]) / 2, y: floorY(T, (T.r[0] + T.r[2]) / 2) } : null;
-  let n = tg.room, p = prev.get(n);
-  while (p && p.id !== S.room) { n = p.id; p = prev.get(n); }
-  if (!p) return null;
-  const J = p.J, m = (J.lo + J.hi) / 2, x = J.axis === 'x' ? J.at : m, z = J.axis === 'x' ? m : J.at;
-  return { x, z, y: floorY(C, x), via: n };
+  const P = pathTo(S, S.room, tg.room);
+  if (!P || !P.length) return T ? { x: (T.r[0] + T.r[2]) / 2, z: (T.r[1] + T.r[3]) / 2, y: floorY(T, (T.r[0] + T.r[2]) / 2), none: true } : null;
+  const f = P[0];
+  if (f.hatch) return { x: C.hatch.x, z: C.hatch.z, y: floorY(C, C.hatch.x), hatch: true, via: f.id };
+  const J = f.J, m = (J.lo + J.hi) / 2, x = J.axis === 'x' ? J.at : m, z = J.axis === 'x' ? m : J.at;
+  return { x, z, y: floorY(C, x), via: f.id };
 }
 /* ───────── one frame ───────── */
 function push(S, e) { S.ev.push(e); return e; }
@@ -119,10 +148,10 @@ function collide(S) {
   let hit = null;
   for (let it = 0; it < 3; it++) {
     let moved = false;
-    for (const id of [S.room, ...neighbours(S.room)]) {
+    for (const id of [S.room, ...nbOf(S, S.room)]) {
       const R = BY.get(id); if (!R) continue;
       if (Math.abs(floorY(R, S.x) - S.y) > 1.2) continue;
-      for (const W of WALLS.get(id)) {
+      for (const W of S.G.walls.get(id)) {
         const ax = W.b[0] - W.a[0], az = W.b[1] - W.a[1], L2 = ax * ax + az * az || 1;
         let u = ((S.x - W.a[0]) * ax + (S.z - W.a[1]) * az) / L2; u = Math.max(0, Math.min(1, u));
         const px = W.a[0] + ax * u, pz = W.a[1] + az * u, dx = S.x - px, dz = S.z - pz, d = Math.hypot(dx, dz);
@@ -133,7 +162,7 @@ function collide(S) {
         S.x = px + nx * TM.R; S.z = pz + nz * TM.R; moved = true;
         const corner = (u <= 1e-3 && W.ends[0]) || (u >= 1 - 1e-3 && W.ends[1]);
         const jamb = W.jamb || corner;
-        const c = { jamb, nx, nz, door: jamb ? (R.kind === 'door' || R.kind === 'end' ? R : doorAt(S.room, px, pz)) : null, room: id };
+        const c = { jamb, nx, nz, door: jamb ? (R.kind === 'door' || R.kind === 'end' ? R : doorAt(S, S.room, px, pz)) : null, room: id };
         if (!hit || (jamb && !hit.jamb)) hit = c;
       }
     }
@@ -145,38 +174,59 @@ function collide(S) {
 function locate(S) {
   const C = BY.get(S.room);
   if (C && inside(C, S.x, S.z)) return S.room;
-  for (const id of neighbours(S.room)) { const R = BY.get(id); if (R && inside(R, S.x, S.z)) return id; }
+  for (const id of nbOf(S, S.room)) { const R = BY.get(id); if (R && inside(R, S.x, S.z)) return id; }
   return S.room;
 }
 /** a step ends: the grade, the halt */
 function stepDone(S, roomId, how) {
   const g = S.broke || S.touched || how === 'rim' ? 'good' : S.detour ? 'ok' : 'gold';
-  const grade = S.detour && g !== 'gold' ? 'ok' : S.detour ? 'ok' : g;
-  const s = { room: roomId, grade, broke: S.broke, touched: S.touched, detour: S.detour, two: S.used.ring };
+  let grade = S.detour && g !== 'gold' ? 'ok' : S.detour ? 'ok' : g;
+  // levels 2–3 (find the way): more cells than the shortest way = 20 (up to two more) or 10; a dead end = 10
+  if (S.par != null) { const over = S.cells - S.par; if (S.stuck || over > 2) grade = 'ok'; else if (over > 0 && grade === 'gold') grade = 'good'; }
+  const s = { room: roomId, grade, broke: S.broke, touched: S.touched, detour: S.detour, two: S.used.ring, cells: S.cells, par: S.par, stuck: S.stuck };
   S.steps.push(s); S.k++; S.touched = false; S.broke = false; S.detour = false; S.halt = true; S.used.ring = false; S.brokeAt = null;
   push(S, { k: 'step', room: roomId, grade, i: S.steps.length - 1, two: s.two });
   const nx = target(S);
   if (!nx) { S.done = true; S.phase = 'done'; push(S, { k: 'done' }); }
   else if (nx.cut) { S.phase = 'cut'; S.pt = 0; S.cut = nx; push(S, { k: 'cut', to: nx.room }); }
+  else stepStart(S);
+}
+/** no way on from here to the target (up a wrong hatch, or into a blocked row): brought back to where the step began */
+function deadEnd(S) {
+  const tg = target(S); if (!tg || tg.cut || S.mode === 'lit') return false;
+  if (pathTo(S, S.room, tg.room)) return false;
+  S.phase = 'back'; S.pt = 0; push(S, { k: 'stuck', room: S.room }); return true;
 }
 function enter(S, from, to) {
   const R = BY.get(to), tg = target(S);
   S.last = from; S.room = to;
+  if (R && R.kind === 'cell') S.cells++;
   if (tg && !tg.cut && tg.room === to) { stepDone(S, to, ''); return; }
-  if (isWrong(S, R)) { if (!S.detour) push(S, { k: 'detour', room: to }); S.detour = true; }
+  if (S.mode === 'lit' && isWrong(S, R)) { if (!S.detour) push(S, { k: 'detour', room: to }); S.detour = true; }
   push(S, { k: 'room', room: to, from });
+  deadEnd(S);
 }
 export function step(S, dt, inp = {}) {
   S.ev = []; S.t += dt; S.pt += dt;
   if (S.done) return S.ev;
+  if (!S.from0) stepStart(S);
   if (S.phase === 'cut') {
-    if (S.pt >= TM.CUT_T) { const c = S.cut; S.room = c.room; S.x = c.x; S.z = c.z; S.yaw = c.yaw; S.y = floorY(BY.get(c.room), c.x); S.k++; S.cut = null; S.phase = 'walk'; S.halt = true; push(S, { k: 'placed', room: c.room }); }
+    if (S.pt >= TM.CUT_T) { const c = S.cut; S.room = c.room; S.x = c.x; S.z = c.z; S.yaw = c.yaw; S.y = floorY(BY.get(c.room), c.x); S.k++; S.cut = null; S.phase = 'walk'; S.halt = true; push(S, { k: 'placed', room: c.room }); stepStart(S); }
+    return S.ev;
+  }
+  if (S.phase === 'back') {
+    if (S.pt >= TM.CUT_T) { const c = S.from0; S.room = c.room; S.x = c.x; S.z = c.z; S.yaw = c.yaw; S.y = floorY(BY.get(c.room), c.x); S.phase = 'walk'; S.halt = true; S.stuck = true; S.cells = 0; push(S, { k: 'placed', room: c.room, back: true }); }
     return S.ev;
   }
   if (S.phase === 'rise') {
     const r = S.rise, k = Math.min(1, S.pt / TM.RISE_T);
     S.x = r.x0 + (r.hx - r.x0) * Math.min(1, k * 3); S.z = r.z0 + (r.hz - r.z0) * Math.min(1, k * 3); S.y = r.y0 + (r.y1 - r.y0) * (k * k * (3 - 2 * k));
-    if (k >= 1) { S.phase = 'walk'; S.rise = null; S.y = r.y1; const from = S.room; S.room = r.to; S.last = from; if (r.rim) S.touched = true; stepDone(S, r.to, r.rim ? 'rim' : ''); }
+    if (k >= 1) {
+      S.phase = 'walk'; S.rise = null; S.y = r.y1; const from = S.room; if (r.rim) S.touched = true; S.noHatch = { x: S.x, z: S.z };
+      const tg = target(S);
+      if (tg && tg.room === r.to) { S.room = r.to; S.last = from; S.cells++; stepDone(S, r.to, r.rim ? 'rim' : ''); }
+      else { S.halt = true; enter(S, from, r.to); }   // (up a hatch on the way: a room like any other, maybe a dead end)
+    }
     return S.ev;
   }
   if (S.halt) { S.v = 0; if (inp.free) { S.halt = false; push(S, { k: 'go' }); } return S.ev; }
@@ -223,13 +273,14 @@ export function step(S, dt, inp = {}) {
   S.y = floorY(BY.get(S.room), S.x);
   // the hatch: under it on the forward drag; at his nearest he rises
   const C = BY.get(S.room), tg = target(S);
-  if (C && C.hatch && tg && !tg.cut && C.hatch.to === tg.room) {
+  if (S.noHatch && Math.hypot(S.x - S.noHatch.x, S.z - S.noHatch.z) > TM.HATCH_R + 0.2) S.noHatch = null;   // (just come up a hatch: the next one over it waits till he has stepped off)
+  if (C && C.hatch && tg && !tg.cut && !S.noHatch && (C.hatch.to === tg.room || S.lv > 1)) {
     const d = Math.hypot(S.x - C.hatch.x, S.z - C.hatch.z);
     if (d < TM.HATCH_R) {
       if (!S.hatch) S.hatch = { min: d, t: 0 };
       S.hatch.min = Math.min(S.hatch.min, d); S.hatch.t += dt;
       const turning = d > S.hatch.min + 0.04, still = Math.abs(v) < 0.1 && S.hatch.t > 0.25;
-      if (turning || still) {
+      if ((turning || still) && (C.hatch.to === tg.room || S.hatch.min <= TM.HATCH_VIA)) {   // (a hatch on the way, not the target's: only right under it)
         const rim = S.hatch.min > TM.HATCH_GOLD, U = BY.get(C.hatch.to);
         S.phase = 'rise'; S.pt = 0; S.rise = { x0: S.x, z0: S.z, hx: C.hatch.x, hz: C.hatch.z, y0: S.y, y1: floorY(U, C.hatch.x), to: C.hatch.to, rim };
         push(S, { k: 'rise', to: C.hatch.to, rim, off: +S.hatch.min.toFixed(3) }); S.hatch = null;

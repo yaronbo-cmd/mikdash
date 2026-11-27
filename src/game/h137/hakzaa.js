@@ -66,7 +66,7 @@ function make(m, X) {
     // the grain's arrows (every fourth cell: its grain), faint; the knots dark
     arrows = [];
     const ag = new T.ConeGeometry(0.05, 0.16, 3);
-    for (let c = 1; c < HK.N; c += 4) {
+    for (let c = 1; c < HK.N && lv < 3; c += 4) {   // (level 3: no arrows — the grain read by a light stroke: the plane chatters against it)
       const a = new T.Mesh(ag, Mt.y14woodD); a.rotation.set(0, 0, -Math.PI / 2 * S.b.g[c]); a.position.set(cellX(c), TOP + th + 0.01, BZ + BW / 2 - 0.08); a.scale.set(1, 1, 0.3); boardG.add(a); arrows.push(a);
       const a2 = a.clone(); a2.position.z = BZ - BW / 2 + 0.08; boardG.add(a2); arrows.push(a2);
     }
@@ -106,6 +106,9 @@ function make(m, X) {
   const VMAXB = 360, speedEl = ui('h137-speed', 'position:fixed;z-index:4;pointer-events:none;transform:translate(-50%,0);width:96px;height:9px;border-radius:5px;border:1.5px solid #5A3A1E;display:none;'
     + `background:linear-gradient(90deg,#7CC86A 0 ${100 * HK.CLEAN_V / VMAXB}%,#F0B848 0 ${100 * HK.TEAR_V / VMAXB}%,#D9563A 0)`);
   const speedMk = speedEl ? (() => { const d = document.createElement('div'); d.style.cssText = 'position:absolute;top:-4px;width:4px;height:15px;margin-left:-2px;background:#2A1A0C;border-radius:2px'; speedEl.appendChild(d); return d; })() : null;
+  // the passes of this board: one dot each, the board's par in wood, the ones over it amber (the plan matters, not only the count)
+  const passEl = ui('h137-passes', 'position:fixed;z-index:4;pointer-events:none;left:50%;bottom:14px;transform:translate(-50%,0);font:600 13px system-ui;color:#3A2A18;background:#F6EAD2dd;border-radius:10px;padding:2px 10px;direction:rtl');
+  function drawPasses() { if (!passEl) return; const par = S.b.par || S.L.passes, n = S.passes; let h = 'מעברים: '; for (let i = 0; i < Math.max(par, n); i++) h += `<span style="display:inline-block;width:11px;height:11px;margin:0 2px;border-radius:50%;vertical-align:middle;background:${i < n ? (i < par ? '#7CC86A' : '#F0B848') : 'transparent'};border:2px solid ${i < par ? '#7A4E2C' : '#C08A2A'}"></span>`; passEl.innerHTML = h; passEl.style.display = S.phase === 'plane' && !A.finished ? 'block' : 'none'; }
   const twistOf = () => { try { const e = S.b.e; return e[0].reduce((a, v) => a + v, 0) - e[2].reduce((a, v) => a + v, 0); } catch (er) { return 0; } };
   let twist0 = null;
   const gaugeEl = lv === 3 ? ui('h137-gauge', 'position:fixed;z-index:4;pointer-events:none;right:14px;top:70px;width:22px;height:120px;border-radius:6px;background:#F6EAD2cc;border:2px solid #7A4E2C') : null;
@@ -194,6 +197,7 @@ function make(m, X) {
   function handle(e) {
     if (e.k === 'depth') { V.click(); try { X.haptic && X.haptic(8); } catch (er) { /* */ } ev('depth:' + e.d); }
     else if (e.k === 'stroke') { ev('stroke'); twist0 = twistOf(); }
+    else if (e.k === 'rough') { ev('rough'); V.plane(0.8, false); if (lv === 3 || !A.roughSaid) { A.roughSaid = 1; try { X.line('המקצוע מקרקש: נגד הסיבים', 1300); } catch (er) { /* */ } } }
     else if (e.k === 'chip') { ev('chip'); chipDrop(false); }
     else if (e.k === 'pass') {
       ev('pass:' + e.n + (e.long ? ':long' : '')); chipDrop(e.long); V.plane(0, true);
@@ -217,7 +221,12 @@ function make(m, X) {
       A.sheen = 1; A.lift = 0.001; addPile(false);
       { const P = (Mo.st.planks = Mo.st.planks || []); P.push({ i: e.i, lv, scars: S.b.scars.slice() }); if (P.length > 24) P.splice(0, P.length - 24); }   // (his boards: the nesarim in the ceiling)
       keep();
-    } else if (e.k === 'board') { ev('board' + e.i); V.board(); buildBoard(); A.lift = 0; paintCoal(); keep(); }
+    } else if (e.k === 'board') {
+      ev('board' + e.i); V.board(); buildBoard(); A.lift = 0; paintCoal(); keep();
+      // level 1 teaches what makes this board different (from level 2 the board is read alone)
+      const tip = lv === 1 ? { 1: 'הלוח הזה: החצים הפוכים. דחפו מהידית השנייה', 2: 'הלוח הזה גבוה בקצה אחד: עמוק שם, ובשאר דק' }[e.i] : null;
+      if (tip) try { X.line(tip, 2600); } catch (er) { /* */ }
+    }
     else if (e.k === 'done') { ev('done'); done(); }
   }
   function addPile(rejected) {
@@ -254,6 +263,7 @@ function make(m, X) {
     if (A.work) { const p = handleAt(A.work.end); rings.work.show(p.x, p.y, Math.min(1, (S.v || 0) / HK.CLEAN_V), (S.v || 0) <= HK.CLEAN_V && !!S.stroke); } else rings.work.hide();
     if (A.helper) { const p = handleAt(A.helper.end); rings.helper.show(p.x, p.y, Math.abs(S.skew) / HK.SKEW_MAX, Math.abs(S.skew) >= HK.SKEW_OK); } else rings.helper.hide();
     if (depthEl) { const w = wheelAt(); depthEl.style.left = (w.x + dp(58)) + 'px'; depthEl.style.top = (w.y - dp(10)) + 'px'; depthEl.textContent = NAMES[S.depth]; depthEl.style.display = S.phase === 'plane' && !A.finished ? 'block' : 'none'; }
+    drawPasses();
     if (speedEl) { const on = !!S.stroke && S.phase === 'plane' && !A.finished; speedEl.style.display = on ? 'block' : 'none'; if (on) { const w = wheelAt(); speedEl.style.left = (w.x + dp(58)) + 'px'; speedEl.style.top = (w.y + dp(14)) + 'px'; speedMk.style.left = (100 * Math.min(1, (S.v || 0) / VMAXB)) + '%'; } }
     if (gaugeMk) { const o = K.thickOver(S); gaugeMk.style.top = (60 - 60 * Math.max(-1, Math.min(1, o == null ? 0 : o)) - 2) + 'px'; gaugeEl.style.opacity = o == null ? 0.4 : 1; }
   }
@@ -261,7 +271,7 @@ function make(m, X) {
     close: true, kohenWorks: false,
     begin() {
       FG.attach(); buildBoard(); for (const s of S.pile) { void s; addPile(!!s.rejected); } view(0.01);
-      X.line(resumed ? '' : lv === 1 ? 'גררו את המקצוע מהידית לאורך הלוח, עם חצי הסיבים. כשהפחם נעלם, הלוח ישר' : lv === 2 ? 'באמצע הלוח הסיבים מתהפכים ויש קשר. הגלגל קובע עומק, היד השנייה מטה את המקצוע' : 'זוגות: השני כמו הראשון בעובי. הלוח מעוקם: הטו את היד לצד הגבוה', resumed ? 0 : 5200);
+      X.line(resumed ? '' : lv === 1 ? 'גררו את המקצוע מהידית לאורך הלוח, עם חצי הסיבים. כשהפחם נעלם, הלוח ישר' : lv === 2 ? 'בכל לוח הסיבים מתהפכים במקום אחר, ויש קשרים. הגלגל קובע עומק, היד השנייה מטה את המקצוע. כמה שפחות מעברים' : 'בלי חצים: מעבר דק קל מגלה את הסיבים, המקצוע מקרקש נגדם. זוגות באותו עובי, והלוח מעוקם: הטו את היד לצד הגבוה', resumed ? 0 : 5200);
       X.wait(0.9).then(() => { if (!A.ended) hint(); });
       ev(resumed ? 'resume' : 'begin'); keep();
     },
@@ -285,7 +295,7 @@ function make(m, X) {
     end() {
       A.ended = true; FG.detach(); V.hush(); V.stop(); X.hand(null); lens(X, fov0);
       for (const r of Object.values(rings)) r.remove();
-      try { depthEl && depthEl.remove(); speedEl && speedEl.remove(); gaugeEl && gaugeEl.remove(); } catch (e) { /* */ }
+      try { depthEl && depthEl.remove(); passEl && passEl.remove(); speedEl && speedEl.remove(); gaugeEl && gaugeEl.remove(); } catch (e) { /* */ }
       try { X.kohen(true); } catch (e) { /* */ }
       X.props.remove(root);
     },

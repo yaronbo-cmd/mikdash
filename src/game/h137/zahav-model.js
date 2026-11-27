@@ -21,8 +21,27 @@ export const ZH = Object.freeze({ OV: 6, GOLD: 10, SNAP: 18, PULL: 10, PULL_T: 0
 export const PLAN = Object.freeze({
   1: { wall: 'north', segs: [0, 1, 2, 3].map(() => ({ n: 2, border: null })), wetOne: true },
   2: { wall: 'east', segs: [{ n: 2, border: 0.12 }, { n: 2, border: 0.3 }, { n: 2, border: null }, { n: 2, border: null }, { n: 2, border: 0.7 }, { n: 2, border: 0.88 }] },
-  3: { wall: 'south', segs: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ n: 3, border: null, relief: i === 3 || i === 4 })) },
+  3: { wall: 'south', segs: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ n: 3, border: null, relief: { 1: 'palm', 3: 'flower', 5: 'chain', 7: 'palm' }[i] || null })) },
 });
+/* level 3's carving (המחשה: the carved band under the gold, as on the finale's seam): on a carved segment the leaf lies over the grooves
+ * like a bridge; after the leaves, the soft tamping brush follows each groove and presses the leaf into it (PRESS: covered within PR_ON
+ * dp of the line; off it by more than PR_OFF while pressing = a crease: the step capped at 20). The agate comes only after (≥ PR_DONE of
+ * the groove pressed). The motifs in the segment's frame (dp, 280 × 120). */
+export const MOTIF = Object.freeze({
+  palm: [[[140, 10], [140, 110]], [[140, 95], [110, 112], [92, 104]], [[140, 95], [170, 112], [188, 104]], [[140, 75], [112, 88], [96, 80]], [[140, 75], [168, 88], [184, 80]], [[140, 55], [116, 66], [102, 60]], [[140, 55], [164, 66], [178, 60]]],
+  flower: [Array.from({ length: 25 }, (_, k) => { const a = (k / 24) * Math.PI * 2, r = 38 + 12 * Math.cos(a * 6); return [140 + r * Math.cos(a), 60 + r * Math.sin(a)]; }), [[40, 60], [96, 60]], [[184, 60], [240, 60]]],
+  chain: [Array.from({ length: 29 }, (_, k) => [12 + k * 9, 60 + 34 * Math.sin((k / 28) * Math.PI * 4)])],
+});
+const PR = { ON: 10, OFF: 18, DONE: 0.88, STEP: 4 };
+/** a motif's groove sampled every PR.STEP dp: [{ x, y }] */
+export function groove(name) {
+  const out = [];
+  for (const line of MOTIF[name] || []) for (let i = 0; i < line.length - 1; i++) {
+    const [ax, ay] = line[i], [bx, by] = line[i + 1], L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.round(L / PR.STEP));
+    for (let k = 0; k < n; k++) out.push({ x: ax + (bx - ax) * k / n, y: ay + (by - ay) * k / n });
+  }
+  return out;
+}
 export const leafW = (n) => (ZH.W + (n - 1) * ZH.OV) / n;
 export const slotX = (n, k) => k * (leafW(n) - ZH.OV) + leafW(n) / 2;
 export function fresh(lv) {
@@ -35,11 +54,13 @@ function seg(S, i) {
   S.phase = 'wet'; S.wet = new Array(ZH.COLS * ZH.ROWS).fill(0); S.wetT = new Array(ZH.COLS * ZH.ROWS).fill(-9); S.wetN = new Array(ZH.COLS * ZH.ROWS).fill(0);
   S.puddle = false; S.under = new Set(); S.warn = false; S.leaf = 0; S.held = null; S.leaves = []; S.border = false; S.patch = false; S.borderline = false; S.wrinkle = false;
   S.burn = new Array(ZH.COLS * ZH.ROWS).fill(0); S.burnFast = new Array(ZH.COLS * ZH.ROWS).fill(0); S.steady = 0; S.brush = null; S.agate = null;
+  S.gv = S.g.relief ? groove(S.g.relief) : null; S.pressed = S.gv ? S.gv.map(() => 0) : null; S.crease = false; S.press = null;
 }
 const ev = (S, e) => { S.ev.push(e); return e; };
 const cellOf = (x, y) => { const c = Math.floor((x / ZH.W) * ZH.COLS), r = Math.floor((y / ZH.H) * ZH.ROWS); return c >= 0 && c < ZH.COLS && r >= 0 && r < ZH.ROWS ? r * ZH.COLS + c : -1; };
 const cellsNear = (x, y, R) => { const out = []; for (let r = 0; r < ZH.ROWS; r++) for (let c = 0; c < ZH.COLS; c++) { const cx = (c + 0.5) * ZH.W / ZH.COLS, cy = (r + 0.5) * ZH.H / ZH.ROWS; if (Math.hypot(cx - x, cy - y) <= R) out.push(r * ZH.COLS + c); } return out; };
 export const masked = (S) => !S.g.border || (S.mask != null && Math.abs(S.mask - S.g.border) <= ZH.MASK_TOL);
+export const pressDone = (S) => !S.gv || S.pressed.filter((v) => v).length >= PR.DONE * S.pressed.length;
 export const wetDone = (S) => S.wet.every((v) => v > 0);
 export const burnDone = (S) => S.burn.filter((v) => v >= ZH.BURN_N).length >= ZH.BURN_DONE * S.burn.length;
 function damage(S, f, why) {
@@ -111,7 +132,22 @@ export function step(S, dt, inp = {}) {
     ev(S, { k: 'laid', i: S.leaf, q, ex: +ex.toFixed(1), ey: +ey.toFixed(1), steadied });
     S.laid.push({ seg: S.k, k: S.leaf, q });
     S.leaf++;
-    if (S.leaf >= n) { S.phase = 'burnish'; S.pt = 0; ev(S, { k: 'ready' }); }
+    if (S.leaf >= n) { S.pt = 0; if (S.gv) { S.phase = 'press'; ev(S, { k: 'carved' }); } else { S.phase = 'burnish'; ev(S, { k: 'ready' }); } }
+    return S.ev;
+  }
+  if (S.phase === 'press') {
+    if (w && w.down) {
+      const P = S.press || (S.press = { x: w.x, y: w.y, off: false });
+      const d = Math.hypot(w.x - P.x, w.y - P.y), steps = Math.max(1, Math.ceil(d / 3));
+      for (let i = 1; i <= steps; i++) {
+        const x = P.x + (w.x - P.x) * i / steps, y = P.y + (w.y - P.y) * i / steps;
+        let near = 1e9; S.gv.forEach((g, j) => { const e = Math.hypot(g.x - x, g.y - y); if (e < near) near = e; if (e <= PR.ON) S.pressed[j] = 1; });
+        if (near > PR.OFF && !P.off) { P.off = true; if (!S.crease) { S.crease = true; ev(S, { k: 'crease' }); } }
+        if (near <= PR.ON) P.off = false;
+      }
+      P.x = w.x; P.y = w.y;
+      if (pressDone(S)) { S.phase = 'burnish'; S.press = null; ev(S, { k: 'pressed' }); ev(S, { k: 'ready' }); }
+    } else S.press = null;
     return S.ev;
   }
   if (S.phase === 'burnish') {
@@ -130,7 +166,7 @@ export function step(S, dt, inp = {}) {
   return S.ev;
 }
 function segDone(S) {
-  const g = S.patch || S.border ? 'ok' : S.borderline || S.puddle || S.wrinkle ? 'good' : 'gold';
+  const g = S.patch || S.border ? 'ok' : S.borderline || S.puddle || S.wrinkle || S.crease ? 'good' : 'gold';
   S.steps.push({ i: S.k, grade: g, steady: S.lv === 1 && S.steady >= S.g.n, two: S.lv > 1 || S.steady > 0 });
   ev(S, { k: 'seg-done', i: S.k, grade: g, steady: S.lv === 1 && S.steady >= S.g.n });
   if (S.k + 1 >= S.P.segs.length) { S.done = true; S.phase = 'done'; ev(S, { k: 'done' }); }
@@ -162,6 +198,11 @@ export function bot(S, o = {}) {
     if (!B.path) { B.path = []; for (let k = 0; k <= 24; k++) B.path.push({ x: 24 + (tx - 24) * k / 24, y: -58 + (ty + 58) * k / 24 }); if (o.pull) { const L = Math.hypot(tx - 24, ty + 58) || 1; for (let k = 1; k <= 4; k++) B.path.push({ x: tx - (tx - 24) / L * k * 4, y: ty - (ty + 58) / L * k * 4 }); } B.i = 0; }
     if (B.i < B.path.length) return { ...out, work: { ...B.path[B.i++], down: true } };
     return { ...out, work: { down: false } };
+  }
+  if (S.phase === 'press') {
+    if (!B.path) { B.path = []; for (const line of MOTIF[S.g.relief]) { const g = []; for (let i = 0; i < line.length - 1; i++) { const [ax, ay] = line[i], [bx, by] = line[i + 1], n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / 3)); for (let k = 0; k <= n; k++) g.push({ x: ax + (bx - ax) * k / n, y: ay + (by - ay) * k / n }); } B.path.push(...g.map((p, j) => ({ ...p, up: j === 0 }))); } B.i = 0; }
+    if (B.i < B.path.length) { const p = B.path[B.i++]; if (p.up && B.i > 1 && !B.lifted) { B.lifted = true; B.i--; return { ...out, work: { down: false } }; } B.lifted = false; return { ...out, work: { x: p.x, y: p.y, down: true } }; }
+    B.path = null; return { ...out, work: { down: false } };
   }
   if (S.phase === 'burnish') {
     if (!B.path) { B.path = []; for (let r = 0; r < ZH.ROWS; r++) { const y = (r + 0.5) * ZH.H / ZH.ROWS; for (let rep = 0; rep < 2; rep++) { const xs = (r + rep) % 2 ? [ZH.W - 4, 4] : [4, ZH.W - 4]; for (let k = 0; k <= 84; k++) B.path.push({ x: xs[0] + (xs[1] - xs[0]) * k / 84, y }); } } B.i = 0; }

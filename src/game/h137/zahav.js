@@ -56,6 +56,19 @@ function make(m, X) {
     }
     wetQ.push(wq); burnQ.push(bq); leafQ.push([]); segG.push(i);
   }
+  // level 3's carving: the grooves of each carved segment (dark until the tamping brush presses the leaf into them, then bright)
+  const grooves = new Map();
+  const grooveM = new T.MeshBasicMaterial({ color: '#4A2A12' }), groovePressed = new T.MeshBasicMaterial({ color: '#FFE08A' });
+  for (let i = 0; i < N; i++) {
+    const name = S.P.segs[i].relief; if (!name) continue;
+    const pieces = []; let j0 = 0;
+    for (const line of K.MOTIF[name]) for (let q = 0; q < line.length - 1; q++) {
+      const [ax, ay] = line[q], [bx, by] = line[q + 1], L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.round(L / 4));
+      const m = new T.Mesh(new T.PlaneGeometry(L * M_DP + 0.02, 0.05), grooveM); const c = wallPt(i, (ax + bx) / 2, (ay + by) / 2, 0.033);
+      m.position.set(c[0], c[1], c[2]); m.rotation.set(0, faceRot, Math.atan2(by - ay, bx - ax)); root.add(m); pieces.push({ m, j0, j1: j0 + n }); j0 += n;
+    }
+    grooves.set(i, pieces);
+  }
   // the border of "אחר הדלתות" (levels 2–3): a hatched strip past each border segment's line, and the mask on its track under the band
   const track = { y: -16 };
   const borders = [];
@@ -167,6 +180,9 @@ function make(m, X) {
     else if (e.k === 'border') { ev('border'); if (e.dmg) hurt(X, Mo, 'zahav.border', at(), { lv, at: S.k }); }
     else if (e.k === 'free') { V.knock(); ev('free:' + e.why); const t = { pull: 'ניסוי חינם: משיכה אחורה בשחרור קורעת את העלה. תנועה אחת, ושחרור', hole: 'ניסוי חינם: העלה רחוק מהמקום שלו, נשאר חור. כוונו לחפיפה הקטנה', wrinkle: 'ניסוי חינם: חפיפה גדולה מדי מקמטת. כוונו לחפיפה הקטנה', border: 'ניסוי חינם: זהב מעבר לקו, על אחר הדלתות. קודם המסכה' }[e.why]; try { X.line(t || '', 2800); } catch (er) { /* */ } }
     else if (e.k === 'ready') { ev('ready'); }
+    else if (e.k === 'carved') { ev('carved'); V.settle(); pop('מגולף: הכניסו את העלה לחריצים', '#FFD45A'); if (!A.carvedSaid) { A.carvedSaid = 1; try { X.line('תבליט: העלה מונח מעל החריצים כמו גשר. עברו במכחול הרך לאורך כל חריץ ולחצו את הזהב פנימה, ורק אז אגט', 3400); } catch (er) { /* */ } } }
+    else if (e.k === 'crease') { V.tear(); ev('crease'); pop('קמט: יצאתם מהחריץ', '#FF8A6A'); }
+    else if (e.k === 'pressed') { ev('pressed'); V.right(); pop('הזהב בתוך החריצים', '#FFD45A'); }
     else if (e.k === 'small-wrinkle') { V.tear(); ev('swrinkle'); pop('קמט קטן: לאט יותר', '#FF8A6A'); }
     else if (e.k === 'seg-done') {
       ev('seg:' + e.grade); award(X, at(), e.grade, lv, 'זהב');
@@ -194,7 +210,8 @@ function make(m, X) {
     // the cushion, the tools' places (the active one glows), the leaf waiting on the cushion
     const cp = wallPt(S.k, cushX, cushY, 0.1); cushM.position.set(cp[0], cp[1], cp[2]); cushM.rotation.y = faceRot;
     leafOnCush.position.set(cp[0] + nrm[0] * 0.06, cp[1], cp[2] + nrm[1] * 0.06); leafOnCush.rotation.y = faceRot; leafOnCush.visible = S.phase === 'leaf' && !S.held;
-    const ti = S.phase === 'wet' ? 0 : S.phase === 'leaf' ? 1 : 2;
+    const ti = S.phase === 'wet' || S.phase === 'press' ? 0 : S.phase === 'leaf' ? 1 : 2;   // (the press: the soft brush, dry)
+    { const P = grooves.get(S.k); if (P && S.pressed) for (const pc of P) { let n = 0; for (let j = pc.j0; j < pc.j1; j++) n += S.pressed[j] || 0; pc.m.material = n >= (pc.j1 - pc.j0) * 0.7 ? groovePressed : grooveM; } }
     toolM.forEach((t, j) => { const p = wallPt(S.k, cushX + 52 + j * 20, cushY, 0.1); t.position.set(p[0], p[1], p[2]); t.rotation.y = faceRot; t.material.emissive && t.material.emissive.set(j === ti ? '#FFC23A' : '#000000'); t.material.emissiveIntensity = j === ti ? 0.6 + 0.3 * Math.sin(A.t * 5) : 0; t.scale.setScalar(j === ti ? 1.25 : 1); });
     // the held leaf on the gilder's tip (it flutters a little unless steadied)
     if (S.held && S.held.on !== undefined) {
@@ -223,7 +240,7 @@ function make(m, X) {
       FG.attach(); A.camKey = ''; camTo(0.01);
       // the segments already done (a resumed visit): gold
       for (let i = 0; i < S.steps.length; i++) for (const b of burnQ[i]) { b.visible = true; b.material = Mt.y14gold; }
-      X.line(resumed ? '' : lv === 1 ? 'מרחו את ההרטבה על כל המקטע, ואז געו בכרית וגררו עלה אל מקומו בתנועה אחת' : lv === 2 ? 'הכותל המזרחי: מאחורי הדלתות לא מזהיבים. הזיזו את המסכה אל הקו לפני שמרטיבים שם' : 'הכותל הדרומי: שלושה עלים לכל מקטע. חפיפה קטנה, בלי למשוך אחורה', resumed ? 0 : 5200);
+      X.line(resumed ? '' : lv === 1 ? 'מרחו את ההרטבה על כל המקטע, ואז געו בכרית וגררו עלה אל מקומו בתנועה אחת' : lv === 2 ? 'הכותל המזרחי, לאורך ראשי הכנפיים: מאחורי הדלתות לא מזהיבים. בכל מקטע הקו בגובה אחר: הורידו את סרגל המסכה אל הקו לפני שמרטיבים' : 'הכותל הדרומי: שלושה עלים צרים לכל מקטע, ובמקטעים המגולפים לוחצים את הזהב לתוך החריצים לפני האגט', resumed ? 0 : 5200);
       X.wait(0.9).then(() => { if (!A.ended) hint(); });
       ev(resumed ? 'resume' : 'begin'); keep();
     },
@@ -254,7 +271,7 @@ function make(m, X) {
     at,
     dbg() {
       const r = (v) => Math.round(v), sc = (x, y) => { const p = segScr(x, y); return [r(p.x), r(p.y)]; }, mk = maskScr();
-      return { id: m.id, lv, finished: A.finished, busy: A.busy, k: S.k, phase: S.phase, leaf: S.leaf, held: !!S.held, wet: S.wet.filter((v) => v).length, burn: S.burn.filter((v) => v >= ZH.BURN_N).length, mask: +(S.mask == null ? -1 : S.mask).toFixed(3), need: S.g.border, steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.length, done: S.done,
+      return { id: m.id, lv, finished: A.finished, busy: A.busy, k: S.k, phase: S.phase, leaf: S.leaf, held: !!S.held, wet: S.wet.filter((v) => v).length, burn: S.burn.filter((v) => v >= ZH.BURN_N).length, pressed: S.pressed ? S.pressed.filter((v) => v).length + '/' + S.pressed.length : null, mask: +(S.mask == null ? -1 : S.mask).toFixed(3), need: S.g.border, steps: S.steps.map((s) => s.grade[0]).join(''), flaws: S.flaws.length, done: S.done,
         cush: sc(cushX, cushY), seg0: sc(0, 0), seg1: sc(ZH.W, ZH.H), slot: S.phase === 'leaf' ? sc(K.slotX(S.g.n, S.leaf), ZH.H / 2) : null, maskAt: mk ? [r(mk.x), r(mk.y)] : null, ev: A.ev.slice(-12) };
     },
     probe() { return { S, K, A }; },

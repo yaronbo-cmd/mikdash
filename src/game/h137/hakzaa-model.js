@@ -17,33 +17,53 @@
  * up to two more, or a small tear; 10 = more; a real tear caps it at 20 and costs 20.
  * Level 3: the two boards of a pair must come out the same thickness (the gauge: within ±0.15 of the first); the board is twisted (its
  * two edges high at opposite ends — the winding sticks show it); the hand's lean across the board (−1 … 1) cuts one edge deeper.
- * The levels (spec "טבלת הרמות"): 1 = 3 boards × 3 passes, even grain, the skew straightens by itself; 2 = 4 boards × 4 passes, the
- * grain turns at a knot in the middle; 3 = two pairs × 6 passes, the gauge and the twist, the grain reversed between a pair's boards.
+ * The levels (spec "טבלת הרמות"; each board its own problem: BOARDS): 1 = 3 boards × 3 passes, one hand: the grain's way (which
+ * handle), a wedge; 2 = 4 boards × 4 passes, two hands: the grain turns at a different place on each, knots, a twice-turned grain;
+ * 3 = two pairs × 6 passes: the twist (its way turns per pair), the gauge, no arrows (the grain read from the edge).
  * Nothing random: every board's shape is its index's. The work's first tear is a free try. */
 export const HK = Object.freeze({
   N: 20, LANES: 3, TRAVEL: 160, BOARD: 300, PLANE: 140, EPS: 0.04, DEPTH: [0.3, 0.6, 1.0], SKEW_MAX: 8, SKEW_OK: 4, SKEW_CUT: 0.85,
-  CLEAN_V: 240, TEAR_V: 300, V_TAU: 0.08, V_HYST: 20, TEAR_RUN: 70, DEEP_MAX: 330, PASS_MIN: 0.4, SCAR: 0.3, THIN: 2.4, GAUGE: 0.15, LEAN: 0.8,
+  CLEAN_V: 240, TEAR_V: 300, V_TAU: 0.08, V_HYST: 20, TEAR_RUN: 70, DEEP_MAX: 330, PASS_MIN: 0.06, SCAR: 0.3, THIN: 2.4, GAUGE: 0.15, LEAN: 0.8,
 });
 export const NAMES = Object.freeze(['דק', 'בינוני', 'עמוק']);
-export const LEVEL = Object.freeze({ 1: { boards: 3, passes: 3 }, 2: { boards: 4, passes: 4 }, 3: { boards: 4, passes: 6, pairs: true } });
+export const LEVEL = Object.freeze({ 1: { boards: 3, passes: 3 }, 2: { boards: 4, passes: 4 }, 3: { boards: 4, passes: 6, pairs: true } });   // (passes: a fallback; each board's par is its own)
 /** a board's shape (deterministic by its index): excess per cell per lane, grain per cell, knot cells, thickness over flat */
+/** each board is its own problem (build 137, ירון: "the levels too alike"): the high places' shape, the grain's way and where it
+ *  turns, the knots; nothing random — the board's index picks it. Shapes: 'hump' (high in the middle), 'wedgeL'/'wedgeR' (high at one
+ *  end: deep there, fine on the rest), 'two' (two humps), 'flat' (thin all over: fine passes only, the gauge decides). */
+const BOARDS = {
+  // level 1 (one hand): read the arrows and pick the handle; a wedge asks for deep then fine
+  1: [{ par: 2, shape: 'hump', top: 1.6, grain: [[0, 1]] }, { par: 2, shape: 'hump', top: 1.6, grain: [[0, -1]] }, { par: 3, shape: 'wedgeL', top: 2.4, grain: [[0, 1]] }],
+  // level 2 (two hands): the grain turns at a different place on each board, knots move; the last board's grain turns twice (the
+  // skew of the helper hand is the only clean way through its middle)
+  2: [
+    { par: 3, shape: 'hump', top: 1.0, grain: [[0, 1], [0.5, -1]], knot: [9, 10] },
+    { par: 4, shape: 'wedgeR', top: 1.8, grain: [[0, -1], [0.3, 1]], knot: [14] },
+    { par: 3, shape: 'two', top: 1.2, grain: [[0, 1], [0.65, -1]], knot: [5, 15] },
+    { par: 3, shape: 'hump', top: 1.2, grain: [[0, 1], [0.35, -1], [0.7, 1]], knot: [] },
+  ],
+  // level 3 (the pairs): the twist turns the other way on each pair, the gauge, and no arrows: the grain is read by a light stroke (the
+  // plane chatters against it), so each grain zone's par has one stroke more
+  3: [
+    { par: 3, shape: 'hump', top: 1.2, grain: [[0, 1]], twist: 1 }, { par: 6, shape: 'hump', top: 1.2, grain: [[0, -1]], twist: 1 },
+    { par: 6, shape: 'wedgeL', top: 1.6, grain: [[0, -1], [0.6, 1]], twist: -1, knot: [6] }, { par: 9, shape: 'wedgeR', top: 1.6, grain: [[0, 1], [0.4, -1]], twist: -1, knot: [13] },
+  ],
+};
+export const boardSpec = (lv, i) => { const L = BOARDS[lv] || BOARDS[1]; return L[i % L.length]; };
 export function boardOf(lv, i) {
-  const N = HK.N, e = [[], [], []], g = [], knot = [];
-  const top = lv === 1 ? 1.8 : lv === 2 ? 1.0 : 1.5, ph = (i * 0.37) % 1;
+  const N = HK.N, e = [[], [], []], g = [], B = boardSpec(lv, i), knot = (B.knot || []).slice();
   for (let c = 0; c < N; c++) {
-    const u = (c + 0.5) / N, hump = 0.55 + 0.45 * Math.sin(Math.PI * (u * 0.9 + 0.05 + ph * 0.1));   // (high in the middle, lower at the ends)
+    const u = (c + 0.5) / N;
+    const sh = B.shape === 'wedgeL' ? 1 - 0.8 * u : B.shape === 'wedgeR' ? 0.2 + 0.8 * u : B.shape === 'two' ? 0.45 + 0.55 * Math.abs(Math.sin(Math.PI * 2 * u)) : 0.55 + 0.45 * Math.sin(Math.PI * (u * 0.9 + 0.05));
     for (let l = 0; l < 3; l++) {
-      let v = top * hump;
-      if (lv === 3) { const tw = 0.5 * ((l - 1) * (u - 0.5) * 2); v += tw; }   // (the twist: lane 0 high at one end, lane 2 at the other)
+      let v = B.top * sh;
+      if (lv === 3) v += 0.5 * (B.twist || 1) * ((l - 1) * (u - 0.5) * 2);   // (the twist: one edge high at one end, the other at the other)
       e[l].push(Math.max(0.1, +v.toFixed(3)));
     }
-    if (lv === 2) g.push(u < 0.5 ? 1 : -1);
-    else if (lv === 3) g.push(i % 2 ? -1 : 1);
-    else g.push(1);
-    if (lv === 2 && (c === 9 || c === 10)) knot.push(c);
+    let gg = 1; for (const [at, d] of B.grain) if (u >= at) gg = d; g.push(gg);
   }
   const extra = lv === 3 && i % 2 ? 0.6 + 0.3 * ((i >> 1) % 2) : 0;   // (the pair's second board starts thicker: the gauge)
-  return { i, e, g, knot, T0: 10 + extra, removed: 0, scars: [] };
+  return { i, e, g, knot, T0: 10 + extra, removed: 0, scars: [], shape: B.shape, par: B.par || null };
 }
 export function fresh(lv) {
   const L = LEVEL[lv] || LEVEL[1];
@@ -135,6 +155,8 @@ function cut(S, c, dir, st) {
   // a pass over a flat board takes the depth off its thickness (level 3: the gauge)
   if (flatCell(b, c)) st.flatCut = (st.flatCut || 0) + d * k / HK.N;
   st.cut += any;
+  // (against the grain and no tear: the plane chatters — level 3 has no arrows, this is how the grain is read)
+  if (!with_ && any > 0 && !st.rough) { st.rough = true; ev(S, { k: 'rough', c }); }
 }
 const flatCell = (b, c) => b.e.every((ln) => ln[c] < HK.EPS);
 const flatAll = (b) => b.e.every((ln) => ln.every((v) => v < HK.EPS));
@@ -164,7 +186,7 @@ function reject(S, why = 'thin') {
   S.b = boardOf(S.lv, S.k); S.p = 0; S.tear = true;   // (the passes go on counting: the step's grade pays for it)
 }
 function boardDone(S) {
-  const L = S.L, over = S.passes - L.passes, tore = S.tear, small = S.small;
+  const L = S.L, over = S.passes - (S.b.par || L.passes), tore = S.tear, small = S.small;
   const grade = !tore && !small && over <= 0 ? 'gold' : over <= 2 ? 'good' : 'ok';
   const g = tore && grade === 'gold' ? 'good' : grade;
   S.thick[S.k] = thick(S.b);
@@ -183,29 +205,49 @@ export function result(S) {
 }
 export function save(S, id) { return { id, v: 1, lv: S.lv, k: S.k, steps: S.steps, flaws: S.flaws, first: S.first, thick: S.thick, pile: S.pile, depth: S.depth }; }
 export function load(b) { if (!b || b.v !== 1) return null; const S = fresh(b.lv); S.steps = b.steps || []; S.flaws = b.flaws || []; S.first = !!b.first; S.thick = b.thick || []; S.pile = b.pile || []; S.depth = b.depth | 0; next(S, Math.min(S.L.boards - 1, S.steps.length)); return S; }
-/* ───────── a bot: strokes with the grain at a steady speed, the depth by what is left (o.rough: deep and fast) ───────── */
+/* ───────── a bot: plans each stroke the way a careful carpenter would (o.rough: deep and fast) ─────────
+ * every stroke: of the ways (with or against the cells' grain), the depths, the skew (levels 2–3) and the lean (level 3), the one that
+ * takes off the most without a tear; its span = the cells that still stand high. Each board's par (BOARDS[].par) is this plan's count. */
+function plan(S) {
+  const b = S.b, N = HK.N, need = []; for (let c = 0; c < N; c++) need.push(Math.max(b.e[0][c], b.e[1][c], b.e[2][c]) >= HK.EPS);
+  const over = Math.max(0, thickOver(S) || 0);
+  if (flat(b)) {   // (level 3's gauge: a whole-length pass at the depth nearest what is over, with the grain where it runs most)
+    const d = over > 0.75 ? 1 : 0, dir = b.g.filter((v) => v > 0).length >= N / 2 ? 1 : -1;
+    return { lo: 0, hi: HK.TRAVEL, dir, depth: d, skew: S.lv > 1 ? 5 : 0, lean: 0 };
+  }
+  let c0 = need.indexOf(true), c1 = need.lastIndexOf(true);
+  let best = null;
+  for (const dir of [1, -1]) for (const depth of [2, 1, 0]) for (const skew of S.lv > 1 ? [5, 0] : [0]) for (const lean of S.lv === 3 ? [-1, 0, 1] : [0]) {
+    // the longest run of cells (from c0 or to c1) this cut can take without a tear; the score = what comes off
+    let ok = true, sc = 0;
+    for (let c = c0; c <= c1; c++) {
+      const with_ = b.g[c] === dir, knot = b.knot.includes(c), skewed = Math.abs(skew) >= HK.SKEW_OK;
+      if (depth === 2 && (!with_ || knot)) { ok = false; break; }
+      if (depth === 1 && !with_ && !skewed) { ok = false; break; }
+      const k = (skewed ? HK.SKEW_CUT : 1) * (!with_ && depth === 1 ? 0.7 : 1), d = HK.DEPTH[depth] * k;
+      for (let l = 0; l < 3; l++) { const lk = S.lv === 3 ? Math.max(0.2, 1 + (l - 1) * lean * HK.LEAN) : 1; sc += Math.min(b.e[l][c], d * lk); }
+    }
+    if (!ok) continue;
+    if (!best || sc > best.sc + 1e-6) best = { sc, dir, depth, skew, lean };
+  }
+  if (!best) best = { dir: b.g[c0], depth: 0, skew: S.lv > 1 ? 5 : 0, lean: 0 };
+  // (a short span still sweeps a little past it: the plane's blade must run off the high place)
+  const lo = Math.max(0, (c0 - 0.5) * HK.TRAVEL / N), hi = Math.min(HK.TRAVEL, (c1 + 1.5) * HK.TRAVEL / N);
+  return { lo, hi, ...best };
+}
 export function bot(S, o = {}) {
   const B = S.__bot || (S.__bot = { t: 0, dir: 1, on: false, from: 0, to: HK.TRAVEL, rest: 0 });
   if (S.phase !== 'plane') { B.on = false; return { hold: false }; }
   if (B.rest > 0) { B.rest -= 1 / 60; return { hold: false }; }
-  const b = S.b;
   if (!B.on) {
-    // plan the stroke: the half that still has excess, the direction with its grain; the depth: deep only with the grain and no knot
-    const left = b.e.some((ln) => ln.slice(0, HK.N / 2).some((v) => v >= HK.EPS)), right = b.e.some((ln) => ln.slice(HK.N / 2).some((v) => v >= HK.EPS));
-    let lo = 0, hi = HK.TRAVEL;
-    if (S.lv === 2) { if (left) { lo = 0; hi = HK.TRAVEL / 2 - 0.5; } else { lo = HK.TRAVEL / 2 + 0.5; hi = HK.TRAVEL; } }
-    const c = cellAt((lo + hi) / 2), dir = b.g[c];
-    const ex = excess(b), over = Math.max(0, thickOver(S) || 0);
-    let depth = o.rough ? 2 : ex > 0.95 && !b.knot.length && S.lv === 1 ? 2 : ex > 0.35 || over > 0.5 ? 1 : 0;
-    if (flat(b) && over > 0) depth = over > 0.75 ? 1 : 0;
-    B.depth = depth; B.dir = dir; B.from = dir > 0 ? lo : hi; B.to = dir > 0 ? hi : lo; B.on = true; B.p = B.from; B.lean = 0;
-    if (S.lv === 3) { const l0 = b.e[0].reduce((a, v) => a + v, 0), l2 = b.e[2].reduce((a, v) => a + v, 0); B.lean = Math.max(-1, Math.min(1, (l2 - l0) * 0.4)); }
-    return { hold: false, depth, p: B.from, skew: S.lv > 1 ? (o.rough ? 0 : 5) : 0, lean: B.lean };
+    const P = o.rough ? { lo: 0, hi: HK.TRAVEL, dir: S.b.g[10], depth: 2, skew: 0, lean: 0 } : plan(S);
+    B.depth = P.depth; B.dir = P.dir; B.from = P.dir > 0 ? P.lo : P.hi; B.to = P.dir > 0 ? P.hi : P.lo; B.on = true; B.p = B.from; B.lean = P.lean; B.skew = P.skew;
+    return { hold: false, depth: P.depth, p: B.from, skew: P.skew, lean: P.lean };
   }
   if (Math.abs(S.p - B.from) > 1 && !S.stroke && B.p === B.from) return { hold: true, lift: true, p: B.from };   // (drawn back, lifted)
   const v = o.rough ? 420 : 200;
   B.p += B.dir * v / 60;
   const end = B.dir > 0 ? B.p >= B.to : B.p <= B.to;
   if (end) { B.on = false; B.rest = 0.15; return { hold: false }; }
-  return { hold: true, p: B.p, skew: S.lv > 1 ? (o.rough ? 0 : 5) : 0, lean: B.lean, depth: B.depth };
+  return { hold: true, p: B.p, skew: B.skew, lean: B.lean, depth: B.depth };
 }

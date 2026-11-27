@@ -1797,8 +1797,11 @@ function s14(S13, S05) {
   // the routes of the three levels (spec "טבלת הרמות"): the rooms that are steps, in order; a cut = the kohen brought back (a short film)
   const routes = {
     1: { start: { room: 'pp', x: -94.8, z: -8.6, yaw: -Math.PI / 2 }, steps: ['n0c0', 'n0c1', 'n1c1'] },
-    2: { start: { room: 'heichal', x: -103, z: -7.5, yaw: -Math.PI / 2 }, steps: ['n0c0', 'n0c1', 'n0c2', 'n0c3', 'n0c4', 'n1c4'] },
-    3: { start: { room: 'n0c1', x: -113.4, z: -19.5, yaw: Math.PI }, steps: ['n1c1', 'n1c2', 'n2c2', { cut: 1, room: 'n0c0', x: -103, z: -19.5, yaw: -Math.PI / 2 }, 'mLand', 'rNW', 'rSW', 'upDoor'] },
+    // level 2 "find the way": only the cell he is sent to glows; beams stacked in two doorways (the cells' ceilings waiting to go up — המחשה);
+    // a hatch takes him up only, so a wrong climb is a dead end (brought back to the step's start). Level 3 "by name": no light at all,
+    // the cell named and the floors' plan shown until he moves; three doorways blocked; then the mesibah to the roofs as before.
+    2: { start: { room: 'heichal', x: -103, z: -7.5, yaw: -Math.PI / 2 }, steps: ['n0c0', 'n1c3', 'n2c1'], mode: 'beacon', blocked: ['n0d1', 'n2d1'] },
+    3: { start: { room: 'n0c1', x: -113.4, z: -19.5, yaw: Math.PI }, steps: ['n1c3', 'n2c0', { cut: 1, room: 'n0c0', x: -103, z: -19.5, yaw: -Math.PI / 2 }, 'mLand', 'rNW', 'rSW', 'upDoor'], mode: 'name', blocked: ['n0d2', 'n1d1', 'n2d2'] },
   };
   // the camera (spec "taim:cam"): isometric from the north-east, 30° over; 10 amot from the aim keeps him 120 dp tall (lens 40°)
   const tcam = { el: 48, dist: 16, dir: [0.7071, -0.7071], fov: 40, lift: 1.2 };

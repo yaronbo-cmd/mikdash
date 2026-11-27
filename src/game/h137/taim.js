@@ -95,6 +95,11 @@ function buildMaze(X, root, lv) {
     m.visible = false; m.userData.J = J; grp(roofish(A) ? 'roof' : lvOf(K.floorY(A, mid))).add(m);
     G.strips.set(J.a + '|' + J.b, m);
   }
+  // the doorways blocked on this level: the cells' ceiling beams stacked in them (המחשה: the work still going on), seen from above
+  for (const id of K.graphOf(lv).blk) {
+    const R = K.roomOf(id); if (!R) continue; const [x0, z0, x1, z1] = R.r, y = R.y, g = grp(lvOf(y));
+    for (let k = 0; k < 3; k++) { const b = box(X, Mt.y14cedar, x0 - 0.2, y + k * 0.32, z0 + 0.15 + k * 0.05, x1 + 0.2, y + 0.3 + k * 0.32, z1 - 0.15 - k * 0.05, g); b.rotation.y = (k - 1) * 0.06; b.name = 'h137-blocked'; }
+  }
   // the junction's five signs (levels 1–2): over each opening, facing into the junction (the cut keeps them in view: low, on posts)
   if (lv < 3) {
     const y = TA.floors[0] + 2.6;
@@ -124,6 +129,25 @@ function make(m, X) {
   const tick = new T.Mesh(new T.ConeGeometry(0.16, 0.36, 6), Mt.y14ringL); tick.rotation.z = -Math.PI / 2; tick.renderOrder = 5; root.add(tick);   // (the ring's mark: the way he faces)
   const rings = { work: ring(HANDS.R), helper: ring(HANDS.L) };
   try { X.kohen(false); } catch (e) { /* (only the walker: the hero hidden for the act) */ }
+  // ── levels 2–3, find the way: level 2 a column of light over the cell he is sent to (no light on the openings); level 3 nothing in
+  // the world: the cell is named, and the floors' plan (the blocked doorways on it) shows while he stands at the step's start
+  const beacon = new T.Mesh(new T.CylinderGeometry(1.3, 1.3, 4.6, 18, 1, true), Mt.y14next.clone()); beacon.material.transparent = true; beacon.material.side = T.DoubleSide; beacon.material.depthWrite = false; beacon.visible = false; root.add(beacon);
+  const ORD = ['הראשון', 'השני', 'השלישי', 'הרביעי', 'החמישי'], FLR = ['התחתונה', 'האמצעית', 'העליונה'];
+  const nameOf = (id) => { const R = K.roomOf(id); return R && R.kind === 'cell' ? `התא ${ORD[R.i]} בקומה ${FLR[R.f]}` : ''; };
+  const plan = (() => { try {
+    const d = document.createElement('div'); d.className = 'h109-ui h137-plan';
+    d.style.cssText = 'position:fixed;z-index:5;pointer-events:none;left:50%;top:104px;transform:translate(-50%,0);background:#F6EAD2ee;border:2px solid #7A4E2C;border-radius:10px;padding:6px 10px;font:600 13px system-ui;color:#3A2A18;display:none;direction:rtl;text-align:center';
+    document.body.appendChild(d); return d; } catch (e) { return null; } })();
+  function drawPlan() {
+    if (!plan) return; const tg = K.target(S), blk = K.graphOf(lv).blk;
+    let h = `<div style="margin-bottom:4px">אל ${nameOf(tg.room)}</div><div style="display:inline-grid;grid-template-columns:repeat(9,auto);gap:2px;direction:rtl">`;
+    for (let f = 2; f >= 0; f--) for (let c = 0; c < 5; c++) {
+      const id = `n${f}c${c}`, me = S.room === id, t = tg.room === id;
+      h += `<div style="width:30px;height:20px;border-radius:3px;background:${t ? '#F2B43A' : '#D9C6A3'};border:2px solid ${me ? '#2F7FD0' : '#8A6A44'};font-size:11px;line-height:18px">${me ? '●' : ''}</div>`;
+      if (c < 4) h += `<div style="width:8px;height:20px;background:${blk.has(`n${f}d${c}`) ? '#7A2E1A' : 'transparent'};border-radius:2px"></div>`;
+    }
+    plan.innerHTML = h + '</div><div style="font-size:11px;margin-top:3px">מזרח מימין · הקורות האדומות חוסמות · פתח בתקרה עולה רק למעלה</div>';
+  }
   const cam0 = X.camera, fov0 = cam0.fov;
   // ── the view: the room's fixed point, or where he stands (the long places); only with no finger down
   function camTo(d = 0.6) {
@@ -209,7 +233,12 @@ function make(m, X) {
   function lights() {
     for (const [k, m] of G.strips) if (!k.startsWith('hatch:')) { if (!A.passed.has(k)) m.visible = false; else { m.visible = true; m.material.opacity = 0.7; } }
     for (const [k, m] of G.strips) if (k.startsWith('hatch:')) m.visible = false;
-    const gl = K.goal(S);
+    const gl = K.goal(S), tg = K.target(S), find = S.mode !== 'lit' && tg && !tg.cut && (K.roomOf(tg.room) || {}).kind === 'cell';
+    // find the way (levels 2–3): no light on the openings; level 2's column over the target cell
+    beacon.visible = !!(find && S.mode === 'beacon' && S.phase === 'walk');
+    if (beacon.visible) { const R = K.roomOf(tg.room); beacon.position.set((R.r[0] + R.r[2]) / 2, R.y + 2.3, (R.r[1] + R.r[3]) / 2); beacon.material.opacity = 0.28 + 0.12 * Math.sin(A.t * 3); }
+    if (plan) { const show = find && S.mode === 'name' && S.phase === 'walk' && S.cells === 0 && S.from0 && S.room === S.from0.room && !A.work; if (show && plan.style.display !== 'block') drawPlan(); plan.style.display = show ? 'block' : 'none'; }
+    if (find) return;
     if (gl && !S.halt && S.phase === 'walk') {
       if (gl.hatch) { const mk = G.strips.get('hatch:' + S.room); if (mk) { mk.visible = true; mk.scale.setScalar(1 + 0.15 * Math.sin(A.t * 5)); } }
       else { const J = K.JOINS.find((j) => (j.a === S.room && j.b === gl.via) || (j.b === S.room && j.a === gl.via)); if (J) { light(J, 'next'); const mm = G.strips.get(J.a + '|' + J.b); if (mm) mm.material.opacity = 0.45 + 0.3 * Math.sin(A.t * 5); } }
@@ -223,6 +252,7 @@ function make(m, X) {
       V.right(); try { X.sparks(S.x, S.y + 1.5, S.z, 10); } catch (er) { /* */ }
       try { X.haptic && X.haptic(15); } catch (er) { /* */ }
       if (S.last) settle(S.last);
+      { const tg = K.target(S); if (S.mode !== 'lit' && tg && !tg.cut && nameOf(tg.room)) try { X.line('עכשיו: אל ' + nameOf(tg.room), 2400); } catch (er) { /* */ } }
       keep();
     } else if (e.k === 'room') {
       // an opening passed: its strip stays lit (thin)
@@ -240,6 +270,8 @@ function make(m, X) {
     else if (e.k === 'detour') { V.hollow(1.4); ev('detour'); }
     else if (e.k === 'rise') { V.rise(); ev('rise' + (e.rim ? ':rim' : '')); }
     else if (e.k === 'cut') { ev('cut'); try { X.line('הכהן חוזר אל הצומת, אל פתח המסיבה', 1800); } catch (er) { /* */ } }
+    else if (e.k === 'stuck') { V.hollow(1.6); ev('stuck'); try { X.line('אין מכאן דרך אל התא: הקורות חוסמות, ובפתח שבתקרה רק עולים. חוזרים לתחילת הצעד', 3000); } catch (er) { /* */ } }
+    else if (e.k === 'placed') { A.camKey = ''; if (e.back) ev('back'); }
     else if (e.k === 'go') { A.camKey = ''; }
     else if (e.k === 'done') { ev('done'); done(); }
   }
@@ -278,7 +310,7 @@ function make(m, X) {
     close: true, kohenWorks: true,
     begin() {
       FG.attach(); A.camKey = ''; camTo(0.01);
-      X.line(resumed ? '' : lv === 1 ? 'גררו מהאגן של הכהן אל הפתח המואר. הכהן הולך לאן שגוררים' : lv === 2 ? 'אגודל אחד גורר קדימה, השני מסובב את הטבעת שלרגליו' : 'בלי שלטים: קראו את המבנה. למעלה בקומות, ואז המסיבה וגגות התאים', resumed ? 0 : 5200);
+      X.line(resumed ? '' : lv === 1 ? 'גררו מהאגן של הכהן אל הפתח המואר. הכהן הולך לאן שגוררים' : lv === 2 ? 'מצאו את הדרך אל התא המואר. קורות חוסמות פתחים, ופתח בתקרה עולה רק למעלה. אגודל אחד גורר, השני מסובב את הטבעת' : 'בלי אור ובלי שלטים: התא נאמר בשמו והתכנית מוצגת עד שזזים. אחר כך המסיבה וגגות התאים', resumed ? 0 : 5200);
       X.wait(0.9).then(() => { if (!A.ended) hint(); });
       ev(resumed ? 'resume' : 'begin'); keep();
     },
@@ -307,6 +339,7 @@ function make(m, X) {
     end() {
       A.ended = true; FG.detach(); V.hush(); V.stop(); X.hand(null); lens(X, fov0);
       for (const r of Object.values(rings)) r.remove();
+      try { plan && plan.remove(); } catch (e) { /* */ }
       try { X.kohen(true); } catch (e) { /* */ }
       X.props.remove(root);
     },

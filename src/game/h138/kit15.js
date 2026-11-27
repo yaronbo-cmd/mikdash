@@ -12,7 +12,7 @@ export function overlayAct(m, X, viewOf, o = {}) {
   const flawOf = o.flawOf || (() => null);
   function begin() {
     const cv = document.createElement('canvas'); cv.className = 'h109-ui h138-screen';
-    cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:55;display:block;background:#000;touch-action:none';
+    cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:55;display:block;background:#000;touch-action:none;pointer-events:auto';
     document.body.appendChild(cv); A.el = cv;
     A.SC = makeScreen(cv, {
       add(n, why) { if (n > 0) { try { X.bonus(n, 'h138-' + why, ''); } catch (e) { /* */ } } },
@@ -30,7 +30,7 @@ export function overlayAct(m, X, viewOf, o = {}) {
   return {
     close: true, kohenWorks: false,
     begin,
-    update(dt) { A.t += dt; try { if (A.view) A.view.frame(dt); } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h138]', m.k, e && e.message); } } },
+    update(dt) { A.t += dt; try { if (A.view) { const k = Math.min(40, globalThis.__H138_FF | 0 || 1); for (let i = 0; i < k; i++) A.view.frame(dt); } }   /* __H138_FF: the probes' fast-forward (slow headless frames) */ catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h138]', m.k, e && e.message); } } },
     down() {}, move() {}, up() {}, cancel() {},
     wants() { return false; }, holds() { return !!(A.SC && A.SC.F.size); },
     end() { A.ended = true; try { A.SC && A.SC.dispose(); } catch (e) { /* */ } try { A.el && A.el.remove(); } catch (e) { /* */ } try { X.kohen(true); } catch (e) { /* */ } },

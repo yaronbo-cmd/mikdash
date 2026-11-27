@@ -24,5 +24,5 @@ module.exports = async ({ pg, st, shot, log, wait, unmodal }) => {
     await fold(566, 118, -1, 46); log('inner', JSON.stringify(await S()));
     await shot('parochot-inner');
   }
-  await wait(5000); log('after', JSON.stringify(await st()).slice(0, 400)); await shot('parochot-end');
+  await pg.evaluate(() => { globalThis.__H138_FF = 30; }); for (let i = 0; i < 30; i++) { await unmodal(); const s = await st(); if (s && (s.phase !== 'act' || (s.act && s.act.finished))) break; await wait(3000); } await wait(8000); log('after', JSON.stringify(await st()).slice(0, 400)); await shot('parochot-end');
 };

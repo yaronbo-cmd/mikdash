@@ -676,7 +676,6 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (H109_ON && S.isDone(G, 'ulam') && S.isDone(G, 'heichal')) setTimeout(() => h36Rest(), 3500);   // ── h137 ── (once stage 14 is done: before it, its own start drew it) ── /h137 ──
     if (H109_ON && S.isDone(G, 'heichal') && S.isDone(G, 'kodesh')) setTimeout(() => h37Rest(), 3800);   // ── h138 ── (once stage 15 is done: before it, its own start drew it) ── /h138 ──
     if (H109_ON && S.isDone(G, 'kodesh')) setTimeout(() => h38Rest(), 4100);   // ── h138 ── (the parochot as he hung them, after a reload) ── /h138 ──
-    if (H109_ON && S.isDone(G, 'heichal') && !S.isDone(G, 'kodesh')) setTimeout(() => h37Rest(), 3800);   // ── h137 ── (the Heichal as he built it, after a reload) ── /h137 ──   // ── h136 ── (the Ulam as he built it, after a reload) ── /h136 ──   // ── h135 ── (the kiyor, its machine, the pit and the channel as he built them, after a reload) ── /h135 ──
       // ── h133 ── (the upper block and the kevesh as he built them, after a reload) ── /h133 ──   // ── h132 ── (the block and its line as he built them, after a reload) ── /h132 ──
     return api;
   }
@@ -4063,7 +4062,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   /** stage 14 done, the page reloaded: the Heichal from his save (stage 13's Ulam drew itself first); an old save whose old stage 14
    *  was done gets the crews' (migrate14, once) */
   function h37Rest() {
-    if (H9 && !['kodesh', 'heichal', 'ulam', 'kiyor', 'karnot', 'guf', 'sovev', 'yesod', 'lishka', 'nikanor', 'nashim'].includes(H9.site)) return false;   // (a later stage's director owns the page)
+    if (H9 && !['heichal', 'ulam', 'kiyor', 'karnot', 'guf', 'sovev', 'yesod', 'lishka', 'nikanor', 'nashim'].includes(H9.site)) return false;   // (a later stage's director owns the page)
     if (!H9 || H9.site !== 'heichal') { try { h36Rest(); } catch (e) { /* */ } }
     try { if (!G.h137 && S.isDone(G, 'heichal')) { migrate14(G, true); persist(); } } catch (e) { /* */ }
     try { const d = h37Make(); const ok = !!(d && d.rest && d.rest()); if (ok) setTimeout(() => h37Visits(), 400); return ok; } catch (e) { console.warn('[h137] rest', e && e.message); return false; }
@@ -4104,11 +4103,12 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     return H9;
   }
   function h38Begin() {
+    try { globalThis.__H138_BEGIN = { on: H109_ON, heichal: S.isDone(G, 'heichal'), kodesh: S.isDone(G, 'kodesh'), status: S.statusOf(G, 'kodesh') }; } catch (e) { /* (the probes) */ }
     if (!H109_ON || !S.isDone(G, 'heichal') || S.isDone(G, 'kodesh')) return false;
     if (!S.beginDirected(G, 'kodesh')) return false;
     if (G.ftue < 99) G.ftue = 99;
     persist(); W.heroShow(true); ui.refresh();
-    h38Make().start();
+    try { h38Make().start(); } catch (e) { globalThis.__H138_ERR = String(e && e.stack); throw e; }
     return true;
   }
   function h38Done() {

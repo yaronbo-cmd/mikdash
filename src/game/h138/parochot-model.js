@@ -111,13 +111,16 @@ export function step(S, dt, inp = {}) {
     const mine = (e === 'S' && S.phase === 'heichal') || (e === 'N' && S.phase === 'teivah');
     if (!mine) { d.held = false; continue; }
     if (f && f.down) {
-      if (!d.held) { d.held = true; d.gx = f.x - d.x; d.gy = f.y - d.y; d.pull = null; if (!S.touched) { S.touched = true; E.push({ e: 'touch' }); if (S.finale) E.push(...finaleWave(S)); } }
+      if (!d.held) { d.held = true; d.gx = f.x - d.x; d.gy = f.y - d.y; d.pull = null; d.fx = null; d.vx0 = 0; d.vy0 = 0; if (!S.touched) { S.touched = true; E.push({ e: 'touch' }); if (S.finale) E.push(...finaleWave(S)); } }
       // the cloth is heavy: along it the edge follows the finger 0.4 s behind; across it lighter (0.12 s)
       const tx = f.x - d.gx, ty = f.y - d.gy;
       const nx = d.x + (tx - d.x) * Math.min(1, dt / PV.LAG), ny = d.y + (ty - d.y) * Math.min(1, dt / PV.LAG_X);
       const yMax = d.fold >= 0.98 && !d.hooked ? PV.HOOK_Y + 14 : PV.ACROSS * 25.6 * 3;   // dp on the screen (0.3 amah drawn ×3; a full fold reaches down to its hook)
       d.vx = dt > 0 ? (nx - d.x) / dt : 0; d.vy = dt > 0 ? (Math.max(-yMax, Math.min(yMax, ny)) - d.y) / dt : 0;
       d.x = d.hooked ? 0 : nx; d.y = Math.max(-yMax, Math.min(yMax, ny));
+      // the pull and the catch are read from the HAND (the finger's speed, lightly smoothed): the cloth's lag is only what is seen
+      if (d.fx != null && dt > 0) { const a = Math.min(1, dt / 0.05); d.vx = d.vx0 = (d.vx0 || 0) + ((f.x - d.fx) / dt - (d.vx0 || 0)) * a; const vy = (f.y - d.fy) / dt; d.vy = d.vy0 = (d.vy0 || 0) + (vy - (d.vy0 || 0)) * a; if (Math.abs(d.y) >= yMax - 0.01 && Math.sign(vy) === Math.sign(d.y)) d.vy = 0; }
+      d.fx = f.x; d.fy = f.y;
       if (d.hooked) d.vx = 0;
       E.push(...pullTrack(S, e, d));
       // the fold: dragging along the cloth (x > 0) folds the edge back on itself; it stays where it is left
@@ -132,7 +135,7 @@ export function step(S, dt, inp = {}) {
       }
     } else if (d.held) {
       // released: into the hook if the fold is full, near it, and the cloth there is calm
-      d.held = false; E.push(...pullEnd(S, e, d));
+      d.held = false; d.fx = null; E.push(...pullEnd(S, e, d));
       if (!d.hooked && d.fold >= 0.98) {
         const hookX = PV.FOLD + 10, hookY = e === 'S' ? PV.HOOK_Y : -PV.HOOK_Y;   // (the hook: at the full fold, toward the Heichal for the outer, toward the amah for the inner: dp from the edge's rest)
         const near = Math.hypot(d.x - hookX, d.y - hookY) <= PV.HOOK_R + 6 || Math.hypot(f && f.x != null ? f.x - hookX : 99, f && f.y != null ? f.y - hookY : 99) <= PV.HOOK_R;
@@ -150,11 +153,13 @@ export function step(S, dt, inp = {}) {
   } else if (S.phase === 'teivah') {
     if (h.down) {
       const yMax = PV.ACROSS * 25.6 * 3;
-      if (!S.helper.held) { S.helper.held = true; S.helper.gy = h.y - S.helper.y; S.helper.pull = null; if (!S.touched) { S.touched = true; E.push({ e: 'touch' }); if (S.finale) E.push(...finaleWave(S)); } }
+      if (!S.helper.held) { S.helper.held = true; S.helper.gy = h.y - S.helper.y; S.helper.pull = null; S.helper.fy = null; S.helper.vy0 = 0; if (!S.touched) { S.touched = true; E.push({ e: 'touch' }); if (S.finale) E.push(...finaleWave(S)); } }
       const ty = h.y - S.helper.gy, ny = S.helper.y + (ty - S.helper.y) * Math.min(1, dt / PV.LAG_X);
-      const cy = Math.max(-yMax, Math.min(yMax, ny)); S.helper.vy = dt > 0 ? (cy - S.helper.y) / dt : 0; S.helper.y = cy;
+      const cy = Math.max(-yMax, Math.min(yMax, ny)); S.helper.y = cy;
+      if (S.helper.fy != null && dt > 0) { const a = Math.min(1, dt / 0.05); S.helper.vy = S.helper.vy0 = (S.helper.vy0 || 0) + ((h.y - S.helper.fy) / dt - (S.helper.vy0 || 0)) * a; } else S.helper.vy = 0;
+      S.helper.fy = h.y;
       E.push(...pullTrack(S, 'H', S.helper));
-    } else if (S.helper.held) { S.helper.held = false; E.push(...pullEnd(S, 'H', S.helper)); }
+    } else if (S.helper.held) { S.helper.held = false; S.helper.fy = null; E.push(...pullEnd(S, 'H', S.helper)); }
     else { S.helper.y *= Math.max(0, 1 - dt * 2); S.helper.vy = 0; }
   }
   // ── the pulses: run, fade, pass the palm, reach an end (a catch window around the peak's arrival)

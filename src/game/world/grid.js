@@ -12,7 +12,7 @@
  *          entries [{ id, kind, x, z, y?, cell, label, src }] (cell = nameOf(cellOf(x, z)); src: the source, or "המחשה"), and the
  *          stage's own tables the code reads its places from (stage 05: h120/layout.js, routes.js and model.js read BOOK.s05)
  */
-import { KIYOR, KIYOR_MECHANISM, GAZIT, ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL, ULAM_TABLES, HEICHAL, KODESH, UPPER_OPENINGS } from '../../places.js';   // ── h136 ── (+ stage 13's: the Ulam, the Heichal's door, the steps, the levels, the tables) ── /h136 ──   // ── h135 ── (stage 12's places are derived from the shared map) ── /h135 ──
+import { KIYOR, KIYOR_MECHANISM, GAZIT, ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL, ULAM_TABLES, HEICHAL, KODESH, UPPER_OPENINGS, AMAH_TRAKSIN } from '../../places.js';   // ── h136 ── (+ stage 13's: the Ulam, the Heichal's door, the steps, the levels, the tables) ── /h136 ──   // ── h135 ── (stage 12's places are derived from the shared map) ── /h135 ──
 export const CELL = 25;
 export const EAST = 277;          // mount.js PLAT.X1: the east wall's face
 export const NORTH = -183.5;      // mount.js SQUARE.z0: the 500-amah square's north edge
@@ -116,6 +116,7 @@ function makeBook() {
   stages.s12 = s12(stages.s10, stages.s07);
   stages.s13 = s13(stages.s12);   // ── h136 ── (build 136: stage 13's section, derived from places.js ULAM, HEICHAL_DOOR, ULAM_STEPS, LEVEL) ── /h136 ──   // ── h135 ── (build 135: stage 12's section, derived from places.js KIYOR, KIYOR_MECHANISM, GAZIT) ── /h135 ──
   stages.s14 = s14(stages.s13, stages.s05);   // ── h137 ── (build 137: stage 14's section, derived from places.js HEICHAL, KODESH, UPPER_OPENINGS and stage 05's wood chamber) ── /h137 ──
+  stages.s15 = s15(stages.s14);   // ── h138 ── (build 138: stage 15's section, derived from places.js KODESH, AMAH_TRAKSIN, UPPER_OPENINGS) ── /h138 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -1863,6 +1864,37 @@ function s14(S13, S05) {
   e3('stand:start14', 'stand', S14.start, F, 'הכהן בתחילת השלב', ILL);
   return { ...S14, entries: E };
 }
+// ── h138 ── stage 15 "קודש הקדשים" (spec docs/specs/shlav-15-he.md v4, "המקום בעולם: טבלת הכתובות (BOOK.s15)"). Derived from places.js
+// KODESH, AMAH_TRAKSIN, UPPER_OPENINGS and LEVEL — nothing typed twice. The Holy of Holies' room is NEVER drawn (Josephus, Wars 5.219:
+// "לא היה בו דבר כלל"): kodesh.void is the box the camera checks against; only the work patch before the teivah's opening is drawn.
+function s15(S14) {
+  const KD = KODESH, AT = AMAH_TRAKSIN, UO = UPPER_OPENINGS, FL = LEVEL.heichal;
+  const ZN = KD.z0, ZS = KD.z1, Y1 = KD.y1, UP = UO.y;
+  return {
+    src: 'מדות ד, ה; ד, ז; יומא ה, א; נא ע"ב; שקלים ד, ד; ח, ה; כלים א, ט; יוסף, מלחמות ה 219',
+    kodesh: { void: { x0: KD.x0, x1: AT.x0 - 0.25, z0: ZN, z1: ZS, y0: FL, y1: Y1 }, room: { x0: KD.x0, x1: KD.x1, z0: ZN, z1: ZS, y0: FL, y1: Y1 } },
+    walls: {   // (the faces with the gold plating: Shekalim 4:4; the defects are illustration) — each face's plane and its "into the room" normal
+      north: { axis: 'x', face: ZN, normal: [0, 1], a0: KD.x0, a1: KD.x1 },
+      west: { axis: 'z', face: KD.x0, normal: [1, 0], a0: ZN, a1: ZS },
+      south: { axis: 'x', face: ZS, normal: [0, -1], a0: KD.x0, a1: KD.x1 },
+    },
+    aliyah: {
+      y: UP,
+      lul: {   // (three lulin over the north, west and south walls + one over the amah: their number, place and size are illustration; Middot 4:5)
+        1: { x: -149, z: ZN + 1, w: 1.5, wall: 'north' }, 2: { x: KD.x0 + 1, z: 0, w: 1.5, wall: 'west' }, 3: { x: -150, z: ZS - 1, w: 1.5, wall: 'south' },
+        amah: { x: (AT.x0 + AT.x1) / 2, z: ZN + 1, w: 1, wall: 'amah' },
+      },
+      pispasin: { x0: AT.x0, x1: AT.x1, z0: ZN, z1: ZS, y: UP },   // (ראשי פספסין: a light row of stones — the form is illustration)
+    },
+    teivah: { w: 1.2, h: 1.6, cam: { fov: 40, dist: 0.8, patch: 0.35 }, y: { 1: [44, 50, 38], 2: [46, 40, 52, 34], 3: [42, 48, 36, 54, 30] } },
+    teivahAmah: { w: 0.8, h: 1.6, x: (AT.x0 + AT.x1) / 2, z: ZN + 1, y: FL + 1, faces: 'east' },
+    parochet: { outer: { x: AT.x1, z0: ZN, z1: ZS, y0: FL, y1: Y1, open: 'south' }, inner: { x: AT.x0, z0: ZN, z1: ZS, y0: FL, y1: Y1, open: 'north' }, thick: 0.1 },
+    keres: { south: { x: AT.x1 + 0.5, z: ZS - 0.1, y: FL + 2 }, north: { x: AT.x0 + 0.5, z: ZN + 0.1, y: FL + 2 } },
+    amah: { x0: AT.x0, x1: AT.x1, z0: ZN, z1: ZS, y: FL, cam: { eye: [AT.x1 + 10, FL + 12, ZS + 6], aim: [(AT.x0 + AT.x1) / 2, FL + 4, 0] } },
+    stand: { heichal: { x: AT.x1 + 1.2, z: ZS - 1.2, y: FL } },   // (where the kohen stands in the Heichal by the south wall, before the outer's edge)
+  };
+}
+// ── /h138 ──
 // ── /h137 ──
 
 export const BOOK = makeBook();

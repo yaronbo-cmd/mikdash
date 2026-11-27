@@ -15,7 +15,7 @@
  * it = gold behind the doors (damage −20; a patch is not needed: it is scraped, the scar stays). The mask stays where it is left.
  * Level 1: no mask; the second hand may steady the leaf's corner while it is laid (+10). The leaf flutters a little in the door's
  * draught (FLUTTER dp) unless steadied. The work's first damage is a free try. Nothing random. */
-export const ZH = Object.freeze({ OV: 6, GOLD: 6, SNAP: 12, PULL: 8, PULL_T: 0.12, BRUSH: 46, COLS: 10, ROWS: 4, PUDDLE_T: 1.2, AGATE: 30, BURN_N: 2, BURN_V: 300,
+export const ZH = Object.freeze({ OV: 6, GOLD: 10, SNAP: 18, PULL: 10, PULL_T: 0.12, ROLL_T: 0.05, ROLL_V: 30, BRUSH: 46, COLS: 10, ROWS: 4, PUDDLE_T: 1.2, AGATE: 30, BURN_N: 2, BURN_V: 300,
   BURN_FAST: 3, BURN_DONE: 0.9, MASK_TOL: 0.08, FLUTTER: 3, W: 280, H: 120 });
 /** the segments of each level (spec "טבלת הרמות"): leaves each; the border segments' mask places (0 … 1 along the track) */
 export const PLAN = Object.freeze({
@@ -86,10 +86,16 @@ export function step(S, dt, inp = {}) {
     if (!H.on) return S.ev;
     // the release: pulled back? where? (the flutter shifts an unsteadied leaf a little: level 1's draught)
     S.held = null;
-    const a = H.hist[0] || { x: H.x, y: H.y }, b = { x: H.x, y: H.y }, dx = tx - H.x0, dy = ty - H.y0, L = Math.hypot(dx, dy) || 1;
-    const back = -(((b.x - a.x) * dx + (b.y - a.y) * dy) / L);
+    // the finger's roll as it leaves the glass (5–10 dp backward in the last few ms) is not a pull: the samples of the last ROLL_T are
+    // dropped when the finger had come to rest (slower than ROLL_V dp/s just before them) — build 137 review
+    let hs = H.hist; const cut = hs.findIndex((h) => S.t - h.t <= ZH.ROLL_T);
+    if (cut > 0) { const p0 = hs[Math.max(0, cut - 2)], p1 = hs[cut - 1], dtv = Math.max(1e-3, p1.t - p0.t), sp = Math.hypot(p1.x - p0.x, p1.y - p0.y) / dtv; if (sp < ZH.ROLL_V || cut - 1 === 0) hs = hs.slice(0, cut); }
+    const last = hs[hs.length - 1] || { x: H.x, y: H.y };
+    const b = { x: last.x, y: last.y }, dx = tx - H.x0, dy = ty - H.y0, L = Math.hypot(dx, dy) || 1;
+    // the pull: how far the finger came back from its furthest reach toward the slot, within the window
+    const proj = (h) => ((h.x - H.x0) * dx + (h.y - H.y0) * dy) / L, back = Math.max(...hs.map(proj), proj(b)) - proj(b);
     const fl = S.lv === 1 && H.steady < 0.15 ? ZH.FLUTTER * Math.sin(S.t * 7) : 0;
-    const ex = H.x - tx, ey = H.y + fl - ty, steadied = S.lv === 1 && H.steady >= 0.15;
+    const ex = last.x - tx, ey = last.y + fl - ty, steadied = S.lv === 1 && H.steady >= 0.15;
     if (steadied) S.steady++;
     if (back > ZH.PULL) { const dmg = damage(S, 'zahav.tear', 'pull'); ev(S, { k: 'tear', dmg }); if (dmg) S.patch = true; return S.ev; }   // (the leaf torn: another leaf for the same slot)
     if (S.g.border && !masked(S)) { const dmg = damage(S, 'zahav.border', 'border'); ev(S, { k: 'border', dmg }); if (dmg) S.border = true; }
@@ -151,9 +157,9 @@ export function bot(S, o = {}) {
     return { ...out, work: { down: false } };
   }
   if (S.phase === 'leaf') {
-    if (!S.held) return { ...out, cushion: { x: 24, y: -58 }, work: { down: false } };
+    if (!S.held) { B.path = null; return { ...out, cushion: { x: 24, y: -58 }, work: { down: false } }; }
     const tx = slotX(S.g.n, S.leaf) + (o.err || 0), ty = ZH.H / 2;
-    if (!B.path) { B.path = []; for (let k = 0; k <= 24; k++) B.path.push({ x: 24 + (tx - 24) * k / 24, y: -58 + (ty + 58) * k / 24 }); if (o.pull) for (let k = 1; k <= 4; k++) B.path.push({ x: tx - k * 4, y: ty }); B.i = 0; }
+    if (!B.path) { B.path = []; for (let k = 0; k <= 24; k++) B.path.push({ x: 24 + (tx - 24) * k / 24, y: -58 + (ty + 58) * k / 24 }); if (o.pull) { const L = Math.hypot(tx - 24, ty + 58) || 1; for (let k = 1; k <= 4; k++) B.path.push({ x: tx - (tx - 24) / L * k * 4, y: ty - (ty + 58) / L * k * 4 }); } B.i = 0; }
     if (B.i < B.path.length) return { ...out, work: { ...B.path[B.i++], down: true } };
     return { ...out, work: { down: false } };
   }

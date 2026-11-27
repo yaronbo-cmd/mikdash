@@ -31,14 +31,19 @@ function make(m, X) {
   const W = ZB[S.P.wall], N = S.P.segs.length, SW = ZH.W * M_DP, SH = ZH.H * M_DP;
   const along = W.axis === 'x' ? [1, 0] : [0, 1];
   const nrm = W.normal, mid = (W.a0 + W.a1) / 2, a0 = mid - N * SW / 2, yb = ZT.Y - SH / 2;
+  // level 2 (the east wall): the inner leaves, open 180°, cover the wall from the floor to their tops (BOOK: line) on both sides of the
+  // opening, so the band runs along the leaves' tops: a border segment straddles the line (its share below it = "אחר הדלתות", the
+  // height its plank was set at), and the mask is a horizontal rule slid up and down onto the line (Middot 4:1; build 137 review)
+  const horiz = lv === 2 && W.line != null, LINE = W.line;
+  const ybOf = (i) => (!horiz ? yb : S.P.segs[i] && S.P.segs[i].border ? LINE - S.P.segs[i].border * SH : LINE + 0.25);
   // the frame's "along" runs left to right as he faces the wall: flip when the wall's axis runs the other way on his screen
   const flip = (W.axis === 'x' ? nrm[1] < 0 : nrm[0] > 0) ? -1 : 1;
-  const wallPt = (i, x, y, off = 0.02) => { const s = a0 + (flip > 0 ? i * SW + x * M_DP : (N - i) * SW - x * M_DP); const p = W.axis === 'x' ? [s, W.face] : [W.face, s]; return [p[0] + nrm[0] * off, yb + y * M_DP, p[1] + nrm[1] * off]; };
+  const wallPt = (i, x, y, off = 0.02) => { const s = a0 + (flip > 0 ? i * SW + x * M_DP : (N - i) * SW - x * M_DP); const p = W.axis === 'x' ? [s, W.face] : [W.face, s]; return [p[0] + nrm[0] * off, ybOf(i) + y * M_DP, p[1] + nrm[1] * off]; };
   const faceRot = Math.atan2(nrm[0], nrm[1]);   // (a plane facing out of the wall)
   const quad = (mat, i, x0, y0, x1, y1, off = 0.02) => { const q = new T.Mesh(new T.PlaneGeometry(Math.abs(x1 - x0) * M_DP, Math.abs(y1 - y0) * M_DP), mat); const c = wallPt(i, (x0 + x1) / 2, (y0 + y1) / 2, off); q.position.set(c[0], c[1], c[2]); q.rotation.y = faceRot; root.add(q); return q; };
   // the wall itself (white stone), the band of bole on gesso, the scaffold's deck under him
-  { const L = W.a1 - W.a0, c = W.axis === 'x' ? [mid, W.face] : [W.face, mid]; const wl = new T.Mesh(new T.PlaneGeometry(L, 14), Mt.y14stone); wl.position.set(c[0] + nrm[0] * 0.01, ZT.Y, c[1] + nrm[1] * 0.01); wl.rotation.y = faceRot; root.add(wl);
-    const deck = box(X, Mt.y14wood, -2, 0, -1.5, 2, 0.2, 1.5, root); deck.scale.set(W.axis === 'x' ? N * SW + 2 : 3, 0.2, W.axis === 'x' ? 3 : N * SW + 2); deck.position.set(c[0] + nrm[0] * 1.6, yb - 1.6, c[1] + nrm[1] * 1.6); }
+  { const L = W.a1 - W.a0, c = W.axis === 'x' ? [mid, W.face] : [W.face, mid]; const wl = new T.Mesh(new T.PlaneGeometry(L, 14), Mt.y14stone); wl.position.set(c[0] + nrm[0] * 0.01, horiz ? LINE + 1 : ZT.Y, c[1] + nrm[1] * 0.01); wl.rotation.y = faceRot; root.add(wl);
+    const deck = box(X, Mt.y14wood, -2, 0, -1.5, 2, 0.2, 1.5, root); deck.scale.set(W.axis === 'x' ? N * SW + 2 : 3, 0.2, W.axis === 'x' ? 3 : N * SW + 2); deck.position.set(c[0] + nrm[0] * 1.6, (horiz ? LINE - SH : yb) - 1.6, c[1] + nrm[1] * 1.6); }
   const segG = [];
   const wetQ = [], burnQ = [], leafQ = [];
   for (let i = 0; i < N; i++) {
@@ -54,11 +59,13 @@ function make(m, X) {
   // the border of "אחר הדלתות" (levels 2–3): a hatched strip past each border segment's line, and the mask on its track under the band
   const track = { y: -16 };
   const borders = [];
-  for (let i = 0; i < N; i++) { const g = S.P.segs[i]; if (!g.border) continue; const x = (g.border * N - i) * ZH.W, side = g.border < 0.5 ? -1 : 1; const z = quad(Mt.y14dark, i, side < 0 ? x - 40 : x, 0, side < 0 ? x : x + 40, ZH.H, 0.04); z.material = Mt.y14dark.clone(); z.material.transparent = true; z.material.opacity = 0.18; const l = quad(Mt.y14scar, i, x - 1.2, -6, x + 1.2, ZH.H + 6, 0.05); borders.push({ i, x, z, l }); }
+  if (horiz) for (let i = 0; i < N; i++) { const g = S.P.segs[i]; if (!g.border) { const z = quad(Mt.y14cedar, i, -2, -70, ZH.W + 2, -25, 0.04); z.material = Mt.y14cedar.clone(); z.material.transparent = true; z.material.opacity = 0.55; continue; } const y = g.border * ZH.H; const z = quad(Mt.y14cedar, i, -2, -70, ZH.W + 2, y, 0.04); z.material = Mt.y14cedar.clone(); z.material.transparent = true; z.material.opacity = 0.55;   // (the leaf's place, swung away: its top on the line) const l = quad(Mt.y14scar, i, -6, y - 1.2, ZH.W + 6, y + 1.2, 0.05); borders.push({ i, x: y, z, l }); }
+  else for (let i = 0; i < N; i++) { const g = S.P.segs[i]; if (!g.border) continue; const x = (g.border * N - i) * ZH.W, side = g.border < 0.5 ? -1 : 1; const z = quad(Mt.y14dark, i, side < 0 ? x - 40 : x, 0, side < 0 ? x : x + 40, ZH.H, 0.04); z.material = Mt.y14dark.clone(); z.material.transparent = true; z.material.opacity = 0.18; const l = quad(Mt.y14scar, i, x - 1.2, -6, x + 1.2, ZH.H + 6, 0.05); borders.push({ i, x, z, l }); }
   let maskM = null;
-  if (lv > 1) { maskM = new T.Group(); root.add(maskM); const pl = new T.Mesh(new T.BoxGeometry(0.34, SH + 0.5, 0.06), Mt.y14mask); maskM.add(pl); const hd = new T.Mesh(new T.BoxGeometry(0.4, 0.22, 0.12), Mt.y14handL); hd.position.y = -(SH / 2 + 0.25); maskM.add(hd);
+  if (horiz) { maskM = new T.Group(); root.add(maskM); const pl = new T.Mesh(new T.BoxGeometry(SW + 0.5, 0.34, 0.06), Mt.y14mask); pl.position.y = -0.17; maskM.add(pl); const hd = new T.Mesh(new T.BoxGeometry(0.22, 0.4, 0.12), Mt.y14handL); hd.position.x = SW / 2 + 0.36; hd.position.y = -0.17; maskM.add(hd); }
+  else if (lv > 1) { maskM = new T.Group(); root.add(maskM); const pl = new T.Mesh(new T.BoxGeometry(0.34, SH + 0.5, 0.06), Mt.y14mask); maskM.add(pl); const hd = new T.Mesh(new T.BoxGeometry(0.4, 0.22, 0.12), Mt.y14handL); hd.position.y = -(SH / 2 + 0.25); maskM.add(hd);
     const tr = new T.Mesh(new T.BoxGeometry(W.axis === 'x' ? N * SW : 0.05, 0.05, W.axis === 'x' ? 0.05 : N * SW), Mt.y14woodD); const tc = wallPt(0, 0, 0); const tc2 = wallPt(N - 1, ZH.W, 0); tr.position.set((tc[0] + tc2[0]) / 2 + nrm[0] * 0.05, yb + track.y * M_DP - 0.35, (tc[2] + tc2[2]) / 2 + nrm[1] * 0.05); root.add(tr); }
-  const maskWorld = () => { const t = S.mask * N; const i = Math.min(N - 1, Math.floor(t)); return wallPt(i, (t - i) * ZH.W, ZH.H / 2, 0.08); };
+  const maskWorld = () => { if (horiz) return wallPt(S.k, ZH.W / 2, S.mask * ZH.H, 0.08); const t = S.mask * N; const i = Math.min(N - 1, Math.floor(t)); return wallPt(i, (t - i) * ZH.W, ZH.H / 2, 0.08); };
   // the cushion and the three tools' places (left of the segment), the held leaf on the gilder's tip
   const cushX = 24, cushY = -58;   // (under the segment's left end: never over a neighbour's gold)
   const cushM = new T.Mesh(new T.BoxGeometry(0.5, 0.36, 0.1), Mt.y14belt); root.add(cushM);
@@ -89,7 +96,7 @@ function make(m, X) {
   }
   const segScr = (x, y) => scr(wallPt(S.k, x, y, 0));
   const inBox = (f, c, n) => Math.abs(f.x - c.x) <= dp(n) / 2 + dp(4) && Math.abs(f.y - c.y) <= dp(n) / 2 + dp(4);
-  const maskScr = () => { if (!maskM) return null; const p = maskWorld(); const c = scr([p[0], yb + track.y * M_DP - 0.3, p[2]]); return { x: Math.max(dp(30), Math.min(innerWidth - dp(30), c.x)), y: c.y, off: c.x < dp(30) ? -1 : c.x > innerWidth - dp(30) ? 1 : 0 }; };
+  const maskScr = () => { if (!maskM) return null; if (horiz) { const c = segScr(ZH.W + 36 * (flip > 0 ? 1 : 1), S.mask * ZH.H - 17); return { x: Math.max(dp(30), Math.min(innerWidth - dp(30), c.x)), y: c.y, off: 0 }; } const p = maskWorld(); const c = scr([p[0], yb + track.y * M_DP - 0.3, p[2]]); return { x: Math.max(dp(30), Math.min(innerWidth - dp(30), c.x)), y: c.y, off: c.x < dp(30) ? -1 : c.x > innerWidth - dp(30) ? 1 : 0 }; };
   const onMask = (f) => { const c = maskScr(); return !!c && inBox(f, c, ZT.MASK); };
   const onCush = (f) => inBox(f, segScr(cushX, cushY), ZT.CUSH);
   // ── the fingers
@@ -106,7 +113,7 @@ function make(m, X) {
     move(f) {
       if (A.work && f.id === A.work.id) { const s = toSeg(f); if (s) { A.work.x = s.x; A.work.y = s.y; } }
       if (A.mask && f.id === A.mask.id) {
-        const s = toSeg(f), t0 = A.mask.s0; if (s && t0) { const m2 = A.mask.m0 + (s.x - t0.x) / (N * ZH.W); A.mask.want = Math.max(0, Math.min(1, m2)); }
+        const s = toSeg(f), t0 = A.mask.s0; if (s && t0) { const m2 = A.mask.m0 + (horiz ? (s.y - t0.y) / ZH.H : (s.x - t0.x) / (N * ZH.W)); A.mask.want = Math.max(0, Math.min(1, m2)); }
       }
     },
     up(f) { if (A.work && f.id === A.work.id) A.work = null; if (A.mask && f.id === A.mask.id) A.mask = null; if (A.steady && f.id === A.steady.id) A.steady = null; },
@@ -137,18 +144,29 @@ function make(m, X) {
       if (S.phase === 'burnish' || S.phase === 'next') { const v = Math.min(1, S.burn[c] / ZH.BURN_N); bq[c].visible = v > 0; bq[c].material.opacity = 0.25 + 0.75 * v; }
     }
   }
+  // a short word where it happened: which of the three actions did it (wet / leaf / agate) — build 137 review
+  function pop(text, col, x, y) {
+    try {
+      const p = segScr(x == null ? ZH.W / 2 : x, y == null ? ZH.H + 14 : y), d = document.createElement('div'); d.className = 'h109-ui h137-pop';
+      d.style.cssText = `position:fixed;z-index:5;pointer-events:none;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);font:700 15px system-ui;color:${col};text-shadow:0 1px 2px #0008;transition:transform .7s ease-out,opacity .7s ease-in`;
+      d.textContent = text; document.body.appendChild(d);
+      requestAnimationFrame(() => { d.style.transform = 'translate(-50%,-150%)'; d.style.opacity = '0'; }); setTimeout(() => d.remove(), 800);
+    } catch (er) { /* */ }
+  }
+  // the agate's glint: a bright spot riding under the stone while it burnishes (no reflection map: the shine moves with the hand)
+  const glint = new T.Mesh(new T.PlaneGeometry(0.34, 0.34), new T.MeshBasicMaterial({ color: '#FFF4C8', transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending })); root.add(glint);
   function handle(e) {
     if (e.k === 'warn') { V.breath(); ev('warn'); try { X.line('המסכה לא במקום: הרטיבות נמרחת על אחר הדלתות. הזיזו אותה אל הקו', 2400); } catch (er) { /* */ } }
-    else if (e.k === 'puddle') { V.breath(); ev('puddle'); }
-    else if (e.k === 'wet-done') { V.settle(); ev('wet-done'); }
+    else if (e.k === 'puddle') { V.breath(); ev('puddle'); pop('שלולית', '#9ED0FF'); }
+    else if (e.k === 'wet-done') { V.settle(); ev('wet-done'); pop('רטוב: לעלה', '#F6EAD2'); }
     else if (e.k === 'lift') { V.breath(); ev('lift'); }
-    else if (e.k === 'laid') { V.settle(); ev('laid:' + e.q); layLeaf(S.k, e.i, e.q, e.q === 'bad' ? e.ex : 0, e.q === 'bad' ? e.ey : 0); try { X.haptic && X.haptic(10); } catch (er) { /* */ } }
-    else if (e.k === 'tear') { V.tear(); ev('tear'); if (e.dmg) hurt(X, Mo, 'zahav.tear', at(), { lv, at: S.k }); }
-    else if (e.k === 'hole' || e.k === 'wrinkle') { ev(e.k); if (e.dmg) hurt(X, Mo, 'zahav.' + e.k, at(), { lv, at: S.k }); }
+    else if (e.k === 'laid') { V.settle(); ev('laid:' + e.q); layLeaf(S.k, e.i, e.q, e.q === 'bad' ? e.ex : 0, e.q === 'bad' ? e.ey : 0); if (e.q !== 'bad') pop(e.q === 'gold' ? 'נמתח ונצמד' : 'נצמד', e.q === 'gold' ? '#FFD45A' : '#E8C77A', K.slotX(S.g.n, e.i), ZH.H / 2); try { X.haptic && X.haptic(10); } catch (er) { /* */ } }
+    else if (e.k === 'tear') { V.tear(); ev('tear'); pop('נקרע', '#FF8A6A'); if (e.dmg) hurt(X, Mo, 'zahav.tear', at(), { lv, at: S.k }); }
+    else if (e.k === 'hole' || e.k === 'wrinkle') { ev(e.k); pop(e.k === 'hole' ? 'חור' : 'קמט', '#FF8A6A'); if (e.dmg) hurt(X, Mo, 'zahav.' + e.k, at(), { lv, at: S.k }); }
     else if (e.k === 'border') { ev('border'); if (e.dmg) hurt(X, Mo, 'zahav.border', at(), { lv, at: S.k }); }
     else if (e.k === 'free') { V.knock(); ev('free:' + e.why); const t = { pull: 'ניסוי חינם: משיכה אחורה בשחרור קורעת את העלה. תנועה אחת, ושחרור', hole: 'ניסוי חינם: העלה רחוק מהמקום שלו, נשאר חור. כוונו לחפיפה הקטנה', wrinkle: 'ניסוי חינם: חפיפה גדולה מדי מקמטת. כוונו לחפיפה הקטנה', border: 'ניסוי חינם: זהב מעבר לקו, על אחר הדלתות. קודם המסכה' }[e.why]; try { X.line(t || '', 2800); } catch (er) { /* */ } }
     else if (e.k === 'ready') { ev('ready'); }
-    else if (e.k === 'small-wrinkle') { V.tear(); ev('swrinkle'); }
+    else if (e.k === 'small-wrinkle') { V.tear(); ev('swrinkle'); pop('קמט קטן: לאט יותר', '#FF8A6A'); }
     else if (e.k === 'seg-done') {
       ev('seg:' + e.grade); award(X, at(), e.grade, lv, 'זהב');
       if (lv === 1 && e.steady) extra(X, 10, lv, 'two', 'שתי ידיים');
@@ -189,6 +207,8 @@ function make(m, X) {
     for (const b of borders) { const ok = Math.abs(S.mask - S.P.segs[b.i].border) <= ZH.MASK_TOL; b.l.material = ok ? Mt.y14woodD : Mt.y14scar; }
     // the leaves settling at once
     for (let i = A.settle.length - 1; i >= 0; i--) { const s = A.settle[i]; s.t += dt; const k = Math.min(1, s.t / 0.18); s.m.scale.set(1, 1 + 0.12 * (1 - k), 1); if (k >= 1) A.settle.splice(i, 1); }
+    { const on = S.phase === 'burnish' && A.work && A.work.x != null; glint.material.opacity += ((on ? 0.55 + 0.25 * Math.sin(A.t * 11) : 0) - glint.material.opacity) * Math.min(1, dt * 12);
+      if (on) { const p = wallPt(S.k, A.work.x, A.work.y, 0.06); glint.position.set(p[0], p[1], p[2]); glint.rotation.set(0, faceRot, A.t * 2); } }
     // voices: the brush, the agate
     V.brush(S.phase === 'wet' && A.work ? 0.6 : 0); V.agate(S.phase === 'burnish' && A.work ? 0.8 : 0);
     // the rings

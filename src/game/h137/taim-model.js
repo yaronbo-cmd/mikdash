@@ -8,8 +8,8 @@
  *     nearest ahead of him (within 30°, AUTO rad/s: spec "מסתובב לבד בעדינות אל הפתח");
  *   · free: no finger down (the halt after a step ends with it: the camera moves on only when both fingers have left).
  * THE WALLS: every edge of a room that is not an opening; he cannot pass them (the circle is pushed out). A touch of a jamb (a doorway's
- * side, or the corner of its mouth) marks the step (a soft touch: 20); a jamb struck at full speed (≥ 0.85 VMAX) with his heading more
- * than 35° off the doorway's axis is a broken stone corner: −20, kept, he stops; the step goes on, capped at 20.
+ * side, or the corner of its mouth) marks the step (a soft touch: 20); a jamb struck at full speed (≥ 0.95 VMAX) with his heading more
+ * than 45° off the doorway's axis is a broken stone corner: −20, kept, he stops; the step goes on, capped at 20.
  * A STEP = he enters the next room of the route (a cell, a corner of the roofs, the upper door): 40 clean, 20 after a touch, 10 after a
  * detour (he entered a cell not on the way and came out). Up a hatch: he walks under it on the forward drag; at his nearest to its
  * centre (the distance turns, or he stops) he rises through it in one second (≤ 0.35 off the centre: clean; else a touch of its rim).
@@ -19,7 +19,7 @@ import { BOOK } from '../world/grid.js';
 
 const T14 = BOOK.s14.taim;
 export const TM = Object.freeze({
-  R: T14.r, VMAX: 2.3, BACK: 0.5, STEER: 2.4, AUTO: 1.0, AUTO_ANG: 30, BREAK_V: 0.85, BREAK_ANG: 35, BOUNCE: 0.35, HATCH_R: 0.85, HATCH_GOLD: 0.35,
+  R: T14.r, VMAX: 2.3, BACK: 0.5, STEER: 2.4, AUTO: 1.0, AUTO_ANG: 30, BREAK_V: 0.95, BREAK_ANG: 45, BOUNCE: 0.35, HATCH_R: 0.85, HATCH_GOLD: 0.35,
   RISE_T: 1.0, CUT_T: 1.2, EPS: 1e-6, JOIN: 0.6, SEE: 6,
 });
 const RAD = Math.PI / 180;

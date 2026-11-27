@@ -198,6 +198,13 @@ function make(m, X) {
     const beam = box(X, Mt.y14cedar, R.r[0] + 0.4, R.y + 4.4, cz - 0.2, R.r[2] - 0.4, R.y + 4.75, cz + 0.2, root); beam.position.y += 1.2;
     A.settle.push({ m: beam, t: 0, y1: beam.position.y - 1.2, x: cx, z: cz, y: R.y });
   }
+  // the rooms he has walked: their floors keep a faint warm light (where am I, in level 3's floors with no signs: build 137 review)
+  const seenM = new T.MeshBasicMaterial({ color: '#FFD98A', transparent: true, opacity: 0.22, depthWrite: false });
+  function seen(roomId) {
+    A.seen = A.seen || new Set(); if (!roomId || A.seen.has(roomId)) return; A.seen.add(roomId);
+    const R = K.roomOf(roomId); if (!R || !R.r || typeof R.y !== 'number') return;
+    try { const f = box(X, seenM, R.r[0] + 0.15, R.y + 0.03, R.r[1] + 0.15, R.r[2] - 0.15, R.y + 0.06, R.r[3] - 0.15, root); f.name = 'h137-seen'; } catch (er) { /* */ }
+  }
   function light(J, kind) { const m = G.strips.get(J.a + '|' + J.b) || G.strips.get(J.b + '|' + J.a); if (!m) return; m.visible = !!kind; if (kind === 'passed') m.scale[J.axis === 'x' ? 'x' : 'y'] = 0.18; }
   function lights() {
     for (const [k, m] of G.strips) if (!k.startsWith('hatch:')) { if (!A.passed.has(k)) m.visible = false; else { m.visible = true; m.material.opacity = 0.7; } }
@@ -221,7 +228,7 @@ function make(m, X) {
       // an opening passed: its strip stays lit (thin)
       const J = K.JOINS.find((j) => (j.a === e.from && j.b === e.room) || (j.b === e.from && j.a === e.room));
       if (J) { const k = J.a + '|' + J.b; A.passed.add(k); light(J, 'passed'); }
-      const R = K.roomOf(e.room); V.step(R && R.kind === 'cell' ? 1.6 : R && R.kind === 'hall' ? 0.8 : 1.2);
+      const R = K.roomOf(e.room); seen(e.from); seen(e.room); V.step(R && R.kind === 'cell' ? 1.6 : R && R.kind === 'hall' ? 0.8 : 1.2);
     } else if (e.k === 'touch') { V.knock(); try { X.shake(0.05, 0.1); } catch (er) { /* */ } ev('touch'); }
     else if (e.k === 'break') {
       V.crack(); ev('break:' + e.door);

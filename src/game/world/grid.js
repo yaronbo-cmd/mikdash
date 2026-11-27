@@ -1817,7 +1817,7 @@ function s14(S13, S05) {
   // the gilding: the inner faces of the three walls, y 22 … 62; segments in a row along each (המחשה), the mask's track, the doors
   const zahav = {
     north: { face: H.z0, axis: 'x', a0: H.x0, a1: H.x1, y0: FL, y1: H.y1, n: 4, normal: [0, 1] },
-    east: { face: H.x1, axis: 'z', a0: H.z0, a1: H.z1, y0: FL, y1: H.y1, n: 6, normal: [-1, 0] },
+    east: { face: H.x1, axis: 'z', a0: H.z0, a1: H.z1, y0: FL, y1: H.y1, n: 6, normal: [-1, 0], line: HD.y1 },   // (line: the inner leaves' tops: level 2's band runs along it)
     south: { face: H.z1, axis: 'x', a0: H.x0, a1: H.x1, y0: FL, y1: H.y1, n: 8, normal: [0, -1] },
     seg: { y0: 30, y1: 38 },   // (the band he gilds by hand, eye height on the scaffold: the rest gilds itself by the same strokes — המחשה)
     doors: { inner: { hinge: [[H.x1, -5], [H.x1, 5]], lie: [[-10, -5], [5, 10]], y0: HD.y0, y1: HD.y1, w: 5 }, outer: { hinge: [[-92, -5], [-92, 5]], lie: [-97, -92] } },

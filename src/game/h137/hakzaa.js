@@ -17,7 +17,7 @@ import { mats14, box } from './look.js';
 import { award, extra, hurt, finish, V3, lens, voices14, ring, HANDS, dp, fingers } from './kit14.js';
 
 const S14 = BOOK.s14, YD = S14.yard, HK = K.HK;
-export const HT = Object.freeze({ HANDLE: 56, WHEEL: 56, SKEW_DP: 40, LEAN_DP: 35, NOTCH_DP: 28, TAP: 0.25, TAP_DP: 12, FOV: 40, EL: 45, SIDE: 15 });
+export const HT = Object.freeze({ HANDLE: 56, WHEEL: 56, SKEW_DP: 40, LEAN_DP: 35, LEAN_LOCK: 24, NOTCH_DP: 28, TAP: 0.25, TAP_DP: 12, FOV: 40, EL: 45, SIDE: 15 });
 const RAD = Math.PI / 180, M_DP = 0.01, WH = [0, 1.25, -0.36];   // (the wheel on its post, over the plane's middle and back)   // (a board dp in metres)
 const NAMES = K.NAMES;
 
@@ -102,6 +102,12 @@ function make(m, X) {
   // the depth's word under the wheel (three names, no millimetres), and level 3's gauge
   const ui = (cls, css) => { try { const d = document.createElement('div'); d.className = 'h109-ui ' + cls; d.style.cssText = css; document.body.appendChild(d); return d; } catch (e) { return null; } };
   const depthEl = ui('h137-depth', 'position:fixed;z-index:4;pointer-events:none;transform:translate(-50%,0);font:600 13px system-ui;color:#3A2A18;background:#F6EAD2cc;border-radius:8px;padding:1px 8px');
+  // the speed strip under the depth's word while a stroke runs: clean (green) to 240, the chip breaks (amber) to 300, a tear (red) past
+  const VMAXB = 360, speedEl = ui('h137-speed', 'position:fixed;z-index:4;pointer-events:none;transform:translate(-50%,0);width:96px;height:9px;border-radius:5px;border:1.5px solid #5A3A1E;display:none;'
+    + `background:linear-gradient(90deg,#7CC86A 0 ${100 * HK.CLEAN_V / VMAXB}%,#F0B848 0 ${100 * HK.TEAR_V / VMAXB}%,#D9563A 0)`);
+  const speedMk = speedEl ? (() => { const d = document.createElement('div'); d.style.cssText = 'position:absolute;top:-4px;width:4px;height:15px;margin-left:-2px;background:#2A1A0C;border-radius:2px'; speedEl.appendChild(d); return d; })() : null;
+  const twistOf = () => { try { const e = S.b.e; return e[0].reduce((a, v) => a + v, 0) - e[2].reduce((a, v) => a + v, 0); } catch (er) { return 0; } };
+  let twist0 = null;
   const gaugeEl = lv === 3 ? ui('h137-gauge', 'position:fixed;z-index:4;pointer-events:none;right:14px;top:70px;width:22px;height:120px;border-radius:6px;background:#F6EAD2cc;border:2px solid #7A4E2C') : null;
   const gaugeMk = gaugeEl ? (() => { const d = document.createElement('div'); d.style.cssText = 'position:absolute;left:-4px;width:26px;height:4px;background:#7A2E1A;border-radius:2px'; gaugeEl.appendChild(d); const band = document.createElement('div'); band.style.cssText = `position:absolute;left:0;width:22px;top:${60 - 60 * HK.GAUGE / 1.0}px;height:${120 * HK.GAUGE / 1.0}px;background:#9EE08A88`; gaugeEl.appendChild(band); return d; })() : null;
   try { X.kohen(false); } catch (e) { /* (the board and the plane only: the hands are the player's) */ }
@@ -160,7 +166,14 @@ function make(m, X) {
       // the push is away from the handle held (the −x handle pushes toward +x); drawn back, the plane rides lifted
       const push = A.work.end ? -1 : 1, d = out.p - S.p;
       if (d * push < -0.5 && (!S.stroke || !S.stroke.dir)) out.lift = true;
-      if (lv === 3) out.lean = Math.max(-1, Math.min(1, (A.work.c - A.work.c0) / dp(HT.LEAN_DP)));
+      // level 3's lean: set by the finger's sideways press in the first stretch of a stroke, then held for the rest of it (the push
+      // and the lean never fight: build 137 review)
+      if (lv === 3) {
+        const lean = Math.max(-1, Math.min(1, (A.work.c - A.work.c0) / dp(HT.LEAN_DP)));
+        if (!S.stroke) A.work.lock = null;
+        else if (A.work.lock == null && Math.abs(S.p - S.stroke.p0) > HT.LEAN_LOCK) A.work.lock = lean;
+        out.lean = A.work.lock != null ? A.work.lock : lean;
+      }
     }
     if (A.helper) { out.two = true; if (lv > 1) out.skew = Math.max(-HK.SKEW_MAX, Math.min(HK.SKEW_MAX, (A.helper.c - A.helper.c0) / dp(HT.SKEW_DP) * HK.SKEW_MAX)) * (A.helper.end ? 1 : -1); }
     return out;
@@ -180,9 +193,13 @@ function make(m, X) {
   }
   function handle(e) {
     if (e.k === 'depth') { V.click(); try { X.haptic && X.haptic(8); } catch (er) { /* */ } ev('depth:' + e.d); }
-    else if (e.k === 'stroke') { ev('stroke'); }
+    else if (e.k === 'stroke') { ev('stroke'); twist0 = twistOf(); }
     else if (e.k === 'chip') { ev('chip'); chipDrop(false); }
-    else if (e.k === 'pass') { ev('pass:' + e.n + (e.long ? ':long' : '')); chipDrop(e.long); V.plane(0, true); }
+    else if (e.k === 'pass') {
+      ev('pass:' + e.n + (e.long ? ':long' : '')); chipDrop(e.long); V.plane(0, true);
+      // level 3: each pass says what it did to the twist (the passes differ by what they fix, not only by their number)
+      if (lv === 3 && e.pass && twist0 != null) { const t1 = twistOf(), a0 = Math.abs(twist0), a1 = Math.abs(t1); const w = a1 < 0.15 ? 'הפיתול יושר' : a1 < a0 - 0.05 ? 'הפיתול קטן' : a1 > a0 + 0.05 ? 'הפיתול גדל: הטו לצד השני' : 'הפיתול לא זז: הטו את המקצוע אל הצד הגבוה'; try { X.line(w, 1500); } catch (er) { /* */ } }
+    }
     else if (e.k === 'nostroke') { chipDrop(false); V.plane(0, true); }
     else if (e.k === 'small') { V.tear(); ev('small'); }
     else if (e.k === 'tear') {
@@ -237,6 +254,7 @@ function make(m, X) {
     if (A.work) { const p = handleAt(A.work.end); rings.work.show(p.x, p.y, Math.min(1, (S.v || 0) / HK.CLEAN_V), (S.v || 0) <= HK.CLEAN_V && !!S.stroke); } else rings.work.hide();
     if (A.helper) { const p = handleAt(A.helper.end); rings.helper.show(p.x, p.y, Math.abs(S.skew) / HK.SKEW_MAX, Math.abs(S.skew) >= HK.SKEW_OK); } else rings.helper.hide();
     if (depthEl) { const w = wheelAt(); depthEl.style.left = (w.x + dp(58)) + 'px'; depthEl.style.top = (w.y - dp(10)) + 'px'; depthEl.textContent = NAMES[S.depth]; depthEl.style.display = S.phase === 'plane' && !A.finished ? 'block' : 'none'; }
+    if (speedEl) { const on = !!S.stroke && S.phase === 'plane' && !A.finished; speedEl.style.display = on ? 'block' : 'none'; if (on) { const w = wheelAt(); speedEl.style.left = (w.x + dp(58)) + 'px'; speedEl.style.top = (w.y + dp(14)) + 'px'; speedMk.style.left = (100 * Math.min(1, (S.v || 0) / VMAXB)) + '%'; } }
     if (gaugeMk) { const o = K.thickOver(S); gaugeMk.style.top = (60 - 60 * Math.max(-1, Math.min(1, o == null ? 0 : o)) - 2) + 'px'; gaugeEl.style.opacity = o == null ? 0.4 : 1; }
   }
   return {
@@ -267,7 +285,7 @@ function make(m, X) {
     end() {
       A.ended = true; FG.detach(); V.hush(); V.stop(); X.hand(null); lens(X, fov0);
       for (const r of Object.values(rings)) r.remove();
-      try { depthEl && depthEl.remove(); gaugeEl && gaugeEl.remove(); } catch (e) { /* */ }
+      try { depthEl && depthEl.remove(); speedEl && speedEl.remove(); gaugeEl && gaugeEl.remove(); } catch (e) { /* */ }
       try { X.kohen(true); } catch (e) { /* */ }
       X.props.remove(root);
     },

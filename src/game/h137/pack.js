@@ -69,11 +69,17 @@ async function havraka(X) {
   const wp = (x, y, off = 0.04) => [SEAM.x + SEAM.len / 2 - x * 0.01, SEAM.y + y * 0.01, SEAM.z + nz * off];
   const seam = box(X, Mt.y14scar, 0, 0, 0, 1, 1, 1, root); { const a = wp(0, 0), b = wp(HV.LEN, 0); seam.scale.set(Math.abs(a[0] - b[0]), 0.035, 0.02); seam.position.set((a[0] + b[0]) / 2, SEAM.y, SEAM.z + nz * 0.03); }
   const relief = box(X, Mt.y14goldMatte, 0, 0, 0, 1, 1, 1, root); { const a = wp(HV.LEN / 2, 0), b = wp(HV.LEN, 0); relief.scale.set(Math.abs(a[0] - b[0]), 0.5, 0.06); relief.position.set((a[0] + b[0]) / 2, SEAM.y, SEAM.z + nz * 0.05); }
+  // the polish the stone leaves behind it: a bright strip growing along the seam (the relief's half shines only where the stone was
+  // turned onto it; turned wrong, it stays matte there) — the stroke is an action, not an animation (build 137 review)
+  const trail = [];
+  { const n = 24; for (let i = 0; i < n; i++) { const a = wp(HV.LEN * i / n, 0), b = wp(HV.LEN * (i + 1) / n, 0); const q = new T.Mesh(new T.PlaneGeometry(Math.abs(a[0] - b[0]) + 0.005, 0.5), Mt.y14gold.clone()); q.material.transparent = true; q.material.opacity = 0; if (q.material.emissive) q.material.emissive.set('#FFE7A0'); q.position.set((a[0] + b[0]) / 2, SEAM.y, SEAM.z + nz * 0.085); q.rotation.y = Math.PI; root.add(q); trail.push({ q, x: HV.LEN * (i + 0.5) / n, on: 0, ok: true }); } }
+  let sparkT = 0;
   const stone = new T.Group(); root.add(stone);
   const bar = new T.Mesh(new T.BoxGeometry(AG * 0.01, 0.12, 0.1), Mt.y14agate); bar.position.x = -AG * 0.005; stone.add(bar);
   const gW = new T.Mesh(new T.BoxGeometry(0.16, 0.2, 0.14), Mt.y14handR); stone.add(gW);
   const gH = new T.Mesh(new T.BoxGeometry(0.16, 0.2, 0.14), Mt.y14handL); gH.position.x = -AG * 0.01; stone.add(gH);
   const rings = { w: ring(HANDS.R), h: ring(HANDS.L) };
+  let tAll = 0;
   const S = HVK.fresh(); let ang = 0, tip = { x: 4, y: 0, down: false };
   const scr = (p) => { try { const r = X.scr(p[0], p[1], p[2]); return { x: r.x, y: r.y }; } catch (e) { return { x: innerWidth / 2, y: innerHeight / 2 }; } };
   const toSeam = (cx, cy) => { try { const ray = X.rayAt(cx, cy), t = (SEAM.z - ray.origin.z) / ray.direction.z, hx = ray.origin.x + ray.direction.x * t, hy = ray.origin.y + ray.direction.y * t; return { x: (SEAM.x + SEAM.len / 2 - hx) / 0.01, y: (hy - SEAM.y) / 0.01 }; } catch (e) { return null; } };
@@ -98,6 +104,7 @@ async function havraka(X) {
   const auto = !!globalThis.__H137_AUTO_FINALE;
   let res = null;
   await frames((dt) => {
+    tAll += dt;
     let inp;
     if (auto) { inp = HVK.bot(S, {}); tip = { ...inp.tip }; ang = inp.ang; } else inp = { tip: H.w ? tip : { ...tip, down: false }, ang };
     if (H.w || auto) X.hand(null);
@@ -109,6 +116,10 @@ async function havraka(X) {
     V.agate(S.on ? 0.8 : 0);
     // the stone: its lead grip on the tip, turned by the helper
     const p = wp(S.on ? S.x : tip.x, tip.y, 0.1); stone.position.set(p[0], p[1], p[2]); stone.rotation.set(0, Math.PI, ang * Math.PI / 180);
+    { const relief = S.x > HV.LEN / 2, right = Math.abs(ang - HV.RELIEF) <= HV.ANG_TOL;
+      for (const tr of trail) if (S.on && !tr.on && tr.x <= S.x) { tr.on = 1; tr.ok = tr.x <= HV.LEN / 2 || right; }
+      for (const tr of trail) if (tr.on) { tr.q.material.opacity = Math.min(tr.ok ? 0.85 : 0.25, tr.q.material.opacity + dt * 3); if (tr.q.material.emissiveIntensity != null) tr.q.material.emissiveIntensity = tr.ok ? 0.5 + 0.25 * Math.sin(tAll * 6 - tr.x * 0.08) : 0; }
+      sparkT -= dt; if (S.on && relief && right && sparkT <= 0) { sparkT = 0.12; const p = wp(S.x, 0, 0.12); try { X.sparks(p[0], p[1], p[2], 3); } catch (er) { /* */ } } }
     seam.scale.x = Math.max(0.001, (HV.LEN - S.x) * 0.01); { const a = wp(S.x, 0), b = wp(HV.LEN, 0); seam.position.x = (a[0] + b[0]) / 2; }
     const sw = scr(wp(tip.x, tip.y, 0.1)), t = tailOf(), sh = scr(wp(t.x, t.y, 0.1));
     if (H.w) rings.w.show(sw.x, sw.y, Math.min(1, S.x / HV.LEN), S.on); else rings.w.hide();

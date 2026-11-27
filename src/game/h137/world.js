@@ -72,7 +72,8 @@ function doors(X, Mt, D, M) {
   if (!roofed(M)) return;
   const DR = ZB.doors, gold = gilt(M, 2) || M.finished(), mt = gold ? Mt.y14goldMatte : Mt.y14cedar;
   // the inner leaves: open 180°, flat on the east wall's inner face (x −98), z ±5 … ±10 — "אחר הדלתות" not gilded
-  for (const [za, zb] of DR.inner.lie) box(X, Mt.y14cedar, H.x1 - 0.3, DR.inner.y0, za, H.x1 - 0.02, DR.inner.y1, zb, D).name = 'h137-door-in';
+  // (while he gilds the east wall the leaves stand swung to, out of the way: the band runs along their tops)
+  if (!SH14.own['gold:east']) for (const [za, zb] of DR.inner.lie) box(X, Mt.y14cedar, H.x1 - 0.3, DR.inner.y0, za, H.x1 - 0.02, DR.inner.y1, zb, D).name = 'h137-door-in';
   // the outer leaves: on the opening's sides, inside its thickness (x −97 … −92)
   for (const s of [-1, 1]) box(X, mt, DR.outer.lie[0], DR.inner.y0, s * 5 - (s > 0 ? 0.25 : -0.25), DR.outer.lie[1], DR.inner.y1, s * 5, D).name = 'h137-door-out';
 }

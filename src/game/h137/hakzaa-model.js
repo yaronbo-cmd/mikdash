@@ -22,7 +22,7 @@
  * Nothing random: every board's shape is its index's. The work's first tear is a free try. */
 export const HK = Object.freeze({
   N: 20, LANES: 3, TRAVEL: 160, BOARD: 300, PLANE: 140, EPS: 0.04, DEPTH: [0.3, 0.6, 1.0], SKEW_MAX: 8, SKEW_OK: 4, SKEW_CUT: 0.85,
-  CLEAN_V: 240, TEAR_V: 300, TEAR_RUN: 70, DEEP_MAX: 330, PASS_MIN: 0.4, SCAR: 0.3, THIN: 2.4, GAUGE: 0.15, LEAN: 0.8,
+  CLEAN_V: 240, TEAR_V: 300, V_TAU: 0.08, V_HYST: 20, TEAR_RUN: 70, DEEP_MAX: 330, PASS_MIN: 0.4, SCAR: 0.3, THIN: 2.4, GAUGE: 0.15, LEAN: 0.8,
 });
 export const NAMES = Object.freeze(['דק', 'בינוני', 'עמוק']);
 export const LEVEL = Object.freeze({ 1: { boards: 3, passes: 3 }, 2: { boards: 4, passes: 4 }, 3: { boards: 4, passes: 6, pairs: true } });
@@ -99,13 +99,15 @@ export function step(S, dt, inp = {}) {
   const vmax = S.depth === 2 ? HK.DEEP_MAX : 1e9;
   const want = p - S.p, can = vmax * dt; if (Math.abs(want) > can) p = S.p + Math.sign(want) * can;
   if (!S.stroke) { S.stroke = { p0: S.p, lo: S.p, hi: S.p, dir: 0, fast: 0, chipped: false, cut: 0, cells: new Set(), long: true }; ev(S, { k: 'stroke' }); }
-  const st = S.stroke, dp = p - S.p, v = Math.abs(dp) / Math.max(1e-4, dt);
-  S.v = v;
+  const st = S.stroke, dp = p - S.p, v0 = Math.abs(dp) / Math.max(1e-4, dt);
+  // the speed the thresholds read: smoothed over ~80 ms (a touch screen's samples jump), with a little hysteresis at the tear line
+  st.vs = (st.vs || 0) + (v0 - (st.vs || 0)) * (1 - Math.exp(-dt / HK.V_TAU));
+  const v = st.vs; S.v = v;
   if (Math.abs(dp) > 1e-6) {
     const dir = Math.sign(dp); if (!st.dir) st.dir = dir;
     if (dir === st.dir) {
-      st.fast = v > HK.TEAR_V ? st.fast + Math.abs(dp) : 0;
-      if (v > HK.CLEAN_V && st.long) { st.long = false; ev(S, { k: 'chip' }); }
+      st.fast = v > HK.TEAR_V || (st.fast > 0 && v > HK.TEAR_V - HK.V_HYST) ? st.fast + Math.abs(dp) : 0;
+      if (v > HK.CLEAN_V + HK.V_HYST / 2 && st.long) { st.long = false; ev(S, { k: 'chip' }); }
       const c0 = cellAt(S.p), c1 = cellAt(p);
       for (let c = Math.min(c0, c1); c <= Math.max(c0, c1); c++) if (!st.cells.has(c)) { st.cells.add(c); cut(S, c, dir, st); }
       st.lo = Math.min(st.lo, p); st.hi = Math.max(st.hi, p);

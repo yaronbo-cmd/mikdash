@@ -19,7 +19,7 @@ import { BOOK } from '../world/grid.js';
 
 const T14 = BOOK.s14.taim;
 export const TM = Object.freeze({
-  R: T14.r, VMAX: 2.3, BACK: 0.5, STEER: 2.4, AUTO: 1.0, AUTO_ANG: 30, BREAK_V: 0.95, BREAK_ANG: 45, BOUNCE: 0.35, HATCH_R: 0.85, HATCH_GOLD: 0.35,
+  R: T14.r, VMAX: 2.3, BACK: 0.5, STEER: 2.4, AUTO: 1.0, AUTO_ANG: 30, AUTO2: 0.5, AUTO_ANG2: 20, BREAK_V: 0.95, BREAK_ANG: 45, BOUNCE: 0.35, HATCH_R: 0.85, HATCH_GOLD: 0.35,
   RISE_T: 1.0, CUT_T: 1.2, EPS: 1e-6, JOIN: 0.6, SEE: 6,
 });
 const RAD = Math.PI / 180;
@@ -185,9 +185,11 @@ export function step(S, dt, inp = {}) {
   if (inp.turn) { S.yaw = wrap(S.yaw + inp.turn); if (Math.abs(inp.turn) > 1e-4) S.used.ring = true; }
   const fwd = Math.max(-1, Math.min(1, inp.fwd || 0));
   if (lv === 1 && inp.steer != null && Math.abs(fwd) > 0.05) { const d = wrap(inp.steer - S.yaw); S.yaw = wrap(S.yaw + Math.sign(d) * Math.min(Math.abs(d), TM.STEER * dt)); }
-  if (lv === 1 && fwd > 0.05) {
-    const G = goal(S);
-    if (G) { const a = yawOf(G.x - S.x, G.z - S.z), d = wrap(a - S.yaw), dist = Math.hypot(G.x - S.x, G.z - S.z); if (Math.abs(d) < TM.AUTO_ANG * RAD && dist < TM.SEE && dist > 0.3) S.yaw = wrap(S.yaw + Math.sign(d) * Math.min(Math.abs(d), TM.AUTO * dt)); }
+  // the doorway's pull: walking forward nearly at the next opening, his heading eases onto it (level 1 within 30° at 1 rad/s; from
+  // level 2 a gentler assist, within 20° at 0.5 rad/s, so the ring still steers: build 137 review, "a child must not stick in the jambs")
+  if (fwd > 0.05) {
+    const G = goal(S), ang = lv === 1 ? TM.AUTO_ANG : TM.AUTO_ANG2, rate = lv === 1 ? TM.AUTO : TM.AUTO2;
+    if (G) { const a = yawOf(G.x - S.x, G.z - S.z), d = wrap(a - S.yaw), dist = Math.hypot(G.x - S.x, G.z - S.z); if (Math.abs(d) < ang * RAD && dist < TM.SEE && dist > 0.3) S.yaw = wrap(S.yaw + Math.sign(d) * Math.min(Math.abs(d), rate * dt)); }
   }
   // the walk
   const v = fwd >= 0 ? fwd * TM.VMAX : fwd * TM.VMAX * TM.BACK; S.v = v;
